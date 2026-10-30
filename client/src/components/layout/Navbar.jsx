@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth, DEMO_USERS } from '../../context/AuthContext';
 import { useSync } from '../../context/SyncContext';
@@ -15,41 +15,49 @@ import {
   Menu, 
   X,
   RefreshCw,
-  AlertTriangle
+  LogIn,
+  LogOut,
+  UserPlus
 } from 'lucide-react';
 
 export default function Navbar() {
   const { language, toggleLanguage, t, isRTL } = useLanguage();
   const { currentUser, loginAs, logout, isTeacher, isMentor } = useAuth();
-  const { isOnline, syncStatus, triggerSync, quotaWarning } = useSync();
+  const { isOnline, syncStatus, triggerSync } = useSync();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [roleSwitcherOpen, setRoleSwitcherOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isActive = (path) => location.pathname === path;
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200">
-      {/* Simulation Role Switcher Bar for Demo Testing (SRS §2.3) */}
+      {/* Simulation Role Switcher Bar for Demo Testing (SRS §2.3 & §2.7) */}
       <div className="bg-slate-900 text-slate-300 text-xs px-4 py-1.5 flex flex-wrap items-center justify-between gap-2 border-b border-slate-800">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-emerald-400 uppercase tracking-wider text-[10px]">
-            Demo Environment:
+            Demo Simulation:
           </span>
           <span>Logged in as:</span>
           <span className="text-white font-medium">
-            {currentUser ? currentUser.name : 'Guest'} ({currentUser ? currentUser.role : 'None'})
+            {currentUser ? currentUser.name : 'Guest (Not logged in)'} 
+            {currentUser && ` (${currentUser.role})`}
           </span>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-slate-400">Switch Role:</span>
+          <span className="text-slate-400">Quick Persona Switch:</span>
           <div className="flex items-center gap-1">
             {DEMO_USERS.map((user) => (
               <button
                 key={user.id}
                 onClick={() => loginAs(user.id)}
-                className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
+                className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
                   currentUser?.id === user.id
                     ? 'bg-emerald-600 text-white'
                     : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
@@ -135,7 +143,7 @@ export default function Navbar() {
             )}
           </nav>
 
-          {/* Right Action Utilities (Language, Sync, Connection Status) */}
+          {/* Right Action Utilities (Language, Sync, Auth) */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Online / Offline Status Badge */}
             <div
@@ -159,10 +167,10 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Sync Status Button */}
+            {/* Sync Button */}
             <button
               onClick={triggerSync}
-              className={`p-1.5 rounded-lg border transition-colors flex items-center text-xs gap-1 ${
+              className={`p-1.5 rounded-lg border transition-colors flex items-center text-xs gap-1 cursor-pointer ${
                 syncStatus === 'synced'
                   ? 'text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100'
                   : syncStatus === 'pending'
@@ -192,12 +200,39 @@ export default function Navbar() {
             {/* Language Switcher */}
             <button
               onClick={toggleLanguage}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-200"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-200 cursor-pointer"
               title="Switch language / تغيير اللغة"
             >
               <Globe className="w-4 h-4 text-emerald-700" />
               <span>{t.common.languageSwitch}</span>
             </button>
+
+            {/* Authentication Buttons */}
+            {currentUser ? (
+              <button
+                onClick={handleLogout}
+                className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 border border-slate-200 transition-colors"
+                title={t.nav.logout}
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>{t.nav.logout}</span>
+              </button>
+            ) : (
+              <div className="hidden sm:flex items-center gap-1.5">
+                <Link
+                  to="/login"
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
+                >
+                  {t.nav.login}
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-sm"
+                >
+                  {t.nav.register}
+                </Link>
+              </div>
+            )}
 
             {/* Mobile Menu Hamburger */}
             <button
@@ -245,9 +280,40 @@ export default function Navbar() {
               {t.nav.teacherAdmin}
             </Link>
           )}
+
+          <div className="pt-2 border-t border-slate-200 space-y-1">
+            {currentUser ? (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleLogout();
+                }}
+                className="w-full text-left rtl:text-right px-3 py-2 rounded-lg text-base font-medium text-rose-600 hover:bg-rose-50 flex items-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>{t.nav.logout}</span>
+              </button>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 rounded-lg text-base font-medium text-slate-700 hover:bg-slate-100"
+                >
+                  {t.nav.login}
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 rounded-lg text-base font-bold text-emerald-700 hover:bg-emerald-50"
+                >
+                  {t.nav.register}
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       )}
     </header>
   );
 }
-

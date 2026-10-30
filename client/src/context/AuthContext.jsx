@@ -17,7 +17,7 @@ export const DEMO_USERS = [
     email: 'sarah.mentor@hemma.sd',
     role: 'mentor',
     university: 'University of Khartoum',
-    approvedTopics: ['topic-1', 'topic-2'], // e.g. Python Basics, Control Flow
+    approvedTopics: ['topic-1', 'topic-2'],
     language: 'en',
   },
   {
@@ -26,7 +26,7 @@ export const DEMO_USERS = [
     email: 'omar.mentor@hemma.sd',
     role: 'mentor',
     university: 'Sudan University of Science and Technology',
-    approvedTopics: ['topic-2', 'topic-3'], // Functions, Data Structures
+    approvedTopics: ['topic-2', 'topic-3'],
     language: 'ar',
   },
   {
@@ -52,17 +52,30 @@ export const DEMO_USERS = [
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+  const [usersList, setUsersList] = useState(() => {
+    try {
+      const saved = localStorage.getItem('hemma_registered_users');
+      return saved ? JSON.parse(saved) : DEMO_USERS;
+    } catch {
+      return DEMO_USERS;
+    }
+  });
+
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = localStorage.getItem('hemma_user');
     if (saved) {
       try {
         return JSON.parse(saved);
       } catch {
-        return DEMO_USERS[4]; // Default to learner
+        return DEMO_USERS[4];
       }
     }
-    return DEMO_USERS[4]; // Ahmed Osman (Learner)
+    return DEMO_USERS[4]; // Default to learner
   });
+
+  useEffect(() => {
+    localStorage.setItem('hemma_registered_users', JSON.stringify(usersList));
+  }, [usersList]);
 
   useEffect(() => {
     if (currentUser) {
@@ -72,11 +85,47 @@ export function AuthProvider({ children }) {
     }
   }, [currentUser]);
 
+  // Authentication: Login with email & password simulation
+  const login = (email, password) => {
+    const found = usersList.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
+    if (!found) {
+      throw new Error('Account not found with this email address.');
+    }
+    setCurrentUser(found);
+    return found;
+  };
+
+  // Quick switch for demo testing
   const loginAs = (userId) => {
-    const found = DEMO_USERS.find((u) => u.id === userId);
+    const found = usersList.find((u) => u.id === userId);
     if (found) {
       setCurrentUser(found);
     }
+  };
+
+  // Registration strictly as Learner (SRS FR-1.1 & BR-1)
+  const registerLearner = ({ name, email, university, ageConfirmed }) => {
+    if (!ageConfirmed) {
+      throw new Error('You must confirm that you are 18 years of age or older (BR-1).');
+    }
+    const existing = usersList.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
+    if (existing) {
+      throw new Error('An account is already registered with this email address.');
+    }
+
+    const newLearner = {
+      id: `usr-learner-${Date.now()}`,
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      role: 'learner', // Role is strictly learner, cannot be self-selected per FR-1.1
+      university: university.trim(),
+      ageConfirmed: true,
+      language: 'en',
+    };
+
+    setUsersList((prev) => [...prev, newLearner]);
+    setCurrentUser(newLearner);
+    return newLearner;
   };
 
   const logout = () => {
@@ -85,14 +134,16 @@ export function AuthProvider({ children }) {
 
   const isTeacher = currentUser?.role === 'teacher';
   const isMentor = currentUser?.role === 'mentor';
-  const isLearner = currentUser?.role === 'learner' || currentUser?.role === 'mentor'; // Mentors can also participate as learners per SRS §2.3
+  const isLearner = currentUser?.role === 'learner' || currentUser?.role === 'mentor';
 
   return (
     <AuthContext.Provider
       value={{
         currentUser,
-        setCurrentUser,
+        usersList,
+        login,
         loginAs,
+        registerLearner,
         logout,
         isTeacher,
         isMentor,
@@ -111,4 +162,3 @@ export function useAuth() {
   }
   return context;
 }
-

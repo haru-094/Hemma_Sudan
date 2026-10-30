@@ -1,0 +1,25 @@
+{
+  "name": "Hemma Sudan - Programming & Mentorship Platform",
+  "short_name": "Hemma Sudan",
+  "description": "Supplementary programming learning & mentorship platform designed for intermittent internet access in Sudan.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#0F766E",
+  "orientation": "portrait-primary",
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": [
+    "education",
+    "productivity"
+  ]
+}
+

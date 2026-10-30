@@ -1,30 +1,27 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { 
+  saveLessonToIDB, 
+  removeLessonFromIDB, 
+  getAllSavedLessonsFromIDB, 
+  enqueueProgressToIDB, 
+  getPendingProgressFromIDB, 
+  removeProgressFromQueue,
+  clearAllPendingQueue,
+  clearAllOfflineIDB
+} from '../services/indexedDB';
+import { LESSONS } from '../data/mockData';
 
 const SyncContext = createContext(null);
 
 export function SyncProvider({ children }) {
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
   const [syncStatus, setSyncStatus] = useState('synced'); // 'synced' | 'pending' | 'failed'
-  const [pendingQueue, setPendingQueue] = useState(() => {
-    try {
-      const saved = localStorage.getItem('hemma_pending_queue');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-  const [savedLessons, setSavedLessons] = useState(() => {
-    try {
-      const saved = localStorage.getItem('hemma_saved_lessons');
-      return saved ? JSON.parse(saved) : ['lesson-1']; // Default lesson 1 saved
-    } catch {
-      return ['lesson-1'];
-    }
-  });
+  const [pendingQueue, setPendingQueue] = useState([]);
+  const [savedLessons, setSavedLessons] = useState([]);
   const [quotaWarning, setQuotaWarning] = useState(false);
-  const [storageUsagePercent, setStorageUsagePercent] = useState(15); // Default mock percent
+  const [storageUsagePercent, setStorageUsagePercent] = useState(12);
 
-  // Check storage quota (FR §3.1: warn at >80% quota)
+  // Monitor storage quota usage (SRS §3.1: warn and prevent saves when >80% quota)
   const checkStorageQuota = useCallback(async () => {
     if (navigator.storage && navigator.storage.estimate) {
       try {
@@ -37,20 +34,51 @@ export function SyncProvider({ children }) {
             return false;
           }
         }
-      } catch {
-        // Fallback for environments where estimate fails
+      } catch (e) {
+        console.warn('Storage estimate failed:', e);
       }
     }
     setQuotaWarning(false);
     return true;
   }, []);
 
-  // Listen to browser network changes
+  // Initialize data from IndexedDB
+  useEffect(() => {
+    async function loadFromDB() {
+      try {
+        // Load saved lessons from IndexedDB
+        const lessons = await getAllSavedLessonsFromIDB();
+        if (lessons.length > 0) {
+          setSavedLessons(lessons.map((l) => l.id));
+        } else {
+          // Pre-populate lesson 1 for demonstration if database is fresh
+          const defaultLesson = LESSONS[0];
+          if (defaultLesson) {
+            await saveLessonToIDB(defaultLesson);
+            setSavedLessons([defaultLesson.id]);
+          }
+        }
+
+        // Load queued progress records
+        const queue = await getPendingProgressFromIDB();
+        setPendingQueue(queue);
+        if (queue.length > 0) {
+          setSyncStatus('pending');
+        }
+      } catch (err) {
+        console.error('Error initializing IndexedDB:', err);
+      }
+    }
+
+    loadFromDB();
+    checkStorageQuota();
+  }, [checkStorageQuota]);
+
+  // Online / offline event listeners (FR-5.2)
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      // Auto sync when connection is restored per FR-5.2
-      triggerSync();
+      triggerSync(); // Automatic sync upon reconnection (FR-5.2)
     };
     const handleOffline = () => {
       setIsOnline(false);
@@ -59,34 +87,17 @@ export function SyncProvider({ children }) {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    checkStorageQuota();
-
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [checkStorageQuota]);
+  }, []);
 
-  // Save pending queue to localStorage
-  useEffect(() => {
-    localStorage.setItem('hemma_pending_queue', JSON.stringify(pendingQueue));
-    if (pendingQueue.length > 0 && syncStatus !== 'failed') {
-      setSyncStatus('pending');
-    } else if (pendingQueue.length === 0) {
-      setSyncStatus('synced');
-    }
-  }, [pendingQueue, syncStatus]);
-
-  // Save offline lesson ids
-  useEffect(() => {
-    localStorage.setItem('hemma_saved_lessons', JSON.stringify(savedLessons));
-  }, [savedLessons]);
-
-  // Record a progress update locally (FR-5.1 & FR-5.4)
-  const recordProgress = (lessonId, lastPosition = 100, status = 'completed') => {
+  // Record learner progress locally in IndexedDB (FR-5.1 & FR-5.4)
+  const recordProgress = async (lessonId, lastPosition = 100, status = 'completed') => {
     const updateId = `upd-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    const update = {
-      updateId,
+    const progressUpdate = {
+      updateId, // Client-generated unique ID to prevent duplicate requests (FR-5.4)
       lessonId,
       lastPosition,
       status,
@@ -94,15 +105,20 @@ export function SyncProvider({ children }) {
       retryCount: 0,
     };
 
-    setPendingQueue((prev) => [...prev, update]);
-    setSyncStatus('pending');
+    try {
+      await enqueueProgressToIDB(progressUpdate);
+      setPendingQueue((prev) => [...prev, progressUpdate]);
+      setSyncStatus('pending');
 
-    if (isOnline) {
-      triggerSync();
+      if (navigator.onLine) {
+        triggerSync();
+      }
+    } catch (err) {
+      console.error('Failed to record progress to IndexedDB:', err);
     }
   };
 
-  // Synchronize queued items with server (with FR-5.7 retry logic 5s, 15s, 60s)
+  // Synchronize queued items with server (FR-5.2, FR-5.4, FR-5.7)
   const triggerSync = async () => {
     if (!navigator.onLine) {
       setSyncStatus('pending');
@@ -110,32 +126,57 @@ export function SyncProvider({ children }) {
     }
 
     try {
-      // Simulate sync delay
-      await new Promise((res) => setTimeout(res, 600));
+      const itemsToSync = await getPendingProgressFromIDB();
+      if (itemsToSync.length === 0) {
+        setSyncStatus('synced');
+        return;
+      }
 
-      // In Step 1 & 2 before backend connection, mark all pending as synced
+      // Simulated sync request delay
+      await new Promise((res) => setTimeout(res, 500));
+
+      // Clear from IndexedDB once confirmed
+      await clearAllPendingQueue();
       setPendingQueue([]);
       setSyncStatus('synced');
-    } catch {
+      await checkStorageQuota();
+    } catch (err) {
+      console.error('Sync failed:', err);
       setSyncStatus('failed');
     }
   };
 
-  // Toggle saving lesson offline
+  // Toggle saving lesson to IndexedDB (FR-4.1)
   const toggleSaveOffline = async (lessonId) => {
-    const canSave = await checkStorageQuota();
-    if (!canSave && !savedLessons.includes(lessonId)) {
-      alert('Local storage exceeds 80% quota. Please remove saved lessons first.');
-      return;
+    const isSaved = savedLessons.includes(lessonId);
+
+    if (!isSaved) {
+      const canSave = await checkStorageQuota();
+      if (!canSave) {
+        alert('Warning: Local storage exceeds 80% quota limit. Please free up space before saving new lessons.');
+        return;
+      }
+
+      const lessonToSave = LESSONS.find((l) => l.id === lessonId);
+      if (lessonToSave) {
+        await saveLessonToIDB(lessonToSave);
+        setSavedLessons((prev) => [...prev, lessonId]);
+      }
+    } else {
+      await removeLessonFromIDB(lessonId);
+      setSavedLessons((prev) => prev.filter((id) => id !== lessonId));
     }
 
-    setSavedLessons((prev) => {
-      if (prev.includes(lessonId)) {
-        return prev.filter((id) => id !== lessonId);
-      } else {
-        return [...prev, lessonId];
-      }
-    });
+    await checkStorageQuota();
+  };
+
+  // Clear all cached lessons & offline data
+  const clearCache = async () => {
+    await clearAllOfflineIDB();
+    setSavedLessons([]);
+    setPendingQueue([]);
+    setSyncStatus('synced');
+    await checkStorageQuota();
   };
 
   const isLessonSaved = (lessonId) => savedLessons.includes(lessonId);
@@ -154,6 +195,7 @@ export function SyncProvider({ children }) {
         triggerSync,
         toggleSaveOffline,
         isLessonSaved,
+        clearCache,
       }}
     >
       {children}
@@ -168,4 +210,3 @@ export function useSync() {
   }
   return context;
 }
-

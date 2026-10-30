@@ -7,6 +7,8 @@ import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import OfflineBanner from './components/layout/OfflineBanner';
 import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import LessonsPage from './pages/LessonsPage';
 import LessonDetailPage from './pages/LessonDetailPage';
 import TopicProjectPage from './pages/TopicProjectPage';
@@ -26,6 +28,8 @@ export default function App() {
               <main className="flex-1">
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
                   <Route path="/lessons" element={<LessonsPage />} />
                   <Route path="/lessons/:id" element={<LessonDetailPage />} />
                   <Route path="/project/:topicId" element={<TopicProjectPage />} />
