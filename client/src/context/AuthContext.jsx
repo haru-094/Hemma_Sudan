@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-// Demo users specified in SRS §2.3 and §2.7:
-// 1 teacher, 3 mentors, multiple learners
 export const DEMO_USERS = [
   {
     id: 'usr-teacher-1',
@@ -70,7 +68,7 @@ export function AuthProvider({ children }) {
         return DEMO_USERS[4];
       }
     }
-    return DEMO_USERS[4]; // Default to learner
+    return DEMO_USERS[4];
   });
 
   useEffect(() => {
@@ -85,7 +83,6 @@ export function AuthProvider({ children }) {
     }
   }, [currentUser]);
 
-  // Authentication: Login with email & password simulation
   const login = (email, password) => {
     const found = usersList.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
     if (!found) {
@@ -95,7 +92,6 @@ export function AuthProvider({ children }) {
     return found;
   };
 
-  // Quick switch for demo testing
   const loginAs = (userId) => {
     const found = usersList.find((u) => u.id === userId);
     if (found) {
@@ -103,7 +99,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Registration strictly as Learner (SRS FR-1.1 & BR-1)
   const registerLearner = ({ name, email, university, ageConfirmed }) => {
     if (!ageConfirmed) {
       throw new Error('You must confirm that you are 18 years of age or older (BR-1).');
@@ -117,7 +112,7 @@ export function AuthProvider({ children }) {
       id: `usr-learner-${Date.now()}`,
       name: name.trim(),
       email: email.trim().toLowerCase(),
-      role: 'learner', // Role is strictly learner, cannot be self-selected per FR-1.1
+      role: 'learner',
       university: university.trim(),
       ageConfirmed: true,
       language: 'en',

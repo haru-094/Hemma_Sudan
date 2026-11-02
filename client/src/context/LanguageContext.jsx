@@ -118,7 +118,6 @@ const translations = {
 const LanguageContext = createContext(null);
 
 export function LanguageProvider({ children }) {
-  // English is default per SRS §1.4 / FR-3.1
   const [language, setLanguage] = useState(() => {
     return localStorage.getItem('hemma_lang') || 'en';
   });
@@ -151,4 +150,3 @@ export function useLanguage() {
   }
   return context;
 }
-
