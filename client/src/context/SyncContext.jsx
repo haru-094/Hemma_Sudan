@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { 
   saveLessonToIDB, 
   removeLessonFromIDB, 
@@ -13,14 +13,21 @@ import { LESSONS } from '../data/mockData';
 
 const SyncContext = createContext(null);
 
+// Exponential retry delays per SRS FR-5.7 & Sequence Diagram: 5s, 15s, 60s
+const RETRY_DELAYS = [5000, 15000, 60000];
+
 export function SyncProvider({ children }) {
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
-  const [syncStatus, setSyncStatus] = useState('synced');
+  const [syncStatus, setSyncStatus] = useState('synced'); // 'synced' | 'pending' | 'failed'
   const [pendingQueue, setPendingQueue] = useState([]);
   const [savedLessons, setSavedLessons] = useState([]);
   const [quotaWarning, setQuotaWarning] = useState(false);
   const [storageUsagePercent, setStorageUsagePercent] = useState(12);
 
+  const retryAttemptRef = useRef(0);
+  const retryTimeoutRef = useRef(null);
+
+  // Monitor storage quota usage (SRS §3.1: warn when >80%)
   const checkStorageQuota = useCallback(async () => {
     if (navigator.storage && navigator.storage.estimate) {
       try {
@@ -41,6 +48,7 @@ export function SyncProvider({ children }) {
     return true;
   }, []);
 
+  // Initialize data from IndexedDB
   useEffect(() => {
     async function loadFromDB() {
       try {
@@ -69,13 +77,18 @@ export function SyncProvider({ children }) {
     checkStorageQuota();
   }, [checkStorageQuota]);
 
+  // Online / offline event listeners (FR-5.2)
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      triggerSync();
+      retryAttemptRef.current = 0;
+      triggerSync(); // Automatic sync upon reconnection (FR-5.2)
     };
     const handleOffline = () => {
       setIsOnline(false);
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
     };
 
     window.addEventListener('online', handleOnline);
@@ -84,9 +97,13 @@ export function SyncProvider({ children }) {
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
     };
   }, []);
 
+  // Record progress with client UUID for duplicate protection (FR-5.4)
   const recordProgress = async (lessonId, lastPosition = 100, status = 'completed') => {
     const updateId = `upd-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const progressUpdate = {
@@ -111,6 +128,7 @@ export function SyncProvider({ children }) {
     }
   };
 
+  // Synchronize queued items with server (FR-5.2, FR-5.4, FR-5.7)
   const triggerSync = async () => {
     if (!navigator.onLine) {
       setSyncStatus('pending');
@@ -121,28 +139,49 @@ export function SyncProvider({ children }) {
       const itemsToSync = await getPendingProgressFromIDB();
       if (itemsToSync.length === 0) {
         setSyncStatus('synced');
+        retryAttemptRef.current = 0;
         return;
       }
 
-      // Attempt live backend synchronization with fallback
-      try {
-        await api.syncProgress({
-          updates: itemsToSync,
-          learnerId: 'usr-learner-1',
-        });
-      } catch (backendErr) {
-        // Fallback for offline or local dev without active server
-        await new Promise((res) => setTimeout(res, 400));
-      }
+      setSyncStatus('pending');
 
+      // Attempt live backend synchronization
+      await api.syncProgress({
+        updates: itemsToSync,
+        learnerId: 'usr-learner-1',
+      });
+
+      // Clear from IndexedDB once confirmed
       await clearAllPendingQueue();
       setPendingQueue([]);
       setSyncStatus('synced');
+      retryAttemptRef.current = 0;
       await checkStorageQuota();
     } catch (err) {
-      console.error('Sync failed:', err);
-      setSyncStatus('failed');
+      console.warn('Sync attempt failed:', err.message);
+
+      // FR-5.7 Exponential backoff retry logic (5s, 15s, 60s)
+      const currentAttempt = retryAttemptRef.current;
+      if (currentAttempt < RETRY_DELAYS.length) {
+        const delay = RETRY_DELAYS[currentAttempt];
+        retryAttemptRef.current += 1;
+        setSyncStatus('pending');
+
+        if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = setTimeout(() => {
+          triggerSync();
+        }, delay);
+      } else {
+        // After 3 failed attempts, mark as failed and permit manual retry (FR-5.7)
+        setSyncStatus('failed');
+      }
     }
+  };
+
+  // Manual retry resets the attempt counter
+  const manualRetrySync = () => {
+    retryAttemptRef.current = 0;
+    triggerSync();
   };
 
   const toggleSaveOffline = async (lessonId) => {
@@ -190,6 +229,7 @@ export function SyncProvider({ children }) {
         storageUsagePercent,
         recordProgress,
         triggerSync,
+        manualRetrySync,
         toggleSaveOffline,
         isLessonSaved,
         clearCache,
