@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth');
 const curriculumRoutes = require('./routes/curriculum');
 const submissionRoutes = require('./routes/submissions');
 const syncRoutes = require('./routes/sync');
+const teacherRoutes = require('./routes/teacher');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -36,6 +37,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api', curriculumRoutes);
 app.use('/api', submissionRoutes);
 app.use('/api/sync', syncRoutes);
+app.use('/api/teacher', teacherRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
