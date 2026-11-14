@@ -28,16 +28,19 @@ export const api = {
   login: (payload) => request('/auth/login', { method: 'POST', body: JSON.stringify(payload) }),
   getUsers: () => request('/auth/users'),
 
-  // Curriculum
+  // Curriculum & Translation
   getTopics: () => request('/topics'),
   getLesson: (id) => request(`/lessons/${id}`),
   createLesson: (payload) => request('/lessons', { method: 'POST', body: JSON.stringify(payload) }),
+  generateArabicDraft: (payload) => request('/translate/draft', { method: 'POST', body: JSON.stringify(payload) }),
+  updateArabicStatus: (lessonId, payload) => request(`/lessons/${lessonId}/arabic-status`, { method: 'PATCH', body: JSON.stringify(payload) }),
 
-  // Submissions & Reviews
+  // Submissions, Reviews & Multi-attempt History
   getSubmissions: (params = {}) => {
     const query = new URLSearchParams(params).toString();
     return request(`/submissions${query ? `?${query}` : ''}`);
   },
+  getSubmissionHistory: (topicId, learnerId) => request(`/submissions/history/${topicId}/${learnerId}`),
   createSubmission: (payload) => request('/submissions', { method: 'POST', body: JSON.stringify(payload) }),
   submitFeedback: (subId, payload) => request(`/submissions/${subId}/feedback`, { method: 'POST', body: JSON.stringify(payload) }),
   resolveEscalation: (subId, payload) => request(`/submissions/${subId}/resolve-escalation`, { method: 'POST', body: JSON.stringify(payload) }),
