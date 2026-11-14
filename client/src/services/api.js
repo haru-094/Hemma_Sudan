@@ -42,7 +42,7 @@ export const api = {
   submitFeedback: (subId, payload) => request(`/submissions/${subId}/feedback`, { method: 'POST', body: JSON.stringify(payload) }),
   resolveEscalation: (subId, payload) => request(`/submissions/${subId}/resolve-escalation`, { method: 'POST', body: JSON.stringify(payload) }),
 
-  // Teacher Hub Operations (FR-8.1, FR-8.2, FR-8.3, FR-13.1, NFR-13)
+  // Teacher Hub Operations
   getTeacherMentors: () => request('/teacher/mentors'),
   toggleMentorTopic: (payload) => request('/teacher/mentors/toggle-topic', { method: 'POST', body: JSON.stringify(payload) }),
   resetAccount: (payload) => request('/teacher/reset-account', { method: 'POST', body: JSON.stringify(payload) }),

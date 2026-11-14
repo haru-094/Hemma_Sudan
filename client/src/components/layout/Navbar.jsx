@@ -37,7 +37,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200">
-      {/* Simulation Role Switcher Bar for Demo Testing (SRS §2.3 & §2.7) */}
+      {/* Simulation Role Switcher Bar for Demo Testing */}
       <div className="bg-slate-900 text-slate-300 text-xs px-4 py-1.5 flex flex-wrap items-center justify-between gap-2 border-b border-slate-800">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-emerald-400 uppercase tracking-wider text-[10px]">

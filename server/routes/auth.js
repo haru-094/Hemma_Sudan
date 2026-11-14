@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// Registration strictly restricted to Learner role (BR-1, FR-1.1)
+// Registration strictly restricted to Learner role
 router.post('/register', async (req, res, next) => {
   try {
     const { name, email, password, university, ageConfirmed } = req.body;
@@ -17,7 +17,7 @@ router.post('/register', async (req, res, next) => {
     if (!ageConfirmed) {
       return res.status(400).json({
         errorCode: 'AGE_VERIFICATION_REQUIRED',
-        message: 'Registration requires confirmation that the student is aged 18 or above (BR-1).',
+        message: 'Registration requires confirmation that the student is aged 18 or above.',
       });
     }
 

@@ -31,7 +31,7 @@ export default function SubmissionPage() {
 
   const ArrowBackIcon = isRTL ? ArrowRight : ArrowLeft;
 
-  // Validate GitHub link format (FR-6.3)
+  // Validate GitHub link format
   const isValidGithubUrl = (url) => {
     try {
       const parsed = new URL(url.trim());
@@ -48,7 +48,7 @@ export default function SubmissionPage() {
     e.preventDefault();
     setErrorMsg('');
 
-    // Check online requirement (FR-6.4)
+    // Check online requirement
     if (!isOnline) {
       setErrorMsg(
         isRTL
@@ -135,8 +135,8 @@ export default function SubmissionPage() {
             </strong>
             <span>
               {isRTL
-                ? 'وفقاً لمتطلبات النظام (FR-6.4)، يجب توفر اتصال نشط لرفع رابط المستودع ومشاركته مع المرشد.'
-                : 'Per SRS FR-6.4, code submissions require an active internet connection and cannot be queued offline.'}
+                ? 'يجب توفر اتصال نشط لرفع رابط المستودع ومشاركته مع المرشد.'
+                : 'Code submissions require an active internet connection and cannot be queued offline.'}
             </span>
           </div>
         </div>

@@ -1,10 +1,9 @@
 -- Hemma Sudan Database Schema
--- Derived strictly from SRS §2.1, §4.1, and Appendix B (UML Class Diagram, Sequence Diagram, State Machine)
 
 -- Enable UUID extension for PostgreSQL if available
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 1. USERS TABLE (Abstract User base class + Learner / Teacher inheritance per UML Class Diagram)
+-- 1. USERS TABLE
 CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(64) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -43,7 +42,7 @@ CREATE TABLE IF NOT EXISTS lessons (
     notes_ar TEXT NOT NULL,
     code_snippet TEXT NOT NULL,
     arabic_status VARCHAR(32) DEFAULT 'approved' CHECK (arabic_status IN ('draft', 'approved', 'pending')),
-    recording_link TEXT, -- External Zoom / Google Meet recording link per SRS §3.3
+    recording_link TEXT, -- External Zoom / Google Meet recording link
     is_published BOOLEAN DEFAULT TRUE,
     version INT DEFAULT 1,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -70,7 +69,7 @@ CREATE TABLE IF NOT EXISTS topic_assignments (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 6. MENTOR APPROVAL TABLE (Teacher-approved mentor permissions by topic per UML Class Diagram & FR-8.2)
+-- 6. MENTOR APPROVAL TABLE (Teacher-approved mentor permissions by topic)
 CREATE TABLE IF NOT EXISTS mentor_approvals (
     id VARCHAR(64) PRIMARY KEY,
     mentor_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -115,10 +114,10 @@ CREATE TABLE IF NOT EXISTS feedbacks (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 10. PROGRESS RECORDS TABLE (Offline idempotent sync queue per UML Class Diagram, Sequence Diagram & FR-5.4)
+-- 10. PROGRESS RECORDS TABLE (Offline idempotent sync queue)
 CREATE TABLE IF NOT EXISTS progress_records (
     id VARCHAR(64) PRIMARY KEY,
-    update_id VARCHAR(128) NOT NULL UNIQUE, -- Unique client-generated ID for duplicate protection (FR-5.4)
+    update_id VARCHAR(128) NOT NULL UNIQUE, -- Unique client-generated ID for duplicate protection
     learner_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     lesson_id VARCHAR(64) NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
     status VARCHAR(32) NOT NULL DEFAULT 'completed',
@@ -128,7 +127,7 @@ CREATE TABLE IF NOT EXISTS progress_records (
     synced_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 11. AUDIT LOGS TABLE (Records timestamps for mentor grant/revoke & manual account resets per NFR-13)
+-- 11. AUDIT LOGS TABLE (Records timestamps for mentor grant/revoke & manual account resets)
 CREATE TABLE IF NOT EXISTS audit_logs (
     id VARCHAR(64) PRIMARY KEY,
     action VARCHAR(64) NOT NULL, -- 'MENTOR_APPROVED', 'MENTOR_REVOKED', 'MANUAL_ACCOUNT_RESET'

@@ -46,7 +46,7 @@ app.use((req, res) => {
   });
 });
 
-// Centralized JSON error formatting (SRS §3.3)
+// Centralized JSON error formatting
 app.use((err, req, res, next) => {
   console.error('Server error encountered:', err);
   const status = err.status || 500;

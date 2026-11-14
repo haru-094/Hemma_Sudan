@@ -28,7 +28,7 @@ router.post('/submissions', async (req, res, next) => {
     if (!isValidGithubUrl(githubLink)) {
       return res.status(400).json({
         errorCode: 'INVALID_GITHUB_URL',
-        message: 'The submission URL must be a valid, reachable GitHub repository link (FR-6.3).',
+        message: 'The submission URL must be a valid, reachable GitHub repository link.',
       });
     }
 
@@ -85,7 +85,7 @@ router.get('/submissions', async (req, res, next) => {
   }
 });
 
-// Mentor / Teacher reviews a submission (BR-3, BR-4)
+// Mentor / Teacher reviews a submission
 router.post('/submissions/:id/feedback', async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -97,11 +97,11 @@ router.post('/submissions/:id/feedback', async (req, res, next) => {
     }
     const submission = subRes.rows[0];
 
-    // Prevent reviewing own submission (BR-4)
+    // Prevent reviewing own submission
     if (submission.learner_id === authorId) {
       return res.status(403).json({
         errorCode: 'SELF_REVIEW_FORBIDDEN',
-        message: 'Users cannot review their own submissions (BR-4).',
+        message: 'Users cannot review their own submissions.',
       });
     }
 
@@ -140,7 +140,7 @@ router.post('/submissions/:id/feedback', async (req, res, next) => {
   }
 });
 
-// Resolve escalation (BR-5: Teacher exclusive)
+// Resolve escalation (Teacher exclusive)
 router.post('/submissions/:id/resolve-escalation', async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -150,7 +150,7 @@ router.post('/submissions/:id/resolve-escalation', async (req, res, next) => {
     if (teacherCheck.rows.length === 0 || teacherCheck.rows[0].role !== 'teacher') {
       return res.status(403).json({
         errorCode: 'TEACHER_ONLY',
-        message: 'Only the course teacher can resolve escalated submissions (BR-5).',
+        message: 'Only the course teacher can resolve escalated submissions.',
       });
     }
 

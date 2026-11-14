@@ -38,8 +38,8 @@ export default function RegisterPage() {
     if (!ageConfirmed) {
       setErrorMsg(
         isRTL
-          ? 'يجب تأكيد أن عمرك 18 عاماً فما فوق للتسجيل (القاعدة BR-1).'
-          : 'You must confirm that you are aged 18 or above (BR-1 policy).'
+          ? 'يجب تأكيد أن عمرك 18 عاماً فما فوق للتسجيل.'
+          : 'You must confirm that you are aged 18 or above.'
       );
       return;
     }
@@ -75,7 +75,7 @@ export default function RegisterPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-6 sm:px-10 shadow-sm border border-slate-200 rounded-3xl space-y-6">
-          {/* Role Specification Callout (SRS FR-1.1 & §1.4) */}
+          {/* Role Specification Callout */}
           <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-xs text-emerald-900 flex items-start gap-2.5">
             <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
             <div>
@@ -84,8 +84,8 @@ export default function RegisterPage() {
               </strong>
               <span>
                 {isRTL
-                  ? 'وفقاً لـ (FR-1.1)، التسجيل الذاتي متاح فقط لدور الطالب. يتم منح صفة المرشد أو الأستاذ حصرياً عبر إدارة المقرر.'
-                  : 'Per SRS FR-1.1, self-registration only grants the Learner role. Teacher & Mentor roles are granted by course administration.'}
+                  ? 'التسجيل الذاتي متاح فقط لدور الطالب. يتم منح صفة المرشد أو الأستاذ حصرياً عبر إدارة المقرر.'
+                  : 'Self-registration only grants the Learner role. Teacher & Mentor roles are granted by course administration.'}
               </span>
             </div>
           </div>
@@ -180,7 +180,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Age Confirmation Checkbox (SRS BR-1) */}
+            {/* Age Confirmation Checkbox */}
             <div className="pt-2">
               <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-700 select-none">
                 <input
@@ -192,11 +192,11 @@ export default function RegisterPage() {
                 <span className="leading-snug">
                   {isRTL ? (
                     <>
-                      أؤكد أنني <strong>طالب جامعي وعمري 18 عاماً فما فوق</strong>، ومؤهل لاستخدام منصة همة السودان وفقاً للشروط (BR-1).
+                      أؤكد أنني <strong>طالب جامعي وعمري 18 عاماً فما فوق</strong>، ومؤهل لاستخدام منصة همة السودان.
                     </>
                   ) : (
                     <>
-                      I confirm that I am a <strong>university student aged 18 or above</strong> in Sudan, eligible to participate in this pilot (BR-1).
+                      I confirm that I am a <strong>university student aged 18 or above</strong> in Sudan, eligible to participate in this pilot.
                     </>
                   )}
                 </span>

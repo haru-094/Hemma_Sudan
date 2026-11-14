@@ -227,8 +227,8 @@ export default function TeacherAdminPage() {
             </h2>
             <p className="text-xs text-slate-500">
               {isRTL
-                ? 'وفقاً لقواعد النظام (BR-2)، الأستاذ هو المخول الوحيد بمنح وإلغاء صلاحيات التقييم للمرشدين لكل وحدة.'
-                : 'Per SRS BR-2, only the teacher can approve or revoke mentor permissions for specific topics.'}
+                ? 'الأستاذ هو المخول الوحيد بمنح وإلغاء صلاحيات التقييم للمرشدين لكل وحدة.'
+                : 'Only the course teacher can approve or revoke mentor permissions for specific topics.'}
             </p>
           </div>
 
@@ -389,7 +389,7 @@ export default function TeacherAdminPage() {
         </div>
       )}
 
-      {/* Tab 3: Accounts & Manual Reset (FR-13.1, BR-7) */}
+      {/* Tab 3: Accounts & Manual Reset */}
       {activeTab === 'accounts' && (
         <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6 shadow-sm">
           <div className="space-y-1">
@@ -399,8 +399,8 @@ export default function TeacherAdminPage() {
             </h2>
             <p className="text-xs text-slate-500">
               {isRTL
-                ? 'وفقاً لـ (FR-13.1)، لا توجد استعادة تلقائية لكلمات المرور عبر البريد، ويتم التوجيه للأستاذ يدوياً.'
-                : 'Per SRS FR-13.1, automated email password reset is out of scope. Locked accounts must be reset manually by the teacher.'}
+                ? 'لا توجد استعادة تلقائية لكلمات المرور عبر البريد، ويتم التوجيه للأستاذ يدوياً.'
+                : 'Automated email password reset is disabled. Locked accounts must be reset manually by the teacher.'}
             </p>
           </div>
 
@@ -460,7 +460,7 @@ export default function TeacherAdminPage() {
         </div>
       )}
 
-      {/* Tab 4: Audit Logs (NFR-13) */}
+      {/* Tab 4: Audit Logs */}
       {activeTab === 'audit' && (
         <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6 shadow-sm">
           <div className="space-y-1">
@@ -470,8 +470,8 @@ export default function TeacherAdminPage() {
             </h2>
             <p className="text-xs text-slate-500">
               {isRTL
-                ? 'توثيق طابع زمني دقيق لكل عملية منح أو إلغاء لصلاحيات المرشدين وإعادة تعيين الحسابات (NFR-13).'
-                : 'Timestamped record of mentor approval/revocation and manual account resets per NFR-13.'}
+                ? 'توثيق طابع زمني دقيق لكل عملية منح أو إلغاء لصلاحيات المرشدين وإعادة تعيين الحسابات.'
+                : 'Timestamped record of mentor approval/revocation and manual account resets.'}
             </p>
           </div>
 

@@ -101,7 +101,7 @@ export function AuthProvider({ children }) {
 
   const registerLearner = ({ name, email, university, ageConfirmed }) => {
     if (!ageConfirmed) {
-      throw new Error('You must confirm that you are 18 years of age or older (BR-1).');
+      throw new Error('You must confirm that you are 18 years of age or older.');
     }
     const existing = usersList.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
     if (existing) {

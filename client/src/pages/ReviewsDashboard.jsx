@@ -22,15 +22,15 @@ export default function ReviewsDashboard() {
   const [activeReviewId, setActiveReviewId] = useState(null);
   const [feedbackText, setFeedbackText] = useState('');
 
-  // Check if current user is authorized to review this submission (BR-3 & BR-4)
+  // Check if current user is authorized to review this submission
   const canReview = (sub) => {
-    // Cannot review own submission (BR-4)
+    // Cannot review own submission
     if (sub.learnerId === currentUser?.id) return false;
 
     // Teacher can review all submissions
     if (isTeacher) return true;
 
-    // Mentor can review only if approved for the topic (BR-3)
+    // Mentor can review only if approved for the topic
     if (isMentor) {
       const topicId = sub.topicId || LESSONS.find((l) => l.id === sub.lessonId)?.topicId;
       const isApprovedForTopic = currentUser?.approvedTopics?.includes(topicId);
@@ -198,7 +198,7 @@ export default function ReviewsDashboard() {
                   <span>
                     {isRTL
                       ? 'لا تملك صلاحية مراجعة هذا الواجب. (يتطلب اعتماد الأستاذ للموضوع أو عدم مراجعة واجباتك الخاصة).'
-                      : 'You are not authorized to review this submission per teacher approval constraints (BR-3 & BR-4).'}
+                      : 'You are not authorized to review this submission per teacher approval constraints.'}
                   </span>
                 </div>
               )}

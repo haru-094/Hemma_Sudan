@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// GET /api/teacher/mentors - Get all mentors with their approved topics (FR-8.1, FR-8.2)
+// GET /api/teacher/mentors - Get all mentors with their approved topics
 router.get('/mentors', async (req, res, next) => {
   try {
     const mentorsRes = await db.query(
@@ -34,18 +34,18 @@ router.get('/mentors', async (req, res, next) => {
   }
 });
 
-// POST /api/teacher/mentors/toggle-topic (FR-8.2, FR-8.3, BR-2 & NFR-13 Auditability)
+// POST /api/teacher/mentors/toggle-topic
 // Teacher grants or revokes topic approval for a mentor/learner
 router.post('/mentors/toggle-topic', async (req, res, next) => {
   try {
     const { teacherId, mentorId, topicId } = req.body;
 
-    // Verify teacher role (BR-2)
+    // Verify teacher role
     const teacherCheck = await db.query('SELECT role FROM users WHERE id = $1', [teacherId]);
     if (teacherCheck.rows.length === 0 || teacherCheck.rows[0].role !== 'teacher') {
       return res.status(403).json({
         errorCode: 'TEACHER_ONLY',
-        message: 'Only the course teacher can approve or revoke mentor permissions (BR-2).',
+        message: 'Only the course teacher can approve or revoke mentor permissions.',
       });
     }
 
@@ -59,7 +59,7 @@ router.post('/mentors/toggle-topic', async (req, res, next) => {
     const now = new Date().toISOString();
 
     if (existing.rows.length > 0 && existing.rows[0].revoked_at === null) {
-      // Revoke permission (FR-8.3)
+      // Revoke permission
       await db.query(
         'UPDATE mentor_approvals SET revoked_at = $1 WHERE id = $2',
         [now, existing.rows[0].id]
@@ -75,7 +75,7 @@ router.post('/mentors/toggle-topic', async (req, res, next) => {
       await db.query(`UPDATE users SET role = 'mentor' WHERE id = $1 AND role = 'learner'`, [mentorId]);
       actionTaken = 'GRANTED';
     } else {
-      // Grant new permission (FR-8.2)
+      // Grant new permission
       const approvalId = `appr-${Date.now()}`;
       await db.query(
         `INSERT INTO mentor_approvals (id, mentor_id, topic_id, granted_at)
@@ -87,7 +87,7 @@ router.post('/mentors/toggle-topic', async (req, res, next) => {
       actionTaken = 'GRANTED';
     }
 
-    // Record in Audit Log with timestamp (NFR-13)
+    // Record in Audit Log with timestamp
     await db.query(
       `INSERT INTO audit_logs (id, action, performed_by, target_user_id, details)
        VALUES ($1, $2, $3, $4, $5)`,
@@ -111,7 +111,7 @@ router.post('/mentors/toggle-topic', async (req, res, next) => {
   }
 });
 
-// POST /api/teacher/reset-account (FR-13.1 & NFR-13)
+// POST /api/teacher/reset-account
 // Manual account reset performed by teacher with audit log
 router.post('/reset-account', async (req, res, next) => {
   try {
@@ -121,14 +121,14 @@ router.post('/reset-account', async (req, res, next) => {
     if (teacherCheck.rows.length === 0 || teacherCheck.rows[0].role !== 'teacher') {
       return res.status(403).json({
         errorCode: 'TEACHER_ONLY',
-        message: 'Only the teacher can perform manual account resets (FR-13.1, BR-7).',
+        message: 'Only the teacher can perform manual account resets.',
       });
     }
 
     const tempHash = `mock_hash_${newTemporaryPassword || 'hemma2026'}`;
     await db.query('UPDATE users SET password_hash = $1 WHERE id = $2', [tempHash, targetUserId]);
 
-    // Record reset in audit log (NFR-13)
+    // Record reset in audit log
     await db.query(
       `INSERT INTO audit_logs (id, action, performed_by, target_user_id, details)
        VALUES ($1, 'MANUAL_ACCOUNT_RESET', $2, $3, $4)`,
@@ -149,7 +149,7 @@ router.post('/reset-account', async (req, res, next) => {
   }
 });
 
-// GET /api/teacher/audit-logs (NFR-13)
+// GET /api/teacher/audit-logs
 router.get('/audit-logs', async (req, res, next) => {
   try {
     const logs = await db.query(

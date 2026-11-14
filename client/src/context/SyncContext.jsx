@@ -13,7 +13,7 @@ import { LESSONS } from '../data/mockData';
 
 const SyncContext = createContext(null);
 
-// Exponential retry delays per SRS FR-5.7 & Sequence Diagram: 5s, 15s, 60s
+// Exponential retry delays: 5s, 15s, 60s
 const RETRY_DELAYS = [5000, 15000, 60000];
 
 export function SyncProvider({ children }) {
@@ -27,7 +27,7 @@ export function SyncProvider({ children }) {
   const retryAttemptRef = useRef(0);
   const retryTimeoutRef = useRef(null);
 
-  // Monitor storage quota usage (SRS §3.1: warn when >80%)
+  // Monitor storage quota usage: warn when >80%
   const checkStorageQuota = useCallback(async () => {
     if (navigator.storage && navigator.storage.estimate) {
       try {
@@ -77,12 +77,12 @@ export function SyncProvider({ children }) {
     checkStorageQuota();
   }, [checkStorageQuota]);
 
-  // Online / offline event listeners (FR-5.2)
+  // Online / offline event listeners
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
       retryAttemptRef.current = 0;
-      triggerSync(); // Automatic sync upon reconnection (FR-5.2)
+      triggerSync();
     };
     const handleOffline = () => {
       setIsOnline(false);
@@ -103,7 +103,7 @@ export function SyncProvider({ children }) {
     };
   }, []);
 
-  // Record progress with client UUID for duplicate protection (FR-5.4)
+  // Record progress with client UUID for duplicate protection
   const recordProgress = async (lessonId, lastPosition = 100, status = 'completed') => {
     const updateId = `upd-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const progressUpdate = {
@@ -128,7 +128,7 @@ export function SyncProvider({ children }) {
     }
   };
 
-  // Synchronize queued items with server (FR-5.2, FR-5.4, FR-5.7)
+  // Synchronize queued items with server
   const triggerSync = async () => {
     if (!navigator.onLine) {
       setSyncStatus('pending');
@@ -160,7 +160,7 @@ export function SyncProvider({ children }) {
     } catch (err) {
       console.warn('Sync attempt failed:', err.message);
 
-      // FR-5.7 Exponential backoff retry logic (5s, 15s, 60s)
+      // Exponential backoff retry logic (5s, 15s, 60s)
       const currentAttempt = retryAttemptRef.current;
       if (currentAttempt < RETRY_DELAYS.length) {
         const delay = RETRY_DELAYS[currentAttempt];
@@ -172,7 +172,7 @@ export function SyncProvider({ children }) {
           triggerSync();
         }, delay);
       } else {
-        // After 3 failed attempts, mark as failed and permit manual retry (FR-5.7)
+        // After 3 failed attempts, mark as failed and permit manual retry
         setSyncStatus('failed');
       }
     }

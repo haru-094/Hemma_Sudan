@@ -68,7 +68,7 @@ router.get('/lessons/:id', async (req, res, next) => {
   }
 });
 
-// POST /api/lessons - Teacher creates new lesson (FR-2.1)
+// POST /api/lessons - Teacher creates new lesson
 router.post('/lessons', async (req, res, next) => {
   try {
     const {

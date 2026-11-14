@@ -85,7 +85,7 @@ export default function LessonDetailPage() {
         </h1>
       </div>
 
-      {/* External Live Session Link (SRS §3.3) */}
+      {/* External Live Session Link */}
       {lesson.recordingLink && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -126,7 +126,7 @@ export default function LessonDetailPage() {
           </p>
         </div>
 
-        {/* Code Snippet Box (Strictly LTR per FR-3.2) */}
+        {/* Code Snippet Box (Strictly LTR) */}
         <div className="space-y-2 pt-2">
           <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
             <span className="flex items-center gap-1.5">

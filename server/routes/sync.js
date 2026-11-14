@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// Idempotent progress synchronization with duplicate protection (FR-5.4)
+// Idempotent progress synchronization with duplicate protection
 router.post('/progress', async (req, res, next) => {
   try {
     const { updates, learnerId } = req.body;
@@ -24,7 +24,7 @@ router.post('/progress', async (req, res, next) => {
         continue;
       }
 
-      // Ignore duplicate updateId per FR-5.4
+      // Ignore duplicate updateId
       const existing = await db.query(
         'SELECT id FROM progress_records WHERE update_id = $1',
         [updateId]

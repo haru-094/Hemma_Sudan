@@ -163,7 +163,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Manual Password Reset Notice Modal (SRS FR-13.1) */}
+      {/* Manual Password Reset Notice Modal */}
       {showForgotModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-200">
@@ -185,8 +185,8 @@ export default function LoginPage() {
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 {isRTL
-                  ? 'وفقاً لمتطلبات المنصة (FR-13.1)، لا تتوفر خاصية الاستعادة التلقائية عبر البريد الإلكتروني. يرجى التواصل مباشرة مع أستاذ المقرر لإعادة تعيين بيانات الدخول يدوياً.'
-                  : 'Per SRS FR-13.1, automated password recovery via email is disabled. If you are locked out or lost access, please contact the Course Lead (Teacher) directly for a manual reset.'}
+                  ? 'لا تتوفر خاصية الاستعادة التلقائية عبر البريد الإلكتروني. يرجى التواصل مباشرة مع أستاذ المقرر لإعادة تعيين بيانات الدخول يدوياً.'
+                  : 'Automated password recovery via email is disabled. If you are locked out or lost access, please contact the Course Lead (Teacher) directly for a manual reset.'}
               </p>
             </div>
 

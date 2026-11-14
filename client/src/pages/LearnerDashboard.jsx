@@ -33,7 +33,7 @@ export default function LearnerDashboard() {
     );
   };
 
-  // Handle Learner Disagrees -> Escalates to teacher (FR-10.2 & State Machine)
+  // Handle Learner Disagrees -> Escalates to teacher
   const handleEscalateToTeacher = (subId) => {
     setSubmissions((prev) =>
       prev.map((sub) => (sub.id === subId ? { ...sub, status: 'escalated' } : sub))
