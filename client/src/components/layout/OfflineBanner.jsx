@@ -5,7 +5,7 @@ import { WifiOff, AlertTriangle } from 'lucide-react';
 
 export default function OfflineBanner() {
   const { isOnline, quotaWarning, storageUsagePercent } = useSync();
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
 
   if (isOnline && !quotaWarning) {
     return null;
@@ -23,7 +23,7 @@ export default function OfflineBanner() {
       {quotaWarning && (
         <div className="bg-rose-600 text-white text-xs sm:text-sm py-2 px-4 shadow-inner flex items-center justify-center gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0" />
-          <span>{t.sync.quotaWarning} ({storageUsagePercent}% used)</span>
+          <span>{t.sync.quotaWarning} ({storageUsagePercent}% {isRTL ? 'مستخدم' : 'used'})</span>
         </div>
       )}
     </div>

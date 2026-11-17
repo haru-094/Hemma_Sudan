@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useSync } from '../context/SyncContext';
 import { LESSONS, TOPICS, INITIAL_SUBMISSIONS } from '../data/mockData';
+import { api } from '../services/api';
 import StatusBadge from '../components/common/StatusBadge';
 import GithubIcon from '../components/common/GithubIcon';
+import RevisionTimeline from '../components/common/RevisionTimeline';
 import { 
   BookOpen, 
   CheckCircle2, 
@@ -17,7 +19,8 @@ import {
   RefreshCw,
   HelpCircle,
   Check,
-  FolderGit2
+  FolderGit2,
+  History
 } from 'lucide-react';
 
 export default function LearnerDashboard() {
@@ -25,19 +28,72 @@ export default function LearnerDashboard() {
   const { currentUser } = useAuth();
   const { savedLessons, syncStatus, isOnline, triggerSync } = useSync();
   const [submissions, setSubmissions] = useState(INITIAL_SUBMISSIONS);
+  const [expandedHistoryId, setExpandedHistoryId] = useState(null);
+
+  useEffect(() => {
+    async function loadLiveLearnerSubmissions() {
+      try {
+        const data = await api.getSubmissions({ learnerId: currentUser?.id });
+        if (data.submissions && data.submissions.length > 0) {
+          const mapped = data.submissions.map((s) => ({
+            id: s.id,
+            topicId: s.topic_id,
+            learnerId: s.learner_id,
+            learnerName: s.learner_name,
+            githubLink: s.github_link,
+            explanation: s.explanation,
+            attemptNo: s.attempt_no,
+            status: s.status,
+            submittedAt: s.submitted_at,
+            assignmentTitleEn: s.topic_title_en,
+            assignmentTitleAr: s.topic_title_ar,
+            feedbacks: (s.feedbacks || []).map((f) => ({
+              author: f.author_name,
+              text: f.comment,
+              date: f.created_at,
+            })),
+          }));
+          setSubmissions(mapped);
+        }
+      } catch (err) {
+        // Local preview fallback
+      }
+    }
+    loadLiveLearnerSubmissions();
+  }, [currentUser?.id]);
 
   // Handle Learner Accepts Feedback -> Completes lifecycle (State Machine Page 37)
-  const handleAcceptFeedback = (subId) => {
+  const handleAcceptFeedback = async (subId) => {
     setSubmissions((prev) =>
       prev.map((sub) => (sub.id === subId ? { ...sub, status: 'complete' } : sub))
     );
+
+    try {
+      await api.submitFeedback(subId, {
+        authorId: currentUser?.id,
+        comment: 'Learner accepted feedback and completed project.',
+        action: 'approve',
+      });
+    } catch (err) {
+      // Local preview fallback
+    }
   };
 
   // Handle Learner Disagrees -> Escalates to teacher
-  const handleEscalateToTeacher = (subId) => {
+  const handleEscalateToTeacher = async (subId) => {
     setSubmissions((prev) =>
       prev.map((sub) => (sub.id === subId ? { ...sub, status: 'escalated' } : sub))
     );
+
+    try {
+      await api.submitFeedback(subId, {
+        authorId: currentUser?.id,
+        comment: 'Learner disagreed with mentor review and escalated directly to Teacher.',
+        action: 'escalate',
+      });
+    } catch (err) {
+      // Local preview fallback
+    }
   };
 
   return (
@@ -50,7 +106,11 @@ export default function LearnerDashboard() {
               {isRTL ? `مرحباً بك، ${currentUser?.name}` : `Welcome back, ${currentUser?.name}`}
             </h1>
             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-              {currentUser?.role}
+              {currentUser?.role === 'teacher'
+                ? isRTL ? 'أستاذ' : 'Teacher'
+                : currentUser?.role === 'mentor'
+                ? isRTL ? 'مرشد' : 'Mentor'
+                : isRTL ? 'طالب' : 'Learner'}
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-600">
@@ -280,6 +340,29 @@ export default function LearnerDashboard() {
                       </div>
                     </div>
                   )}
+                  {/* Attempt History Toggle & Timeline */}
+                  <div className="pt-2 border-t border-slate-100 flex flex-col gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setExpandedHistoryId(expandedHistoryId === sub.id ? null : sub.id)}
+                      className="self-start text-xs font-semibold text-slate-600 hover:text-slate-900 inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-slate-100 transition-colors"
+                    >
+                      <History className="w-3.5 h-3.5 text-slate-500" />
+                      <span>
+                        {expandedHistoryId === sub.id
+                          ? isRTL ? 'إخفاء سجل النسخ والمحاولات' : 'Hide Revision History'
+                          : isRTL ? 'عرض سجل النسخ والمحاولات السابقة' : 'View Full Attempt & Feedback History'}
+                      </span>
+                    </button>
+
+                    {expandedHistoryId === sub.id && (
+                      <RevisionTimeline
+                        attempts={submissions.filter(
+                          (s) => s.topicId === sub.topicId && s.learnerId === sub.learnerId
+                        )}
+                      />
+                    )}
+                  </div>
                 </div>
               );
             })}

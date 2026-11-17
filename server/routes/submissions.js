@@ -58,6 +58,7 @@ router.post('/submissions', async (req, res, next) => {
   }
 });
 
+// GET /api/submissions - Retrieves submissions with attached feedback history
 router.get('/submissions', async (req, res, next) => {
   try {
     const { learnerId } = req.query;
@@ -78,8 +79,62 @@ router.get('/submissions', async (req, res, next) => {
 
     query += ` ORDER BY s.submitted_at DESC`;
 
-    const result = await db.query(query, params);
-    res.status(200).json({ submissions: result.rows });
+    const subResult = await db.query(query, params);
+
+    // Fetch feedbacks for these submissions
+    const feedbackResult = await db.query(
+      `SELECT f.*, u.name as author_name, u.role as author_role
+       FROM feedbacks f
+       JOIN users u ON f.author_id = u.id
+       ORDER BY f.created_at ASC`
+    );
+
+    const submissionsWithFeedbacks = subResult.rows.map((sub) => ({
+      ...sub,
+      feedbacks: feedbackResult.rows.filter((f) => f.submission_id === sub.id),
+    }));
+
+    res.status(200).json({ submissions: submissionsWithFeedbacks });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/submissions/history/:topicId/:learnerId - Multi-attempt history timeline
+router.get('/submissions/history/:topicId/:learnerId', async (req, res, next) => {
+  try {
+    const { topicId, learnerId } = req.params;
+
+    const subResult = await db.query(
+      `SELECT s.*, t.title_en as topic_title_en, t.title_ar as topic_title_ar
+       FROM submissions s
+       JOIN topics t ON s.topic_id = t.id
+       WHERE s.topic_id = $1 AND s.learner_id = $2
+       ORDER BY s.attempt_no ASC`,
+      [topicId, learnerId]
+    );
+
+    const subIds = subResult.rows.map((s) => s.id);
+    let feedbackRows = [];
+
+    if (subIds.length > 0) {
+      const fbResult = await db.query(
+        `SELECT f.*, u.name as author_name, u.role as author_role
+         FROM feedbacks f
+         JOIN users u ON f.author_id = u.id
+         WHERE f.submission_id = ANY($1::text[])
+         ORDER BY f.created_at ASC`,
+        [subIds]
+      );
+      feedbackRows = fbResult.rows;
+    }
+
+    const history = subResult.rows.map((sub) => ({
+      ...sub,
+      feedbacks: feedbackRows.filter((f) => f.submission_id === sub.id),
+    }));
+
+    res.status(200).json({ history });
   } catch (err) {
     next(err);
   }

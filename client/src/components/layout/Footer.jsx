@@ -3,7 +3,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { BookOpen, Shield, Heart } from 'lucide-react';
 
 export default function Footer() {
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
 
   return (
     <footer className="bg-white border-t border-slate-200 mt-auto py-8">
@@ -17,7 +17,7 @@ export default function Footer() {
           </div>
 
           <div className="flex items-center gap-1">
-            <span>Built with resilient offline-first architecture for Sudan.</span>
+            <span>{isRTL ? 'بُنيت بمعمارية مرنة تدعم العمل دون اتصال لطلاب السودان.' : 'Built with resilient offline-first architecture for Sudan.'}</span>
           </div>
 
           <div className="text-slate-400">

@@ -4,8 +4,10 @@ import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useSync } from '../context/SyncContext';
 import { TOPICS, INITIAL_SUBMISSIONS } from '../data/mockData';
+import { api } from '../services/api';
 import GithubIcon from '../components/common/GithubIcon';
 import StatusBadge from '../components/common/StatusBadge';
+import RevisionTimeline from '../components/common/RevisionTimeline';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -101,6 +103,16 @@ export default function TopicProjectPage() {
 
     INITIAL_SUBMISSIONS.push(newSubmission);
     setIsSuccess(true);
+
+    api.createSubmission({
+      topicId: topic.id,
+      learnerId: currentUser?.id || 'usr-learner-1',
+      githubLink: githubLink.trim(),
+      explanation: explanation.trim(),
+    }).catch(() => {
+      // Local preview fallback
+    });
+
     setTimeout(() => {
       navigate('/dashboard');
     }, 1200);
@@ -145,32 +157,8 @@ export default function TopicProjectPage() {
       </div>
 
       {/* Submission Status or Revision Notice if exists */}
-      {latestSub && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-700">
-              {isRTL ? `آخر محاولة تقديم: #${latestSub.attemptNo}` : `Latest Submission: Attempt #${latestSub.attemptNo}`}
-            </span>
-            <StatusBadge status={latestSub.status} />
-          </div>
-
-          <div className="bg-slate-50 rounded-lg p-3 text-xs font-mono space-y-1">
-            <div className="flex items-center gap-2">
-              <GithubIcon className="w-3.5 h-3.5 text-slate-700" />
-              <a
-                href={latestSub.githubLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-emerald-700 hover:underline ltr-forced"
-              >
-                {latestSub.githubLink}
-              </a>
-            </div>
-            <p className="font-sans text-slate-600 pt-1">
-              <strong>{isRTL ? 'الشرح:' : 'Explanation:'}</strong> {latestSub.explanation}
-            </p>
-          </div>
-        </div>
+      {existingSubmissions.length > 0 && (
+        <RevisionTimeline attempts={existingSubmissions} />
       )}
 
       {/* Submission Form (Online Only) */}
