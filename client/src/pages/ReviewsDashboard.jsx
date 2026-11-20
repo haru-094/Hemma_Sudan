@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { LESSONS, TOPICS, INITIAL_SUBMISSIONS } from '../data/mockData';
+import { api } from '../services/api';
 import StatusBadge from '../components/common/StatusBadge';
+import RevisionTimeline from '../components/common/RevisionTimeline';
 import { 
   CheckSquare, 
   Send, 
@@ -11,7 +13,8 @@ import {
   ShieldAlert, 
   ExternalLink, 
   MessageSquare, 
-  UserCheck 
+  UserCheck,
+  History
 } from 'lucide-react';
 import GithubIcon from '../components/common/GithubIcon';
 
@@ -20,7 +23,40 @@ export default function ReviewsDashboard() {
   const { currentUser, isTeacher, isMentor } = useAuth();
   const [submissions, setSubmissions] = useState(INITIAL_SUBMISSIONS);
   const [activeReviewId, setActiveReviewId] = useState(null);
+  const [expandedHistoryId, setExpandedHistoryId] = useState(null);
   const [feedbackText, setFeedbackText] = useState('');
+
+  useEffect(() => {
+    async function loadLiveSubmissions() {
+      try {
+        const data = await api.getSubmissions();
+        if (data.submissions && data.submissions.length > 0) {
+          const mapped = data.submissions.map((s) => ({
+            id: s.id,
+            topicId: s.topic_id,
+            learnerId: s.learner_id,
+            learnerName: s.learner_name,
+            githubLink: s.github_link,
+            explanation: s.explanation,
+            attemptNo: s.attempt_no,
+            status: s.status,
+            submittedAt: s.submitted_at,
+            assignmentTitleEn: s.topic_title_en,
+            assignmentTitleAr: s.topic_title_ar,
+            feedbacks: (s.feedbacks || []).map((f) => ({
+              author: f.author_name,
+              text: f.comment,
+              date: f.created_at,
+            })),
+          }));
+          setSubmissions(mapped);
+        }
+      } catch (err) {
+        // Local preview fallback
+      }
+    }
+    loadLiveSubmissions();
+  }, []);
 
   // Check if current user is authorized to review this submission
   const canReview = (sub) => {
@@ -40,8 +76,9 @@ export default function ReviewsDashboard() {
     return false;
   };
 
-  const handleGiveFeedback = (subId) => {
+  const handleGiveFeedback = async (subId) => {
     if (!feedbackText.trim()) return;
+    const comment = feedbackText.trim();
     setSubmissions((prev) =>
       prev.map((sub) =>
         sub.id === subId
@@ -50,7 +87,7 @@ export default function ReviewsDashboard() {
               status: 'feedback_given',
               feedbacks: [
                 ...sub.feedbacks,
-                { author: currentUser.name, text: feedbackText, date: new Date().toISOString() },
+                { author: currentUser.name, text: comment, date: new Date().toISOString() },
               ],
             }
           : sub
@@ -58,10 +95,21 @@ export default function ReviewsDashboard() {
     );
     setActiveReviewId(null);
     setFeedbackText('');
+
+    try {
+      await api.submitFeedback(subId, {
+        authorId: currentUser.id,
+        comment,
+        action: 'approve',
+      });
+    } catch (err) {
+      // Graceful offline fallback
+    }
   };
 
-  const handleRequestRevision = (subId) => {
+  const handleRequestRevision = async (subId) => {
     if (!feedbackText.trim()) return;
+    const comment = feedbackText.trim();
     setSubmissions((prev) =>
       prev.map((sub) =>
         sub.id === subId
@@ -70,7 +118,7 @@ export default function ReviewsDashboard() {
               status: 'revision_requested',
               feedbacks: [
                 ...sub.feedbacks,
-                { author: currentUser.name, text: feedbackText, date: new Date().toISOString() },
+                { author: currentUser.name, text: comment, date: new Date().toISOString() },
               ],
             }
           : sub
@@ -78,14 +126,34 @@ export default function ReviewsDashboard() {
     );
     setActiveReviewId(null);
     setFeedbackText('');
+
+    try {
+      await api.submitFeedback(subId, {
+        authorId: currentUser.id,
+        comment,
+        action: 'request_revision',
+      });
+    } catch (err) {
+      // Graceful offline fallback
+    }
   };
 
-  const handleEscalate = (subId) => {
+  const handleEscalate = async (subId) => {
     setSubmissions((prev) =>
       prev.map((sub) => (sub.id === subId ? { ...sub, status: 'escalated' } : sub))
     );
     setActiveReviewId(null);
     setFeedbackText('');
+
+    try {
+      await api.submitFeedback(subId, {
+        authorId: currentUser.id,
+        comment: 'Escalated by mentor for course lead review.',
+        action: 'escalate',
+      });
+    } catch (err) {
+      // Graceful offline fallback
+    }
   };
 
   return (
@@ -98,7 +166,9 @@ export default function ReviewsDashboard() {
               {isRTL ? 'لوحة تقييم ومراجعة الواجبات' : 'Assignment Review Dashboard'}
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
-              {isTeacher ? 'Teacher View (All)' : 'Mentor View (Topic-Scoped)'}
+              {isTeacher
+                ? isRTL ? 'عرض الأستاذ (شامل)' : 'Teacher View (All)'
+                : isRTL ? 'عرض المرشد (مخصص للوحدات المعتمدة)' : 'Mentor View (Topic-Scoped)'}
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-600 mt-1">
@@ -116,7 +186,7 @@ export default function ReviewsDashboard() {
                 {isRTL ? 'المواضيع المعتمدة لك:' : 'Your Approved Topics:'}
               </span>{' '}
               <span className="text-emerald-700 font-bold">
-                {currentUser?.approvedTopics?.join(', ') || 'None'}
+                {currentUser?.approvedTopics?.join(', ') || (isRTL ? 'لا توجد مواضيع معتمدة حالياً' : 'None')}
               </span>
             </div>
           </div>
@@ -164,7 +234,7 @@ export default function ReviewsDashboard() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 font-mono text-xs">
                     <GithubIcon className="w-4 h-4 text-slate-800" />
-                    <span className="font-semibold text-slate-700">Repository:</span>
+                    <span className="font-semibold text-slate-700">{isRTL ? 'المستودع:' : 'Repository:'}</span>
                     <a
                       href={sub.githubLink}
                       target="_blank"
@@ -221,6 +291,30 @@ export default function ReviewsDashboard() {
                     <AlertTriangle className="w-4 h-4" />
                     <span>{isRTL ? 'تصعيد للأستاذ' : 'Escalate to Teacher'}</span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setExpandedHistoryId(expandedHistoryId === sub.id ? null : sub.id)}
+                    className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs inline-flex items-center gap-1.5 transition-colors"
+                  >
+                    <History className="w-3.5 h-3.5 text-slate-500" />
+                    <span>
+                      {expandedHistoryId === sub.id
+                        ? isRTL ? 'إخفاء سجل المحاولات' : 'Hide History'
+                        : isRTL ? 'سجل المحاولات والنسخ' : 'View Attempt History'}
+                    </span>
+                  </button>
+                </div>
+              )}
+
+              {/* Revision History Timeline */}
+              {expandedHistoryId === sub.id && (
+                <div className="pt-2">
+                  <RevisionTimeline
+                    attempts={submissions.filter(
+                      (s) => (s.topicId || s.lessonId) === (sub.topicId || sub.lessonId) && s.learnerId === sub.learnerId
+                    )}
+                  />
                 </div>
               )}
 

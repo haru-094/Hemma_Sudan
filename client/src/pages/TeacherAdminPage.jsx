@@ -4,6 +4,7 @@ import { useAuth, DEMO_USERS } from '../context/AuthContext';
 import { TOPICS, LESSONS, INITIAL_SUBMISSIONS } from '../data/mockData';
 import { api } from '../services/api';
 import StatusBadge from '../components/common/StatusBadge';
+import LessonAuthoringModal from '../components/teacher/LessonAuthoringModal';
 import { 
   ShieldCheck, 
   UserCheck, 
@@ -17,7 +18,11 @@ import {
   RotateCcw,
   Check,
   History,
-  Lock
+  Lock,
+  PlusCircle,
+  Video,
+  Languages,
+  FileCode
 } from 'lucide-react';
 
 export default function TeacherAdminPage() {
@@ -34,9 +39,13 @@ export default function TeacherAdminPage() {
     DEMO_USERS.filter((u) => u.role === 'mentor' || u.role === 'learner')
   );
 
+  const [topicsList, setTopicsList] = useState(TOPICS);
+  const [lessonsList, setLessonsList] = useState(LESSONS);
   const [submissions, setSubmissions] = useState(INITIAL_SUBMISSIONS);
   const [auditLogs, setAuditLogs] = useState([]);
-  const [activeTab, setActiveTab] = useState('mentors');
+  const [activeTab, setActiveTab] = useState('lessons'); // 'lessons' | 'mentors' | 'escalations' | 'accounts' | 'audit'
+  const [isAuthoringOpen, setIsAuthoringOpen] = useState(false);
+
   const [resetTargetId, setResetTargetId] = useState('');
   const [tempPass, setTempPass] = useState('');
   const [resetSuccess, setResetSuccess] = useState('');
@@ -57,6 +66,20 @@ export default function TeacherAdminPage() {
         }
       } catch (err) {
         // Fallback for offline or local preview
+      }
+
+      try {
+        const topicsData = await api.getTopics();
+        if (topicsData.topics) {
+          setTopicsList(topicsData.topics);
+          const allLessons = [];
+          topicsData.topics.forEach((top) => {
+            if (top.lessons) allLessons.push(...top.lessons);
+          });
+          if (allLessons.length > 0) setLessonsList(allLessons);
+        }
+      } catch (err) {
+        // Fallback
       }
 
       try {
@@ -90,7 +113,6 @@ export default function TeacherAdminPage() {
         topicId,
       });
 
-      // Refresh audit logs
       const logsData = await api.getAuditLogs();
       if (logsData.auditLogs) setAuditLogs(logsData.auditLogs);
     } catch (err) {
@@ -115,6 +137,22 @@ export default function TeacherAdminPage() {
     }
   };
 
+  const handleLessonCreated = (newLesson) => {
+    setLessonsList((prev) => [newLesson, ...prev]);
+  };
+
+  const handleApproveArabicDraft = async (lessonId) => {
+    setLessonsList((prev) =>
+      prev.map((l) => (l.id === lessonId ? { ...l, arabicStatus: 'approved', arabic_status: 'approved' } : l))
+    );
+
+    try {
+      await api.updateArabicStatus(lessonId, { arabicStatus: 'approved' });
+    } catch (err) {
+      console.warn('Status update skipped (offline/demo mode):', err.message);
+    }
+  };
+
   const handleManualReset = async (e) => {
     e.preventDefault();
     if (!resetTargetId) return;
@@ -131,7 +169,6 @@ export default function TeacherAdminPage() {
           : `Password reset successfully. Temporary password: ${tempPass || 'hemma2026'}`
       );
       setTempPass('');
-      // Refresh logs
       const logsData = await api.getAuditLogs();
       if (logsData.auditLogs) setAuditLogs(logsData.auditLogs);
     } catch (err) {
@@ -148,8 +185,8 @@ export default function TeacherAdminPage() {
         </h2>
         <p className="text-sm text-slate-600">
           {isRTL
-            ? 'هذه اللوحة مخصصة لأستاذ المادة لإدارة المرشدين وحل حالات التصعيد.'
-            : 'This dashboard is reserved for the Course Lead (Teacher) to manage mentor approvals and resolve escalations.'}
+            ? 'هذه اللوحة مخصصة لأستاذ المادة لإدارة الدروس والمرشدين وحل حالات التصعيد.'
+            : 'This dashboard is reserved for the Course Lead (Teacher) to author lessons, manage mentors, and resolve escalations.'}
         </p>
       </div>
     );
@@ -170,52 +207,182 @@ export default function TeacherAdminPage() {
           </div>
           <p className="text-xs sm:text-sm text-slate-600 mt-1">
             {isRTL
-              ? 'إدارة اعتماد المرشدين، البت في طلبات التصعيد، وضبط المحتوى التعليمي ثنائي اللغة'
-              : 'Approve & revoke mentors by topic, resolve escalations, and manage bilingual curriculum.'}
+              ? 'إنشاء الدروس البرمجية، اعتماد المسودات العربية، وإدارة المرشدين والتصعيدات'
+              : 'Author lessons, approve Arabic drafts, manage mentor permissions, and resolve escalations.'}
           </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+        {/* Tab Switcher & Create Lesson Trigger */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+            <button
+              onClick={() => setActiveTab('lessons')}
+              className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                activeTab === 'lessons' ? 'bg-white shadow-sm text-slate-900 font-bold' : 'text-slate-600'
+              }`}
+            >
+              {isRTL ? 'الدروس والمحتوى' : 'Lessons'}
+            </button>
+            <button
+              onClick={() => setActiveTab('mentors')}
+              className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                activeTab === 'mentors' ? 'bg-white shadow-sm text-slate-900 font-bold' : 'text-slate-600'
+              }`}
+            >
+              {isRTL ? 'اعتماد المرشدين' : 'Mentors'}
+            </button>
+            <button
+              onClick={() => setActiveTab('escalations')}
+              className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer ${
+                activeTab === 'escalations' ? 'bg-white shadow-sm text-slate-900 font-bold' : 'text-slate-600'
+              }`}
+            >
+              <span>{isRTL ? 'التصعيدات' : 'Escalations'}</span>
+              {escalations.length > 0 && (
+                <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center">
+                  {escalations.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('accounts')}
+              className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                activeTab === 'accounts' ? 'bg-white shadow-sm text-slate-900 font-bold' : 'text-slate-600'
+              }`}
+            >
+              {isRTL ? 'الحسابات' : 'Accounts'}
+            </button>
+            <button
+              onClick={() => setActiveTab('audit')}
+              className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                activeTab === 'audit' ? 'bg-white shadow-sm text-slate-900 font-bold' : 'text-slate-600'
+              }`}
+            >
+              {isRTL ? 'الرقابة' : 'Audit'}
+            </button>
+          </div>
+
           <button
-            onClick={() => setActiveTab('mentors')}
-            className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
-              activeTab === 'mentors' ? 'bg-white shadow-sm text-slate-900 font-bold' : 'text-slate-600'
-            }`}
+            onClick={() => setIsAuthoringOpen(true)}
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
-            {isRTL ? 'اعتماد المرشدين' : 'Mentor Approvals'}
-          </button>
-          <button
-            onClick={() => setActiveTab('escalations')}
-            className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'escalations' ? 'bg-white shadow-sm text-slate-900 font-bold' : 'text-slate-600'
-            }`}
-          >
-            <span>{isRTL ? 'التصعيدات' : 'Escalations'}</span>
-            {escalations.length > 0 && (
-              <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center">
-                {escalations.length}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab('accounts')}
-            className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
-              activeTab === 'accounts' ? 'bg-white shadow-sm text-slate-900 font-bold' : 'text-slate-600'
-            }`}
-          >
-            {isRTL ? 'الحسابات والدعم' : 'Accounts & Reset'}
-          </button>
-          <button
-            onClick={() => setActiveTab('audit')}
-            className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
-              activeTab === 'audit' ? 'bg-white shadow-sm text-slate-900 font-bold' : 'text-slate-600'
-            }`}
-          >
-            {isRTL ? 'سجل الرقابة' : 'Audit Logs'}
+            <PlusCircle className="w-4 h-4" />
+            <span>{isRTL ? 'إضافة درس جديد' : 'New Lesson'}</span>
           </button>
         </div>
       </div>
+
+      {/* Tab 0: Lesson Authoring & Arabic Translation Workflow (Phase 5.2) */}
+      {activeTab === 'lessons' && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div className="space-y-1">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-emerald-600" />
+                <span>{isRTL ? 'إدارة محتوى المقررات والترجمة العربية' : 'Curriculum Authoring & Arabic Workflow'}</span>
+              </h2>
+              <p className="text-xs text-slate-500">
+                {isRTL
+                  ? 'يقوم الأستاذ بإنشاء الدرس بالإنجليزية وتوليد مسودة ترجمة ومراجعتها قبل اعتمادها للطلاب.'
+                  : 'Teacher authors lesson in English; LibreTranslate draft is reviewed and approved before learner publishing.'}
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsAuthoringOpen(true)}
+              className="px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-xs inline-flex items-center gap-1.5 cursor-pointer"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>{isRTL ? 'إضافة درس برمجي' : 'Author New Lesson'}</span>
+            </button>
+          </div>
+
+          <div className="divide-y divide-slate-100">
+            {lessonsList.map((lesson) => {
+              const topic = topicsList.find((t) => t.id === (lesson.topicId || lesson.topic_id));
+              const currentStatus = lesson.arabicStatus || lesson.arabic_status || 'draft';
+
+              return (
+                <div key={lesson.id} className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="space-y-1.5 max-w-2xl">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 uppercase">
+                        {topic ? (language === 'ar' ? topic.titleAr || topic.title_ar : topic.titleEn || topic.title_en) : (isRTL ? 'المحور' : 'Topic')}
+                      </span>
+                      <h4 className="text-sm font-bold text-slate-900">
+                        {lesson.titleEn || lesson.title_en}
+                      </h4>
+                      <span className="text-xs text-slate-400">/</span>
+                      <span className="text-xs font-semibold text-slate-700 font-sans">
+                        {lesson.titleAr || lesson.title_ar}
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-slate-500 line-clamp-1">
+                      {language === 'ar' ? (lesson.notesAr || lesson.notes_ar || lesson.notesEn) : (lesson.notesEn || lesson.notes_en)}
+                    </p>
+
+                    <div className="flex items-center gap-3 text-[11px] text-slate-500 pt-1">
+                      <span className="flex items-center gap-1 font-mono">
+                        <FileCode className="w-3.5 h-3.5 text-slate-400" />
+                        <span>{isRTL ? 'شيفرة بايثون' : 'python3 snippet'}</span>
+                      </span>
+                      {(lesson.recordingLink || lesson.recording_link) && (
+                        <span className="flex items-center gap-1 text-blue-600">
+                          <Video className="w-3.5 h-3.5" />
+                          <span>{isRTL ? 'جلسة تفاعلية مرتبطة' : 'Live Session Linked'}</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Arabic Translation Approval status pill & Action */}
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="text-right rtl:text-left">
+                      <span className="text-[11px] text-slate-400 block mb-0.5">
+                        {isRTL ? 'حالة المسودة العربية:' : 'Arabic Draft Status:'}
+                      </span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold inline-flex items-center gap-1 border ${
+                        currentStatus === 'approved'
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                          : currentStatus === 'pending'
+                          ? 'bg-blue-50 text-blue-800 border-blue-300'
+                          : 'bg-amber-50 text-amber-800 border-amber-300'
+                      }`}>
+                        {currentStatus === 'approved' ? (
+                          <>
+                            <Check className="w-3 h-3 text-emerald-700" />
+                            <span>Approved / معتمد</span>
+                          </>
+                        ) : currentStatus === 'pending' ? (
+                          <>
+                            <Languages className="w-3 h-3 text-blue-700" />
+                            <span>Pending Review / قيد المراجعة</span>
+                          </>
+                        ) : (
+                          <>
+                            <RotateCcw className="w-3 h-3 text-amber-700" />
+                            <span>Draft / مسودة أولية</span>
+                          </>
+                        )}
+                      </span>
+                    </div>
+
+                    {currentStatus !== 'approved' && (
+                      <button
+                        onClick={() => handleApproveArabicDraft(lesson.id)}
+                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm cursor-pointer"
+                      >
+                        {isRTL ? 'اعتماد المسودة' : 'Approve Draft'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Tab 1: Mentor Approvals Matrix */}
       {activeTab === 'mentors' && (
@@ -238,9 +405,9 @@ export default function TeacherAdminPage() {
                 <tr>
                   <th className="p-3.5 font-bold">{isRTL ? 'اسم المرشد والجامعة' : 'Mentor & Institution'}</th>
                   <th className="p-3.5 font-bold text-center">{isRTL ? 'الحالة الحالية' : 'Current Role'}</th>
-                  {TOPICS.map((topic) => (
+                  {topicsList.map((topic) => (
                     <th key={topic.id} className="p-3.5 font-bold text-center">
-                      {isRTL ? `المحور ${topic.displayOrder}` : `Topic ${topic.displayOrder}`}
+                      {isRTL ? `المحور ${topic.displayOrder || topic.display_order}` : `Topic ${topic.displayOrder || topic.display_order}`}
                     </th>
                   ))}
                 </tr>
@@ -264,7 +431,7 @@ export default function TeacherAdminPage() {
                         </span>
                       </td>
 
-                      {TOPICS.map((topic) => {
+                      {topicsList.map((topic) => {
                         const isApproved = approved.includes(topic.id);
 
                         return (
@@ -326,7 +493,7 @@ export default function TeacherAdminPage() {
           ) : (
             <div className="space-y-4">
               {escalations.map((sub) => {
-                const topic = TOPICS.find((t) => t.id === (sub.topicId || LESSONS.find((l) => l.id === sub.lessonId)?.topicId));
+                const topic = topicsList.find((t) => t.id === (sub.topicId || sub.topic_id));
 
                 return (
                   <div
@@ -341,7 +508,7 @@ export default function TeacherAdminPage() {
                             : sub.assignmentTitleEn || topic?.assignment?.titleEn}
                         </h4>
                         <span className="text-xs text-slate-500">
-                          Learner: <strong className="text-slate-800">{sub.learnerName}</strong>
+                          {isRTL ? 'الطالب:' : 'Learner:'} <strong className="text-slate-800">{sub.learnerName}</strong>
                         </span>
                       </div>
                       <StatusBadge status={sub.status} />
@@ -349,7 +516,7 @@ export default function TeacherAdminPage() {
 
                     <div className="bg-white rounded-lg p-3 text-xs border border-rose-100 space-y-1 font-mono">
                       <div>
-                        <span className="font-semibold text-slate-700">Code URL: </span>
+                        <span className="font-semibold text-slate-700">{isRTL ? 'رابط الكود:' : 'Code URL:'} </span>
                         <a
                           href={sub.githubLink}
                           target="_blank"
@@ -360,7 +527,7 @@ export default function TeacherAdminPage() {
                         </a>
                       </div>
                       <p className="font-sans text-slate-700 pt-1">
-                        <strong>Explanation: </strong> {sub.explanation}
+                        <strong>{isRTL ? 'شرح الحل:' : 'Explanation:'} </strong> {sub.explanation}
                       </p>
                     </div>
 
@@ -498,7 +665,15 @@ export default function TeacherAdminPage() {
                             ? 'bg-rose-100 text-rose-800'
                             : 'bg-amber-100 text-amber-800'
                         }`}>
-                          {log.action}
+                          {isRTL
+                            ? log.action === 'MENTOR_APPROVED'
+                              ? 'اعتماد مرشد'
+                              : log.action === 'MENTOR_REVOKED'
+                              ? 'إلغاء اعتماد'
+                              : log.action === 'RESET_PASSWORD'
+                              ? 'إعادة تعيين كلمة مرور'
+                              : log.action
+                            : log.action}
                         </span>
                       </td>
                       <td className="p-3 text-slate-700 font-sans">{log.performed_by_name || log.performed_by}</td>
@@ -517,6 +692,14 @@ export default function TeacherAdminPage() {
           </div>
         </div>
       )}
+
+      {/* Lesson Authoring Modal */}
+      <LessonAuthoringModal
+        isOpen={isAuthoringOpen}
+        onClose={() => setIsAuthoringOpen(false)}
+        topics={topicsList}
+        onLessonCreated={handleLessonCreated}
+      />
     </div>
   );
 }

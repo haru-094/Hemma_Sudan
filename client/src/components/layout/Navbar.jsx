@@ -41,17 +41,17 @@ export default function Navbar() {
       <div className="bg-slate-900 text-slate-300 text-xs px-4 py-1.5 flex flex-wrap items-center justify-between gap-2 border-b border-slate-800">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-emerald-400 uppercase tracking-wider text-[10px]">
-            Demo Simulation:
+            {isRTL ? 'محاكاة التجربة:' : 'Demo Simulation:'}
           </span>
-          <span>Logged in as:</span>
+          <span>{isRTL ? 'مسجل كـ:' : 'Logged in as:'}</span>
           <span className="text-white font-medium">
-            {currentUser ? currentUser.name : 'Guest (Not logged in)'} 
-            {currentUser && ` (${currentUser.role})`}
+            {currentUser ? currentUser.name : (isRTL ? 'زائر (غير مسجل)' : 'Guest (Not logged in)')} 
+            {currentUser && ` (${currentUser.role === 'teacher' ? (isRTL ? 'أستاذ' : 'Teacher') : currentUser.role === 'mentor' ? (isRTL ? 'مرشد' : 'Mentor') : (isRTL ? 'طالب' : 'Learner')})`}
           </span>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-slate-400">Quick Persona Switch:</span>
+          <span className="text-slate-400">{isRTL ? 'تبديل الشخصية السريع:' : 'Quick Persona Switch:'}</span>
           <div className="flex items-center gap-1">
             {DEMO_USERS.map((user) => (
               <button
@@ -63,7 +63,11 @@ export default function Navbar() {
                     : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
                 }`}
               >
-                {user.role === 'teacher' ? 'Teacher' : user.role === 'mentor' ? user.name.split(' ')[0] + ' (Mentor)' : 'Learner'}
+                {user.role === 'teacher'
+                  ? isRTL ? 'الأستاذ' : 'Teacher'
+                  : user.role === 'mentor'
+                  ? `${user.name.split(' ')[0]} (${isRTL ? 'مرشد' : 'Mentor'})`
+                  : isRTL ? 'طالب' : 'Learner'}
               </button>
             ))}
           </div>

@@ -36,7 +36,7 @@ export default function LessonsPage() {
           </p>
         </div>
 
-        {/* Local Storage Quota Widget (FR §3.1) */}
+        {/* Local Storage Quota Widget */}
         <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
           <HardDrive className="w-5 h-5 text-slate-500" />
           <div className="text-xs">
