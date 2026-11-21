@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -18,7 +18,10 @@ import {
   Check,
   FileCode,
   FolderGit2,
-  ExternalLink
+  ExternalLink,
+  HelpCircle,
+  ShieldAlert,
+  MessageSquare
 } from 'lucide-react';
 
 export default function TopicProjectPage() {
@@ -29,10 +32,46 @@ export default function TopicProjectPage() {
   const { isOnline } = useSync();
 
   const topic = TOPICS.find((top) => top.id === topicId) || TOPICS[0];
-  const existingSubmissions = INITIAL_SUBMISSIONS.filter(
-    (s) => s.topicId === topic.id && s.learnerId === currentUser?.id
+  const [submissions, setSubmissions] = useState(() =>
+    INITIAL_SUBMISSIONS.filter(
+      (s) => s.topicId === topic.id && s.learnerId === (currentUser?.id || 'usr-learner-1')
+    )
   );
-  const latestSub = existingSubmissions[existingSubmissions.length - 1];
+
+  useEffect(() => {
+    async function loadHistory() {
+      try {
+        const data = await api.getSubmissionHistory(topic.id, currentUser?.id || 'usr-learner-1');
+        if (data && data.history && data.history.length > 0) {
+          const mapped = data.history.map((s) => ({
+            id: s.id,
+            topicId: s.topic_id,
+            assignmentTitleEn: s.topic_title_en,
+            assignmentTitleAr: s.topic_title_ar,
+            learnerId: s.learner_id,
+            learnerName: currentUser?.name || 'Ahmed Osman',
+            githubLink: s.github_link,
+            explanation: s.explanation,
+            attemptNo: s.attempt_no,
+            status: s.status,
+            submittedAt: s.submitted_at,
+            assignedMentorId: s.assigned_mentor_id,
+            feedbacks: (s.feedbacks || []).map((f) => ({
+              author: f.author_name || 'Mentor',
+              text: f.comment,
+              date: f.created_at,
+            })),
+          }));
+          setSubmissions(mapped);
+        }
+      } catch (err) {
+        // Fallback to local state
+      }
+    }
+    loadHistory();
+  }, [topic.id, currentUser?.id]);
+
+  const latestSub = submissions[submissions.length - 1];
 
   const [githubLink, setGithubLink] = useState('');
   const [explanation, setExplanation] = useState('');
@@ -50,6 +89,62 @@ export default function TopicProjectPage() {
       );
     } catch {
       return false;
+    }
+  };
+
+  const handleRequestTeacherReview = async (subId, reason) => {
+    const feedbackRemark = {
+      author: currentUser?.name || 'Ahmed Osman',
+      text: reason || (isRTL ? 'طلب الطالب مراجعة أستاذ المقرر مباشرة.' : 'Learner requested direct review from course lead.'),
+      date: new Date().toISOString(),
+    };
+
+    setSubmissions((prev) =>
+      prev.map((sub) =>
+        sub.id === subId
+          ? {
+              ...sub,
+              status: 'escalated',
+              feedbacks: [...sub.feedbacks, feedbackRemark],
+            }
+          : sub
+      )
+    );
+
+    const found = INITIAL_SUBMISSIONS.find((s) => s.id === subId);
+    if (found) {
+      found.status = 'escalated';
+      found.feedbacks.push(feedbackRemark);
+    }
+
+    try {
+      await api.requestTeacherReview(subId, {
+        learnerId: currentUser?.id || 'usr-learner-1',
+        reason,
+      });
+    } catch (err) {
+      // Offline / demo fallback
+    }
+  };
+
+  const handleAcceptFeedback = async (subId) => {
+    setSubmissions((prev) =>
+      prev.map((sub) => (sub.id === subId ? { ...sub, status: 'complete' } : sub))
+    );
+
+    const found = INITIAL_SUBMISSIONS.find((s) => s.id === subId);
+    if (found) {
+      found.status = 'complete';
+    }
+
+    try {
+      await api.resolveEscalation(subId, {
+        teacherId: currentUser?.id || 'usr-teacher-1',
+        resolution: 'complete',
+        comment: 'Accepted by learner.',
+      });
+    } catch (err) {
+      // Offline / demo fallback
     }
   };
 
@@ -102,6 +197,7 @@ export default function TopicProjectPage() {
     };
 
     INITIAL_SUBMISSIONS.push(newSubmission);
+    setSubmissions((prev) => [...prev, newSubmission]);
     setIsSuccess(true);
 
     api.createSubmission({
@@ -157,11 +253,11 @@ export default function TopicProjectPage() {
       </div>
 
       {/* Submission Status or Revision Notice if exists */}
-      {existingSubmissions.length > 0 && (
-        <RevisionTimeline attempts={existingSubmissions} />
+      {submissions.length > 0 && (
+        <RevisionTimeline attempts={submissions} />
       )}
 
-      {/* Submission Form (Online Only) */}
+      {/* Submission Form & Review Workflows (Online Only) */}
       <div className="space-y-4">
         {!isOnline && (
           <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-start gap-3 text-xs sm:text-sm">
@@ -197,16 +293,190 @@ export default function TopicProjectPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
-          <h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">
-            {latestSub?.status === 'revision_requested'
-              ? isRTL
-                ? 'تقديم نسخة معدلة جديدة'
-                : 'Submit Revised Project'
-              : isRTL
-              ? 'إرسال رابط المشروع والملاحظات'
-              : 'Submit Project Repository'}
-          </h3>
+        {/* 1B: Prominent Mentor Revision Remarks Callout (FR-7) */}
+        {latestSub?.status === 'revision_requested' && latestSub.feedbacks?.length > 0 && (
+          <div className="bg-amber-50/90 border-2 border-amber-300 rounded-2xl p-5 sm:p-6 space-y-4 shadow-sm">
+            <div className="flex items-center justify-between border-b border-amber-200 pb-3">
+              <div className="flex items-center gap-2">
+                <RotateCcw className="w-5 h-5 text-amber-700 shrink-0" />
+                <h4 className="text-base font-extrabold text-amber-950">
+                  {isRTL ? 'ملاحظات وتوجيهات المرشد للمراجعة والتعديل' : 'Mentor Revision Remarks'}
+                </h4>
+              </div>
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900">
+                {isRTL ? `المحاولة #${latestSub.attemptNo}` : `Attempt #${latestSub.attemptNo}`}
+              </span>
+            </div>
+
+            {/* Most recent mentor feedback */}
+            {(() => {
+              const recentFb = latestSub.feedbacks[latestSub.feedbacks.length - 1];
+              return (
+                <div className="bg-white rounded-xl border border-amber-200 p-4 space-y-2 shadow-xs">
+                  <div className="flex items-center justify-between text-xs font-semibold text-amber-800">
+                    <span className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                      <strong className="text-slate-900">{recentFb.author}</strong>
+                    </span>
+                    <span className="text-slate-400 font-normal">
+                      {new Date(recentFb.date).toLocaleDateString(language === 'ar' ? 'ar-SD' : 'en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-medium">
+                    {recentFb.text}
+                  </p>
+                </div>
+              );
+            })()}
+
+            {/* Collapsible history if multiple feedbacks exist */}
+            {latestSub.feedbacks.length > 1 && (
+              <details className="text-xs text-amber-900">
+                <summary className="cursor-pointer font-semibold hover:text-amber-950 select-none py-1">
+                  {isRTL
+                    ? `عرض ${latestSub.feedbacks.length - 1} ملاحظات سابقة`
+                    : `View ${latestSub.feedbacks.length - 1} earlier remark(s)`}
+                </summary>
+                <div className="mt-2 space-y-2 pt-1">
+                  {latestSub.feedbacks.slice(0, -1).map((fb, idx) => (
+                    <div key={idx} className="bg-white/80 rounded-lg border border-amber-100 p-3 space-y-1">
+                      <div className="flex items-center justify-between text-[11px] text-slate-500">
+                        <span className="font-semibold text-slate-700">{fb.author}</span>
+                        <span>{new Date(fb.date).toLocaleDateString()}</span>
+                      </div>
+                      <p className="text-xs text-slate-700">{fb.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
+          </div>
+        )}
+
+        {/* 2A: Learner Direct Teacher Review Request (FR-10.2) */}
+        {latestSub && (latestSub.status === 'submitted' || latestSub.status === 'under_review') && (
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                <HelpCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>
+                  {isRTL ? 'هل ترغب في طلب مراجعة مباشرة من أستاذ المقرر؟' : 'Need direct review from the course lead?'}
+                </span>
+              </div>
+              <p className="text-slate-500 text-[11px]">
+                {isRTL
+                  ? 'إذا لم يتوفر مرشد للموضوع أو كنت بحاجة لتقييم رسمي من أستاذ المادة، يمكنك طلب التدقيق المباشر.'
+                  : 'If no mentor is currently assigned or you need formal guidance, you can request course lead evaluation.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                handleRequestTeacherReview(
+                  latestSub.id,
+                  isRTL ? 'طلب الطالب مراجعة أستاذ المقرر مباشرة.' : 'Learner requested direct review from course lead.'
+                )
+              }
+              className="px-3.5 py-2 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 font-bold text-xs inline-flex items-center justify-center gap-1.5 shrink-0 shadow-xs transition-colors"
+            >
+              <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />
+              <span>{isRTL ? 'طلب مراجعة الأستاذ' : 'Request Teacher Review'}</span>
+            </button>
+          </div>
+        )}
+
+        {/* Feedback Given Decision Banner (FR-10.2 State Machine) */}
+        {latestSub && latestSub.status === 'feedback_given' && (
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-bold text-blue-900">
+                {isRTL ? 'القرار بشأن تقييم المرشد للمشروع:' : 'Review Evaluation Decision:'}
+              </h4>
+              <StatusBadge status="feedback_given" />
+            </div>
+            <p className="text-xs text-blue-800 leading-relaxed">
+              {isRTL
+                ? 'قدم المرشد ملاحظاته وتقييمه. يمكنك قبول التقييم واعتماد إكمال الوحدة، أو الاعتراض وطلب مراجعة أستاذ المادة.'
+                : 'Feedback has been provided on your project. You can accept and complete this module, or disagree and request teacher review.'}
+            </p>
+            <div className="flex flex-wrap items-center gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => handleAcceptFeedback(latestSub.id)}
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm"
+              >
+                <CheckCircle className="w-3.5 h-3.5" />
+                <span>{isRTL ? 'قبول التقييم وإكمال المشروع' : 'Accept Feedback & Complete'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  handleRequestTeacherReview(
+                    latestSub.id,
+                    isRTL
+                      ? 'اعترض الطالب على تقييم المرشد وطلب مراجعة أستاذ المقرر.'
+                      : 'Learner disagreed with mentor feedback and requested teacher review.'
+                  )
+                }
+                className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs inline-flex items-center gap-1.5"
+              >
+                <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                <span>{isRTL ? 'الاعتراض وطلب مراجعة الأستاذ' : 'Disagree & Request Teacher Review'}</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Escalated Notice */}
+        {latestSub && latestSub.status === 'escalated' && (
+          <div className="bg-purple-50 border border-purple-200 text-purple-900 p-4 rounded-xl flex items-center gap-3 text-xs sm:text-sm">
+            <AlertTriangle className="w-5 h-5 text-purple-600 shrink-0" />
+            <div>
+              <strong className="block font-bold">
+                {isRTL ? 'الواجب مُصعَّد لمراجعة أستاذ المادة' : 'Escalated to Course Lead'}
+              </strong>
+              <span>
+                {isRTL
+                  ? 'تم تحويل تسليمك إلى أستاذ المقرر (د. طارق أحمد) للمراجعة المباشرة والبت النهائي.'
+                  : 'Your submission is under review by the course teacher (Dr. Tariq Ahmed) for final evaluation.'}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Completed Notice */}
+        {latestSub && latestSub.status === 'complete' && (
+          <div className="bg-emerald-50 border border-emerald-300 text-emerald-900 p-4 rounded-xl flex items-center gap-3 text-sm">
+            <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+            <div>
+              <strong className="block font-bold">
+                {isRTL ? 'تهانينا! اكتمل المشروع بنجاح' : 'Congratulations! Project Completed'}
+              </strong>
+              <span className="text-xs">
+                {isRTL
+                  ? 'تم اعتماد وقبول مشروع هذه الوحدة. يمكنك متابعة باقي الوحدات التعليمية.'
+                  : 'This project has been approved. You can proceed with subsequent course modules.'}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Submission Form (Hidden if project is complete) */}
+        {latestSub?.status !== 'complete' && (
+          <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
+            <h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">
+              {latestSub?.status === 'revision_requested'
+                ? isRTL
+                  ? 'تقديم نسخة معدلة جديدة'
+                  : 'Submit Revised Project'
+                : isRTL
+                ? 'إرسال رابط المشروع والملاحظات'
+                : 'Submit Project Repository'}
+            </h3>
 
           <div className="space-y-2">
             <label className="block text-xs sm:text-sm font-bold text-slate-900">
@@ -268,6 +538,7 @@ export default function TopicProjectPage() {
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );

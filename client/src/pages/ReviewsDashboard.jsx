@@ -14,14 +14,32 @@ import {
   ExternalLink, 
   MessageSquare, 
   UserCheck,
-  History
+  History,
+  CheckCircle,
+  FolderGit2
 } from 'lucide-react';
 import GithubIcon from '../components/common/GithubIcon';
+
+const FILTER_TABS = [
+  { id: 'all', labelEn: 'All', labelAr: 'الكل' },
+  { id: 'pending', labelEn: 'Pending Review', labelAr: 'قيد المراجعة' },
+  { id: 'revision_requested', labelEn: 'Revision Requested', labelAr: 'تعديل مطلوب' },
+  { id: 'escalated', labelEn: 'Escalated', labelAr: 'مُصعَّد للأستاذ' },
+  { id: 'complete', labelEn: 'Completed', labelAr: 'مكتملة' },
+];
+
+const AVAILABLE_REVIEWERS = [
+  { id: 'usr-teacher-1', nameEn: 'Dr. Tariq Ahmed (Teacher)', nameAr: 'د. طارق أحمد (أستاذ المقرر)' },
+  { id: 'usr-mentor-1', nameEn: 'Sarah Ibrahim (Mentor)', nameAr: 'سارة إبراهيم (مرشدة)' },
+  { id: 'usr-mentor-2', nameEn: 'Omar Farouk (Mentor)', nameAr: 'عمر فاروق (مرشد)' },
+  { id: 'usr-mentor-3', nameEn: 'Mona Elhassan (Mentor)', nameAr: 'منى الحسن (مرشدة)' },
+];
 
 export default function ReviewsDashboard() {
   const { t, isRTL, language } = useLanguage();
   const { currentUser, isTeacher, isMentor } = useAuth();
   const [submissions, setSubmissions] = useState(INITIAL_SUBMISSIONS);
+  const [activeFilter, setActiveFilter] = useState('all');
   const [activeReviewId, setActiveReviewId] = useState(null);
   const [expandedHistoryId, setExpandedHistoryId] = useState(null);
   const [feedbackText, setFeedbackText] = useState('');
@@ -43,6 +61,8 @@ export default function ReviewsDashboard() {
             submittedAt: s.submitted_at,
             assignmentTitleEn: s.topic_title_en,
             assignmentTitleAr: s.topic_title_ar,
+            assignedMentorId: s.assigned_mentor_id,
+            assignedMentorName: s.assigned_mentor_name,
             feedbacks: (s.feedbacks || []).map((f) => ({
               author: f.author_name,
               text: f.comment,
@@ -156,6 +176,110 @@ export default function ReviewsDashboard() {
     }
   };
 
+  const handleAssignReviewer = async (subId, mentorId) => {
+    if (!mentorId) return;
+
+    setSubmissions((prev) =>
+      prev.map((sub) =>
+        sub.id === subId
+          ? {
+              ...sub,
+              assignedMentorId: mentorId,
+              status: sub.status === 'submitted' ? 'under_review' : sub.status,
+            }
+          : sub
+      )
+    );
+
+    const found = INITIAL_SUBMISSIONS.find((s) => s.id === subId);
+    if (found) {
+      found.assignedMentorId = mentorId;
+      if (found.status === 'submitted') {
+        found.status = 'under_review';
+      }
+    }
+
+    try {
+      await api.assignReviewer(subId, {
+        teacherId: currentUser.id,
+        mentorId,
+      });
+    } catch (err) {
+      // Graceful offline fallback
+    }
+  };
+
+  const handleResolveEscalation = async (subId, resolution, comment) => {
+    const nextStatus = resolution === 'complete' ? 'complete' : 'revision_requested';
+
+    setSubmissions((prev) =>
+      prev.map((sub) =>
+        sub.id === subId
+          ? {
+              ...sub,
+              status: nextStatus,
+              feedbacks: [
+                ...sub.feedbacks,
+                {
+                  author: currentUser?.name || 'Dr. Tariq Ahmed',
+                  text: comment,
+                  date: new Date().toISOString(),
+                },
+              ],
+            }
+          : sub
+      )
+    );
+
+    const found = INITIAL_SUBMISSIONS.find((s) => s.id === subId);
+    if (found) {
+      found.status = nextStatus;
+      found.feedbacks.push({
+        author: currentUser?.name || 'Dr. Tariq Ahmed',
+        text: comment,
+        date: new Date().toISOString(),
+      });
+    }
+
+    try {
+      await api.resolveEscalation(subId, {
+        teacherId: currentUser.id,
+        resolution,
+        comment,
+      });
+    } catch (err) {
+      // Graceful offline fallback
+    }
+  };
+
+  // Tab counters
+  const getTabCount = (tabId) => {
+    if (tabId === 'all') return submissions.length;
+    if (tabId === 'pending') {
+      return submissions.filter((s) => s.status === 'submitted' || s.status === 'under_review').length;
+    }
+    if (tabId === 'revision_requested') {
+      return submissions.filter((s) => s.status === 'revision_requested').length;
+    }
+    if (tabId === 'escalated') {
+      return submissions.filter((s) => s.status === 'escalated').length;
+    }
+    if (tabId === 'complete') {
+      return submissions.filter((s) => s.status === 'complete' || s.status === 'feedback_given').length;
+    }
+    return 0;
+  };
+
+  // Filtered submissions
+  const filteredSubmissions = submissions.filter((sub) => {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'pending') return sub.status === 'submitted' || sub.status === 'under_review';
+    if (activeFilter === 'revision_requested') return sub.status === 'revision_requested';
+    if (activeFilter === 'escalated') return sub.status === 'escalated';
+    if (activeFilter === 'complete') return sub.status === 'complete' || sub.status === 'feedback_given';
+    return true;
+  });
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Page Header */}
@@ -193,191 +317,331 @@ export default function ReviewsDashboard() {
         )}
       </div>
 
-      {/* Submissions Queue */}
-      <div className="space-y-6">
-        {submissions.map((sub) => {
-          const topic = TOPICS.find((t) => t.id === (sub.topicId || LESSONS.find((l) => l.id === sub.lessonId)?.topicId));
-          const authorized = canReview(sub);
-          const isReviewing = activeReviewId === sub.id;
-
+      {/* Filter Tabs (Phase 1A / FR-11.2) */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-4">
+        {FILTER_TABS.map((tab) => {
+          const count = getTabCount(tab.id);
+          const isActive = activeFilter === tab.id;
           return (
-            <div
-              key={sub.id}
-              className={`bg-white rounded-2xl border p-6 space-y-5 transition-shadow shadow-sm ${
-                authorized ? 'border-slate-200 hover:border-slate-300' : 'border-slate-200 bg-slate-50/70 opacity-80'
+            <button
+              key={tab.id}
+              onClick={() => setActiveFilter(tab.id)}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-2 ${
+                isActive
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
-                      {language === 'ar' ? topic?.titleAr : topic?.titleEn}
-                    </span>
-                    <h3 className="text-base font-bold text-slate-900">
-                      {language === 'ar'
-                        ? sub.assignmentTitleAr || topic?.assignment?.titleAr
-                        : sub.assignmentTitleEn || topic?.assignment?.titleEn}
-                    </h3>
+              <span>{language === 'ar' ? tab.labelAr : tab.labelEn}</span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                  isActive ? 'bg-emerald-700/80 text-white' : 'bg-slate-100 text-slate-700'
+                }`}
+              >
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Submissions Queue */}
+      <div className="space-y-6">
+        {filteredSubmissions.length === 0 ? (
+          <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center space-y-3 shadow-xs">
+            <FolderGit2 className="w-10 h-10 text-slate-300 mx-auto" />
+            <h4 className="text-sm font-bold text-slate-800">
+              {isRTL ? 'لا توجد تسليمات في هذا التبويب حالياً' : 'No submissions found in this category'}
+            </h4>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              {isRTL
+                ? 'يمكنك تغيير التبويب المختار لعرض التسليمات الأخرى أو متابعة لوحة التحكم.'
+                : 'Try selecting another filter tab to view submissions across other review stages.'}
+            </p>
+          </div>
+        ) : (
+          filteredSubmissions.map((sub) => {
+            const topic = TOPICS.find((t) => t.id === (sub.topicId || LESSONS.find((l) => l.id === sub.lessonId)?.topicId));
+            const authorized = canReview(sub);
+            const isReviewing = activeReviewId === sub.id;
+
+            return (
+              <div
+                key={sub.id}
+                className={`bg-white rounded-2xl border p-6 space-y-5 transition-shadow shadow-sm ${
+                  authorized ? 'border-slate-200 hover:border-slate-300' : 'border-slate-200 bg-slate-50/70 opacity-80'
+                }`}
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                        {language === 'ar' ? topic?.titleAr : topic?.titleEn}
+                      </span>
+                      <h3 className="text-base font-bold text-slate-900">
+                        {language === 'ar'
+                          ? sub.assignmentTitleAr || topic?.assignment?.titleAr
+                          : sub.assignmentTitleEn || topic?.assignment?.titleEn}
+                      </h3>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      {isRTL ? 'الطالب:' : 'Learner:'}{' '}
+                      <strong className="text-slate-700">{sub.learnerName}</strong> •{' '}
+                      {isRTL ? `المحاولة #${sub.attemptNo}` : `Attempt #${sub.attemptNo}`}
+                    </p>
                   </div>
-                  <p className="text-xs text-slate-500">
-                    {isRTL ? 'الطالب:' : 'Learner:'}{' '}
-                    <strong className="text-slate-700">{sub.learnerName}</strong> •{' '}
-                    {isRTL ? `المحاولة #${sub.attemptNo}` : `Attempt #${sub.attemptNo}`}
-                  </p>
+
+                  <StatusBadge status={sub.status} />
                 </div>
 
-                <StatusBadge status={sub.status} />
-              </div>
-
-              {/* Code link and explanation */}
-              <div className="bg-slate-50 rounded-xl p-4 space-y-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 font-mono text-xs">
-                    <GithubIcon className="w-4 h-4 text-slate-800" />
-                    <span className="font-semibold text-slate-700">{isRTL ? 'المستودع:' : 'Repository:'}</span>
+                {/* Code link and explanation */}
+                <div className="bg-slate-50 rounded-xl p-4 space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-mono text-xs">
+                      <GithubIcon className="w-4 h-4 text-slate-800" />
+                      <span className="font-semibold text-slate-700">{isRTL ? 'المستودع:' : 'Repository:'}</span>
+                      <a
+                        href={sub.githubLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-emerald-700 hover:underline ltr-forced"
+                      >
+                        {sub.githubLink}
+                      </a>
+                    </div>
                     <a
                       href={sub.githubLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-emerald-700 hover:underline ltr-forced"
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900"
                     >
-                      {sub.githubLink}
+                      <span>{isRTL ? 'فتح GitHub' : 'Open in GitHub'}</span>
+                      <ExternalLink className="w-3 h-3" />
                     </a>
                   </div>
-                  <a
-                    href={sub.githubLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900"
-                  >
-                    <span>{isRTL ? 'فتح GitHub' : 'Open in GitHub'}</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
+
+                  <div className="pt-1 text-slate-700">
+                    <strong className="block text-slate-900 mb-0.5">{isRTL ? 'شرح الطالب:' : "Learner's Explanation:"}</strong>
+                    <p className="leading-relaxed">{sub.explanation}</p>
+                  </div>
                 </div>
 
-                <div className="pt-1 text-slate-700">
-                  <strong className="block text-slate-900 mb-0.5">{isRTL ? 'شرح الطالب:' : "Learner's Explanation:"}</strong>
-                  <p className="leading-relaxed">{sub.explanation}</p>
-                </div>
-              </div>
-
-              {/* Authorization check message */}
-              {!authorized && (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs flex items-center gap-2">
-                  <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span>
-                    {isRTL
-                      ? 'لا تملك صلاحية مراجعة هذا الواجب. (يتطلب اعتماد الأستاذ للموضوع أو عدم مراجعة واجباتك الخاصة).'
-                      : 'You are not authorized to review this submission per teacher approval constraints.'}
-                  </span>
-                </div>
-              )}
-
-              {/* Review Actions if authorized */}
-              {authorized && !isReviewing && sub.status !== 'complete' && (
-                <div className="pt-2 flex flex-wrap items-center gap-3">
-                  <button
-                    onClick={() => setActiveReviewId(sub.id)}
-                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                    <span>{isRTL ? 'كتابة تقييم وملاحظات' : 'Start Review'}</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleEscalate(sub.id)}
-                    className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold text-xs inline-flex items-center gap-1.5"
-                  >
-                    <AlertTriangle className="w-4 h-4" />
-                    <span>{isRTL ? 'تصعيد للأستاذ' : 'Escalate to Teacher'}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setExpandedHistoryId(expandedHistoryId === sub.id ? null : sub.id)}
-                    className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs inline-flex items-center gap-1.5 transition-colors"
-                  >
-                    <History className="w-3.5 h-3.5 text-slate-500" />
-                    <span>
-                      {expandedHistoryId === sub.id
-                        ? isRTL ? 'إخفاء سجل المحاولات' : 'Hide History'
-                        : isRTL ? 'سجل المحاولات والنسخ' : 'View Attempt History'}
+                {/* Assigned Reviewer bar (FR-9.1) */}
+                <div className="bg-slate-50/70 rounded-xl p-3 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                  <div className="flex items-center gap-2">
+                    <UserCheck className="w-4 h-4 text-slate-500 shrink-0" />
+                    <span className="text-slate-600 font-medium">
+                      {isRTL ? 'المراجع المكلف:' : 'Assigned Reviewer:'}
                     </span>
-                  </button>
-                </div>
-              )}
-
-              {/* Revision History Timeline */}
-              {expandedHistoryId === sub.id && (
-                <div className="pt-2">
-                  <RevisionTimeline
-                    attempts={submissions.filter(
-                      (s) => (s.topicId || s.lessonId) === (sub.topicId || sub.lessonId) && s.learnerId === sub.learnerId
+                    {sub.assignedMentorId ? (
+                      <span className="font-bold text-emerald-800 bg-emerald-100/70 px-2.5 py-0.5 rounded-md">
+                        {language === 'ar'
+                          ? AVAILABLE_REVIEWERS.find((r) => r.id === sub.assignedMentorId)?.nameAr || sub.assignedMentorName || sub.assignedMentorId
+                          : AVAILABLE_REVIEWERS.find((r) => r.id === sub.assignedMentorId)?.nameEn || sub.assignedMentorName || sub.assignedMentorId}
+                      </span>
+                    ) : (
+                      <span className="text-amber-800 bg-amber-100/70 px-2.5 py-0.5 rounded-md font-semibold">
+                        {isRTL ? 'غير مُعين (بانتظار تكليف الأستاذ)' : 'Unassigned (Awaiting Assignment)'}
+                      </span>
                     )}
-                  />
-                </div>
-              )}
+                  </div>
 
-              {/* Interactive Review Box */}
-              {isReviewing && (
-                <div className="border border-emerald-200 bg-emerald-50/40 rounded-xl p-5 space-y-4">
-                  <h4 className="text-sm font-bold text-slate-900">
-                    {isRTL ? 'كتابة ملاحظات المراجعة والتقييم' : 'Review & Evaluation Feedback'}
-                  </h4>
-
-                  <textarea
-                    rows={4}
-                    value={feedbackText}
-                    onChange={(e) => setFeedbackText(e.target.value)}
-                    placeholder={
-                      isRTL
-                        ? 'اكتب ملاحظاتك التوجيهية، ما تميز به الكود، وما يحتاج إلى تحسين أو تصحيح...'
-                        : 'Write actionable feedback for the learner...'
-                    }
-                    className="w-full p-3 rounded-xl border border-slate-300 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
-                  ></textarea>
-
-                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                  {/* Teacher Assign Dropdown (FR-9.1) */}
+                  {isTeacher && (
                     <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleGiveFeedback(sub.id)}
-                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm"
+                      <span className="text-slate-500 text-[11px] font-semibold">
+                        {isRTL ? 'تكليف مراجع:' : 'Assign To:'}
+                      </span>
+                      <select
+                        value={sub.assignedMentorId || ''}
+                        onChange={(e) => handleAssignReviewer(sub.id, e.target.value)}
+                        className="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-xs"
                       >
-                        <Send className="w-3.5 h-3.5" />
-                        <span>{isRTL ? 'إرسال الملاحظات (مقبول)' : 'Submit Feedback'}</span>
+                        <option value="">{isRTL ? '-- اختر مراجعاً --' : '-- Select Reviewer --'}</option>
+                        {AVAILABLE_REVIEWERS.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {language === 'ar' ? r.nameAr : r.nameEn}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                {/* Teacher Resolve Escalation Panel (FR-10.1 / State Machine) */}
+                {isTeacher && sub.status === 'escalated' && (
+                  <div className="bg-purple-50/80 border border-purple-200 rounded-xl p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-purple-700 shrink-0" />
+                        <h5 className="font-bold text-xs text-purple-950">
+                          {isRTL ? 'إجراءات أستاذ المقرر لفض الحالة المُصعَّدة:' : 'Course Lead Escalation Resolution:'}
+                        </h5>
+                      </div>
+                      <span className="text-[11px] font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded">
+                        {isRTL ? 'صلاحية الأستاذ فقط' : 'Teacher Authority Only'}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleResolveEscalation(
+                            sub.id,
+                            'complete',
+                            isRTL
+                              ? 'تم فض التصعيد واعتماد المشروع نهائياً بواسطة أستاذ المادة.'
+                              : 'Escalation resolved and project approved by course lead.'
+                          )
+                        }
+                        className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm"
+                      >
+                        <CheckSquare className="w-3.5 h-3.5" />
+                        <span>{isRTL ? 'اعتماد المشروع كـ مكتمل' : 'Approve & Mark Complete'}</span>
                       </button>
 
                       <button
-                        onClick={() => handleRequestRevision(sub.id)}
-                        className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm"
+                        type="button"
+                        onClick={() =>
+                          handleResolveEscalation(
+                            sub.id,
+                            'revision_requested',
+                            isRTL
+                              ? 'طلب أستاذ المادة من الطالب تصحيح المتطلبات وإعادة الرفع.'
+                              : 'Course lead requested revision with updated requirements.'
+                          )
+                        }
+                        className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm"
                       >
                         <RotateCcw className="w-3.5 h-3.5" />
-                        <span>{isRTL ? 'طلب مراجعة وتعديل' : 'Request Revision'}</span>
-                      </button>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleEscalate(sub.id)}
-                        className="px-3 py-2 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 font-semibold text-xs inline-flex items-center gap-1"
-                      >
-                        <AlertTriangle className="w-3.5 h-3.5" />
-                        <span>{isRTL ? 'تصعيد للأستاذ' : 'Escalate'}</span>
-                      </button>
-
-                      <button
-                        onClick={() => setActiveReviewId(null)}
-                        className="px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-200 font-semibold text-xs"
-                      >
-                        {t.common.cancel}
+                        <span>{isRTL ? 'طلب تعديل ومراجعة من الطالب' : 'Request Revision'}</span>
                       </button>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
+                )}
+
+                {/* Authorization check message */}
+                {!authorized && (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs flex items-center gap-2">
+                    <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>
+                      {isRTL
+                        ? 'لا تملك صلاحية مراجعة هذا الواجب. (يتطلب اعتماد الأستاذ للموضوع أو عدم مراجعة واجباتك الخاصة).'
+                        : 'You are not authorized to review this submission per teacher approval constraints.'}
+                    </span>
+                  </div>
+                )}
+
+                {/* Review Actions if authorized */}
+                {authorized && !isReviewing && sub.status !== 'complete' && (
+                  <div className="pt-2 flex flex-wrap items-center gap-3">
+                    <button
+                      onClick={() => setActiveReviewId(sub.id)}
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      <span>{isRTL ? 'كتابة تقييم وملاحظات' : 'Start Review'}</span>
+                    </button>
+
+                    {sub.status !== 'escalated' && (
+                      <button
+                        onClick={() => handleEscalate(sub.id)}
+                        className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold text-xs inline-flex items-center gap-1.5"
+                      >
+                        <AlertTriangle className="w-4 h-4" />
+                        <span>{isRTL ? 'تصعيد للأستاذ' : 'Escalate to Teacher'}</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => setExpandedHistoryId(expandedHistoryId === sub.id ? null : sub.id)}
+                      className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs inline-flex items-center gap-1.5 transition-colors"
+                    >
+                      <History className="w-3.5 h-3.5 text-slate-500" />
+                      <span>
+                        {expandedHistoryId === sub.id
+                          ? isRTL ? 'إخفاء سجل المحاولات' : 'Hide History'
+                          : isRTL ? 'سجل المحاولات والنسخ' : 'View Attempt History'}
+                      </span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Revision History Timeline */}
+                {expandedHistoryId === sub.id && (
+                  <div className="pt-2">
+                    <RevisionTimeline
+                      attempts={submissions.filter(
+                        (s) => (s.topicId || s.lessonId) === (sub.topicId || sub.lessonId) && s.learnerId === sub.learnerId
+                      )}
+                    />
+                  </div>
+                )}
+
+                {/* Interactive Review Box */}
+                {isReviewing && (
+                  <div className="border border-emerald-200 bg-emerald-50/40 rounded-xl p-5 space-y-4">
+                    <h4 className="text-sm font-bold text-slate-900">
+                      {isRTL ? 'كتابة ملاحظات المراجعة والتقييم' : 'Review & Evaluation Feedback'}
+                    </h4>
+
+                    <textarea
+                      rows={4}
+                      value={feedbackText}
+                      onChange={(e) => setFeedbackText(e.target.value)}
+                      placeholder={
+                        isRTL
+                          ? 'اكتب ملاحظاتك التوجيهية، ما تميز به الكود، وما يحتاج إلى تحسين أو تصحيح...'
+                          : 'Write actionable feedback for the learner...'
+                      }
+                      className="w-full p-3 rounded-xl border border-slate-300 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+                    ></textarea>
+
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleGiveFeedback(sub.id)}
+                          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>{isRTL ? 'إرسال الملاحظات (مقبول)' : 'Submit Feedback'}</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleRequestRevision(sub.id)}
+                          className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                          <span>{isRTL ? 'طلب مراجعة وتعديل' : 'Request Revision'}</span>
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {sub.status !== 'escalated' && (
+                          <button
+                            onClick={() => handleEscalate(sub.id)}
+                            className="px-3 py-2 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 font-semibold text-xs inline-flex items-center gap-1"
+                          >
+                            <AlertTriangle className="w-3.5 h-3.5" />
+                            <span>{isRTL ? 'تصعيد للأستاذ' : 'Escalate'}</span>
+                          </button>
+                        )}
+
+                        <button
+                          onClick={() => setActiveReviewId(null)}
+                          className="px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-200 font-semibold text-xs"
+                        >
+                          {t.common.cancel}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ const db = require('../db');
 // Idempotent progress synchronization with duplicate protection
 router.post('/progress', async (req, res, next) => {
   try {
-    const { updates, learnerId } = req.body;
+    const { updates, learnerId, savedLessonIds = [] } = req.body;
 
     if (!Array.isArray(updates) || updates.length === 0) {
       return res.status(400).json({
@@ -16,6 +16,7 @@ router.post('/progress', async (req, res, next) => {
 
     const processed = [];
     const duplicatesIgnored = [];
+    const conflictsResolved = [];
 
     for (const item of updates) {
       const {
@@ -31,7 +32,7 @@ router.post('/progress', async (req, res, next) => {
         continue;
       }
 
-      // Ignore duplicate updateId (idempotency guard)
+      // 1. Idempotency guard: Ignore duplicate updateId
       const existing = await db.query(
         'SELECT id FROM progress_records WHERE update_id = $1',
         [updateId]
@@ -40,6 +41,41 @@ router.post('/progress', async (req, res, next) => {
       if (existing.rows.length > 0) {
         duplicatesIgnored.push(updateId);
         continue;
+      }
+
+      // 2. Progress Conflict Resolution (FR-5.5):
+      // When two devices or an offline update and the server disagree on a lesson marked as done,
+      // the server shall revert to incomplete. For fields such as the last position, the update with the latest client timestamp wins.
+      const existingProgress = await db.query(
+        `SELECT id, status, last_position, client_time 
+         FROM progress_records 
+         WHERE learner_id = $1 AND entity_id = $2
+         ORDER BY client_time DESC LIMIT 1`,
+        [learnerId || 'usr-learner-1', lessonId]
+      );
+
+      let finalStatus = status;
+      let finalPosition = lastPosition;
+      let isConflict = false;
+
+      if (existingProgress.rows.length > 0) {
+        const prev = existingProgress.rows[0];
+
+        const prevDone = prev.status === 'completed';
+        const newDone = status === 'completed';
+
+        if (prevDone !== newDone) {
+          finalStatus = 'incomplete';
+          isConflict = true;
+        }
+
+        const prevTime = new Date(prev.client_time).getTime();
+        const newTime = new Date(clientTime || Date.now()).getTime();
+
+        if (prevTime > newTime) {
+          finalPosition = prev.last_position;
+          isConflict = true;
+        }
       }
 
       const recId = `prog-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
@@ -53,21 +89,53 @@ router.post('/progress', async (req, res, next) => {
           learnerId || 'usr-learner-1',
           lessonId,                    // stored as entity_id — no FK constraint
           entityType,
-          status,
-          lastPosition,
+          finalStatus,
+          finalPosition,
           clientTime || new Date().toISOString(),
         ]
       );
 
+      if (isConflict) {
+        conflictsResolved.push({ updateId, entityId: lessonId, finalStatus, finalPosition });
+      }
       processed.push(updateId);
+    }
+
+    // 3. Content Conflict Detection (FR-5.6)
+    // Server published version always wins. If updated -> update available. If unpublished -> no longer available.
+    const updateAvailable = [];
+    const noLongerAvailable = [];
+
+    if (Array.isArray(savedLessonIds) && savedLessonIds.length > 0) {
+      const lessonChecks = await db.query(
+        `SELECT id, is_published, version FROM lessons WHERE id = ANY($1::text[])`,
+        [savedLessonIds]
+      );
+
+      const foundMap = new Map(lessonChecks.rows.map((l) => [l.id, l]));
+
+      for (const sId of savedLessonIds) {
+        const row = foundMap.get(sId);
+        if (!row || row.is_published === false) {
+          noLongerAvailable.push(sId);
+        } else if (row.version > 1) {
+          updateAvailable.push(sId);
+        }
+      }
     }
 
     res.status(200).json({
       message: 'Progress synchronization completed.',
       syncedCount: processed.length,
       duplicatesIgnoredCount: duplicatesIgnored.length,
+      conflictsResolvedCount: conflictsResolved.length,
+      conflictsResolved,
       processedUpdateIds: processed,
       ignoredUpdateIds: duplicatesIgnored,
+      lessonStatus: {
+        updateAvailable,
+        noLongerAvailable,
+      },
     });
   } catch (err) {
     next(err);
