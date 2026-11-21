@@ -119,7 +119,8 @@ CREATE TABLE IF NOT EXISTS progress_records (
     id VARCHAR(64) PRIMARY KEY,
     update_id VARCHAR(128) NOT NULL UNIQUE, -- Unique client-generated ID for duplicate protection
     learner_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    lesson_id VARCHAR(64) NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+    entity_id VARCHAR(64) NOT NULL,                              -- lesson ID or quiz ID (no FK — quizzes are not in the lessons table)
+    entity_type VARCHAR(16) NOT NULL DEFAULT 'lesson',           -- 'lesson' | 'quiz'
     status VARCHAR(32) NOT NULL DEFAULT 'completed',
     last_position INT DEFAULT 100,
     client_time TIMESTAMP WITH TIME ZONE NOT NULL,
