@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth, DEMO_USERS } from '../context/AuthContext';
+import { useSync } from '../context/SyncContext';
 import { 
   LogIn, 
   Mail, 
@@ -14,13 +15,21 @@ import {
   X,
   ArrowRight,
   ArrowLeft,
-  BookOpen
+  BookOpen,
+  Database
 } from 'lucide-react';
 
 export default function LoginPage() {
   const { t, isRTL, language } = useLanguage();
-  const { login, loginAs, currentUser } = useAuth();
+  const { login, loginAs, currentUser, isSessionExpired, sessionExpiredWhileOffline, expireSessionNow } = useAuth();
+  const { requiresReauth, pendingQueue } = useSync();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const returnTo = searchParams.get('returnTo');
+  const isExpiredParam = searchParams.get('sessionExpired') === 'true';
+
+  const showReauthNotice = requiresReauth || isSessionExpired || sessionExpiredWhileOffline || isExpiredParam;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,12 +38,20 @@ export default function LoginPage() {
 
   const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
 
+  const handlePostLoginRedirect = (user) => {
+    if (returnTo) {
+      navigate(returnTo);
+    } else {
+      navigate(user.role === 'teacher' ? '/teacher' : user.role === 'mentor' ? '/reviews' : '/dashboard');
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setErrorMsg('');
     try {
-      login(email, password);
-      navigate('/dashboard');
+      const loggedUser = login(email, password);
+      handlePostLoginRedirect(loggedUser);
     } catch (err) {
       setErrorMsg(err.message || 'Invalid login credentials');
     }
@@ -42,7 +59,7 @@ export default function LoginPage() {
 
   const handleDemoSelect = (user) => {
     loginAs(user.id);
-    navigate(user.role === 'teacher' ? '/teacher' : user.role === 'mentor' ? '/reviews' : '/dashboard');
+    handlePostLoginRedirect(user);
   };
 
   return (
@@ -63,6 +80,33 @@ export default function LoginPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-6 sm:px-10 shadow-sm border border-slate-200 rounded-3xl space-y-6">
+          {/* FR-12.1: Prominent Re-auth notice if session expired while offline */}
+          {showReauthNotice && (
+            <div className="p-4 rounded-2xl bg-purple-50 border border-purple-200 text-purple-900 text-xs sm:text-sm space-y-2">
+              <div className="flex items-center gap-2 font-bold text-purple-800">
+                <Lock className="w-4 h-4 text-purple-700 shrink-0" />
+                <span>
+                  {isRTL
+                    ? 'انتهت صلاحية جلستك أثناء عدم الاتصال (FR-12.1)'
+                    : 'Session Expired While Offline (FR-12.1)'}
+                </span>
+              </div>
+              <p className="text-purple-700 leading-relaxed text-xs">
+                {isRTL
+                  ? 'تم حفظ جميع التمارين وسجلات التقدم في الذاكرة المحلية بأمان. يرجى تسجيل الدخول مجدداً لاستئناف المزامنة التلقائية فوراً دون فقدان أي تقدم.'
+                  : 'All your completed exercises and progress records are safely preserved in local storage. Sign in to automatically resume synchronization with zero progress loss.'}
+              </p>
+              {pendingQueue.length > 0 && (
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-100 text-purple-900 font-mono text-[11px] font-bold">
+                  <Database className="w-3.5 h-3.5 text-purple-700" />
+                  <span>
+                    {pendingQueue.length} {isRTL ? 'تحديث بانتظار المزامنة التلقائية' : 'progress records ready to sync'}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
           {errorMsg && (
             <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2.5">
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
@@ -151,6 +195,19 @@ export default function LoginPage() {
                   </span>
                 </button>
               ))}
+            </div>
+
+            {/* Quick simulation helper for FR-12.1 evaluation */}
+            <div className="text-center pt-3">
+              <button
+                type="button"
+                onClick={() => expireSessionNow(true)}
+                className="text-[11px] text-slate-500 hover:text-purple-700 underline font-medium transition-colors cursor-pointer"
+              >
+                {isRTL
+                  ? '⚡ محاكاة سيناريو انتهاء صلاحية الجلسة أثناء انقطاع الإنترنت (FR-12.1)'
+                  : '⚡ Simulate Session Expiry While Offline (FR-12.1)'}
+              </button>
             </div>
           </div>
 

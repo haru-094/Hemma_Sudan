@@ -10,6 +10,7 @@ import {
 } from '../services/indexedDB';
 import { api } from '../services/api';
 import { LESSONS } from '../data/mockData';
+import { useAuth } from './AuthContext';
 
 const SyncContext = createContext(null);
 
@@ -17,6 +18,7 @@ const SyncContext = createContext(null);
 const RETRY_DELAYS = [5000, 15000, 60000];
 
 export function SyncProvider({ children }) {
+  const { currentUser, isSessionExpired, sessionExpiredWhileOffline, expireSessionNow } = useAuth();
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
   const [syncStatus, setSyncStatus] = useState('synced'); // 'synced' | 'pending' | 'failed'
   const [pendingQueue, setPendingQueue] = useState([]);
@@ -29,6 +31,7 @@ export function SyncProvider({ children }) {
 
   const retryAttemptRef = useRef(0);
   const retryTimeoutRef = useRef(null);
+  const wasReauthRequiredRef = useRef(false);
 
   // Monitor storage quota usage: warn when >80%
   const checkStorageQuota = useCallback(async () => {
@@ -120,6 +123,25 @@ export function SyncProvider({ children }) {
     };
   }, [triggerSync]);
 
+  // FR-12.1: Handle session expiration and auto-resume after re-authentication
+  useEffect(() => {
+    if (isSessionExpired || sessionExpiredWhileOffline) {
+      setRequiresReauth(true);
+      wasReauthRequiredRef.current = true;
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+    } else if (currentUser && !isSessionExpired && wasReauthRequiredRef.current) {
+      // Re-authenticated: automatically resume sync without data loss
+      wasReauthRequiredRef.current = false;
+      setRequiresReauth(false);
+      setSyncError(null);
+      if (navigator.onLine) {
+        triggerSync();
+      }
+    }
+  }, [currentUser, isSessionExpired, sessionExpiredWhileOffline, triggerSync]);
+
   // Record progress with client UUID for duplicate protection
   const recordProgress = async (lessonId, lastPosition = 100, status = 'completed') => {
     const updateId = `upd-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -152,6 +174,15 @@ export function SyncProvider({ children }) {
       return;
     }
 
+    if (isSessionExpired || sessionExpiredWhileOffline) {
+      console.warn('Sync paused: Session expired while offline (FR-12.1). Queue safely preserved.');
+      setSyncStatus('pending');
+      setRequiresReauth(true);
+      wasReauthRequiredRef.current = true;
+      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+      return;
+    }
+
     try {
       const itemsToSync = await getPendingProgressFromIDB();
       if (itemsToSync.length === 0) {
@@ -167,7 +198,7 @@ export function SyncProvider({ children }) {
       // Attempt live backend synchronization with content conflict check (FR-5.6)
       const res = await api.syncProgress({
         updates: itemsToSync,
-        learnerId: 'usr-learner-1',
+        learnerId: currentUser?.id || 'usr-learner-1',
         savedLessonIds: savedLessons,
       });
 
@@ -328,7 +359,8 @@ export function SyncProvider({ children }) {
         storageUsagePercent,
         lessonContentStatus,
         syncError,
-        requiresReauth,
+        requiresReauth: requiresReauth || isSessionExpired || sessionExpiredWhileOffline,
+        expireSessionNow,
         refreshSavedLesson,
         recordProgress,
         triggerSync,

@@ -21,7 +21,8 @@ import {
   ExternalLink,
   HelpCircle,
   ShieldAlert,
-  MessageSquare
+  MessageSquare,
+  Loader2
 } from 'lucide-react';
 
 export default function TopicProjectPage() {
@@ -77,6 +78,7 @@ export default function TopicProjectPage() {
   const [explanation, setExplanation] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isValidatingGithub, setIsValidatingGithub] = useState(false);
 
   const ArrowBackIcon = isRTL ? ArrowRight : ArrowLeft;
 
@@ -148,7 +150,7 @@ export default function TopicProjectPage() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -178,6 +180,32 @@ export default function TopicProjectPage() {
       );
       return;
     }
+
+    // FR-6.3: Reachability probe check
+    setIsValidatingGithub(true);
+    try {
+      const probe = await api.validateGithubRepo({ githubLink: githubLink.trim() });
+      if (probe && probe.reachable === false) {
+        setErrorMsg(
+          isRTL
+            ? 'المستودع غير موجود أو أنه خاص. يرجى التأكد من أن المستودع عام ويمكن الوصول إليه (FR-6.3).'
+            : (probe.message || 'Repository not found or is private — please ensure your repository is public and reachable (FR-6.3).')
+        );
+        setIsValidatingGithub(false);
+        return;
+      }
+    } catch (err) {
+      if (err.status === 400 && (err.errorCode === 'REPO_NOT_FOUND' || err.errorCode === 'INVALID_GITHUB_URL' || err.errorCode === 'REPO_UNREACHABLE')) {
+        setErrorMsg(
+          isRTL
+            ? 'المستودع غير موجود أو أنه خاص. يرجى التأكد من أن المستودع عام ويمكن الوصول إليه (FR-6.3).'
+            : (err.message || 'Repository not found or is private — please ensure your repository is public and reachable (FR-6.3).')
+        );
+        setIsValidatingGithub(false);
+        return;
+      }
+    }
+    setIsValidatingGithub(false);
 
     const nextAttempt = latestSub ? latestSub.attemptNo + 1 : 1;
     const newSubmission = {
@@ -526,15 +554,28 @@ export default function TopicProjectPage() {
           <div className="pt-2">
             <button
               type="submit"
-              disabled={!isOnline || isSuccess}
+              disabled={!isOnline || isSuccess || isValidatingGithub}
               className={`w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all ${
-                isOnline && !isSuccess
+                isOnline && !isSuccess && !isValidatingGithub
                   ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer'
                   : 'bg-slate-200 text-slate-400 cursor-not-allowed'
               }`}
             >
-              <Send className="w-4 h-4" />
-              <span>{isRTL ? 'إرسال المشروع للتقييم' : 'Submit for Mentor Review'}</span>
+              {isValidatingGithub ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-emerald-800" />
+                  <span className="text-slate-700">
+                    {isRTL
+                      ? 'جارٍ التحقق من إمكانية الوصول للمستودع (FR-6.3)...'
+                      : 'Verifying Repository Reachability (FR-6.3)...'}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  <span>{isRTL ? 'إرسال المشروع للتقييم' : 'Submit for Mentor Review'}</span>
+                </>
+              )}
             </button>
           </div>
         </form>
