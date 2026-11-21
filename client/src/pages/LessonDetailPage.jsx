@@ -14,14 +14,16 @@ import {
   Code, 
   HelpCircle,
   FolderGit2,
-  BookOpen
+  BookOpen,
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react';
 
 export default function LessonDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t, isRTL, language } = useLanguage();
-  const { recordProgress, isLessonSaved, toggleSaveOffline } = useSync();
+  const { recordProgress, isLessonSaved, toggleSaveOffline, lessonContentStatus, refreshSavedLesson } = useSync();
   const [completed, setCompleted] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
@@ -69,6 +71,48 @@ export default function LessonDetailPage() {
           </button>
         </div>
       </div>
+
+      {/* Content Conflict Banners (FR-5.6) */}
+      {saved && lessonContentStatus?.[lesson.id] === 'update_available' && (
+        <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-950 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <RefreshCw className="w-5 h-5 text-amber-700 shrink-0" />
+            <div>
+              <strong className="block font-bold">
+                {isRTL ? 'تحديث متوفر لهذا الدرس على الخادم' : 'Lesson Update Available'}
+              </strong>
+              <span className="text-amber-800 text-[11px]">
+                {isRTL
+                  ? 'قام أستاذ المادة بتحديث محتوى هذا الدرس. اضغط على الزر لتحديث نسختك المحفوظة دون التأثير على تقدمك.'
+                  : 'The course lead has published an updated version of this lesson. Refresh to sync your offline copy.'}
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => refreshSavedLesson(lesson.id)}
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs shrink-0 shadow-xs transition-colors cursor-pointer"
+          >
+            {isRTL ? 'تحديث النسخة المحفوظة' : 'Refresh Saved Copy'}
+          </button>
+        </div>
+      )}
+
+      {saved && lessonContentStatus?.[lesson.id] === 'no_longer_available' && (
+        <div className="bg-slate-100 border border-slate-300 rounded-2xl p-4 flex items-center gap-3 text-xs text-slate-800">
+          <AlertTriangle className="w-5 h-5 text-slate-500 shrink-0" />
+          <div>
+            <strong className="block font-bold">
+              {isRTL ? 'هذا الدرس لم يعد منشوراً على الخادم' : 'Lesson No Longer Available on Server'}
+            </strong>
+            <span className="text-slate-600 text-[11px]">
+              {isRTL
+                ? 'تم إلغاء نشر هذا الدرس، ولكن تم الاحتفاظ بنسختك المحفوظة محلياً وسجل تقدمك الدراسي بأمان.'
+                : 'This lesson was unpublished, but your saved local copy and recorded progress remain preserved.'}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Lesson Title & Topic Badge */}
       <div className="space-y-3">

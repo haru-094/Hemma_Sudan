@@ -23,6 +23,9 @@ export function SyncProvider({ children }) {
   const [savedLessons, setSavedLessons] = useState([]);
   const [quotaWarning, setQuotaWarning] = useState(false);
   const [storageUsagePercent, setStorageUsagePercent] = useState(12);
+  const [lessonContentStatus, setLessonContentStatus] = useState({}); // { [lessonId]: 'update_available' | 'no_longer_available' }
+  const [syncError, setSyncError] = useState(null); // { status, errorCode, message }
+  const [requiresReauth, setRequiresReauth] = useState(false);
 
   const retryAttemptRef = useRef(0);
   const retryTimeoutRef = useRef(null);
@@ -47,6 +50,20 @@ export function SyncProvider({ children }) {
     setQuotaWarning(false);
     return true;
   }, []);
+
+  // NFR-3: Beforeunload safety guard to warn user before discarding unsynced progress
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (pendingQueue.length > 0 || syncStatus === 'pending') {
+        e.preventDefault();
+        e.returnValue = 'You have unsynchronized learning progress updates. Leaving may cause unsynced progress to be delayed or lost.';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [pendingQueue.length, syncStatus]);
 
   // Initialize data from IndexedDB
   useEffect(() => {
@@ -140,43 +157,109 @@ export function SyncProvider({ children }) {
       if (itemsToSync.length === 0) {
         setSyncStatus('synced');
         retryAttemptRef.current = 0;
+        setSyncError(null);
+        setRequiresReauth(false);
         return;
       }
 
       setSyncStatus('pending');
 
-      // Attempt live backend synchronization
-      await api.syncProgress({
+      // Attempt live backend synchronization with content conflict check (FR-5.6)
+      const res = await api.syncProgress({
         updates: itemsToSync,
         learnerId: 'usr-learner-1',
+        savedLessonIds: savedLessons,
       });
+
+      // Update content conflict flags (FR-5.6)
+      if (res && res.lessonStatus) {
+        const statusMap = {};
+        (res.lessonStatus.updateAvailable || []).forEach((id) => {
+          statusMap[id] = 'update_available';
+        });
+        (res.lessonStatus.noLongerAvailable || []).forEach((id) => {
+          statusMap[id] = 'no_longer_available';
+        });
+        setLessonContentStatus(statusMap);
+      }
 
       // Clear from IndexedDB once confirmed
       await clearAllPendingQueue();
       setPendingQueue([]);
       setSyncStatus('synced');
+      setSyncError(null);
+      setRequiresReauth(false);
       retryAttemptRef.current = 0;
       await checkStorageQuota();
     } catch (err) {
       console.warn('Sync attempt failed:', err.message);
 
-      // Exponential backoff retry logic (5s, 15s, 60s)
-      const currentAttempt = retryAttemptRef.current;
-      if (currentAttempt < RETRY_DELAYS.length) {
-        const delay = RETRY_DELAYS[currentAttempt];
-        retryAttemptRef.current += 1;
+      // FR-5.7 & Sequence Diagram Error Classification:
+      if (err.status === 401) {
+        // Alternative 3: 401 session expired
+        // Do NOT retry automatically. Keep queue as 'pending' and ask learner to log in again.
+        console.warn('Sync paused: 401 Unauthorized (session expired). Queue preserved.');
         setSyncStatus('pending');
-
+        setRequiresReauth(true);
+        setSyncError({
+          status: 401,
+          errorCode: 'SESSION_EXPIRED',
+          message: 'Your session expired while offline. Progress is safely preserved in queue. Please log in again to sync.',
+        });
         if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
-        retryTimeoutRef.current = setTimeout(() => {
-          triggerSync();
-        }, delay);
-      } else {
-        // After 3 failed attempts, mark as failed and permit manual retry
+      } else if (err.status === 400 || err.status === 403) {
+        // Alternative 4: 400 or 403 rejected
+        // Mark as 'failed' with error code and no automatic retry.
+        console.warn(`Sync rejected: HTTP ${err.status} with error code ${err.errorCode || 'REJECTED'}. No automatic retry.`);
         setSyncStatus('failed');
+        setSyncError({
+          status: err.status,
+          errorCode: err.errorCode || 'CLIENT_REJECTED',
+          message: err.message || `Request rejected with status ${err.status}`,
+        });
+        if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+      } else {
+        // Alternative 2: Timeout, 5xx server error, or network error
+        // Stays 'pending' and is retried automatically with increasing delays (5s, 15s, 60s)
+        setSyncError(null);
+        const currentAttempt = retryAttemptRef.current;
+        if (currentAttempt < RETRY_DELAYS.length) {
+          const delay = RETRY_DELAYS[currentAttempt];
+          retryAttemptRef.current += 1;
+          setSyncStatus('pending');
+
+          if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+          retryTimeoutRef.current = setTimeout(() => {
+            triggerSync();
+          }, delay);
+        } else {
+          // After 3 failed attempts, mark as failed and permit manual retry
+          setSyncStatus('failed');
+        }
       }
     }
-  }, [checkStorageQuota]);
+  }, [checkStorageQuota, savedLessons]);
+
+  // Refresh updated lesson from server (FR-5.6)
+  const refreshSavedLesson = async (lessonId) => {
+    try {
+      const data = await api.getLesson(lessonId);
+      if (data && data.lesson) {
+        await saveLessonToIDB(data.lesson);
+      } else {
+        const mock = LESSONS.find((l) => l.id === lessonId);
+        if (mock) await saveLessonToIDB(mock);
+      }
+    } catch {
+      const mock = LESSONS.find((l) => l.id === lessonId);
+      if (mock) await saveLessonToIDB(mock);
+    }
+    setLessonContentStatus((prev) => {
+      const next = { ...prev };
+      delete next[lessonId];
+      return next;
+    });
+  };
 
   // Manual retry resets the attempt counter
   const manualRetrySync = () => {
@@ -202,17 +285,33 @@ export function SyncProvider({ children }) {
     } else {
       await removeLessonFromIDB(lessonId);
       setSavedLessons((prev) => prev.filter((id) => id !== lessonId));
+      setLessonContentStatus((prev) => {
+        const next = { ...prev };
+        delete next[lessonId];
+        return next;
+      });
     }
 
     await checkStorageQuota();
   };
 
+  // NFR-3: Before discarding offline storage, warn if unsynced progress exists
   const clearCache = async () => {
+    if (pendingQueue.length > 0) {
+      const confirmed = window.confirm(
+        'Warning: You have unsynchronized progress items pending in offline queue. Discarding offline cache now will remove them permanently. Do you wish to cancel or continue?'
+      );
+      if (!confirmed) return false;
+    }
     await clearAllOfflineIDB();
     setSavedLessons([]);
     setPendingQueue([]);
     setSyncStatus('synced');
+    setLessonContentStatus({});
+    setSyncError(null);
+    setRequiresReauth(false);
     await checkStorageQuota();
+    return true;
   };
 
   const isLessonSaved = (lessonId) => savedLessons.includes(lessonId);
@@ -227,6 +326,10 @@ export function SyncProvider({ children }) {
         savedLessons,
         quotaWarning,
         storageUsagePercent,
+        lessonContentStatus,
+        syncError,
+        requiresReauth,
+        refreshSavedLesson,
         recordProgress,
         triggerSync,
         manualRetrySync,

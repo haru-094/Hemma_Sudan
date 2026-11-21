@@ -12,9 +12,13 @@ async function request(endpoint, options = {}) {
 
   try {
     const res = await fetch(url, config);
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      throw new Error(data.message || `Request failed with status ${res.status}`);
+      const err = new Error(data.message || `Request failed with status ${res.status}`);
+      err.status = res.status;
+      err.errorCode = data.errorCode;
+      err.data = data;
+      throw err;
     }
     return data;
   } catch (err) {
@@ -44,6 +48,8 @@ export const api = {
   createSubmission: (payload) => request('/submissions', { method: 'POST', body: JSON.stringify(payload) }),
   submitFeedback: (subId, payload) => request(`/submissions/${subId}/feedback`, { method: 'POST', body: JSON.stringify(payload) }),
   resolveEscalation: (subId, payload) => request(`/submissions/${subId}/resolve-escalation`, { method: 'POST', body: JSON.stringify(payload) }),
+  requestTeacherReview: (subId, payload) => request(`/submissions/${subId}/request-teacher`, { method: 'POST', body: JSON.stringify(payload) }),
+  assignReviewer: (subId, payload) => request(`/submissions/${subId}/assign`, { method: 'POST', body: JSON.stringify(payload) }),
 
   // Teacher Hub Operations
   getTeacherMentors: () => request('/teacher/mentors'),

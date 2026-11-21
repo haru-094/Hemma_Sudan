@@ -13,12 +13,13 @@ import {
   ArrowLeft,
   HardDrive,
   HelpCircle,
-  FolderGit2
+  FolderGit2,
+  RefreshCw
 } from 'lucide-react';
 
 export default function LessonsPage() {
   const { t, isRTL, language } = useLanguage();
-  const { isLessonSaved, toggleSaveOffline, storageUsagePercent, quotaWarning } = useSync();
+  const { isLessonSaved, toggleSaveOffline, storageUsagePercent, quotaWarning, lessonContentStatus, refreshSavedLesson } = useSync();
   const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
 
   return (
@@ -113,6 +114,25 @@ export default function LessonsPage() {
                             <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
                               <Check className="w-3 h-3" />
                               {t.common.savedOffline}
+                            </span>
+                          )}
+
+                          {/* Content Conflict Flags (FR-5.6) */}
+                          {saved && lessonContentStatus?.[lesson.id] === 'update_available' && (
+                            <button
+                              type="button"
+                              onClick={() => refreshSavedLesson(lesson.id)}
+                              className="inline-flex items-center gap-1 text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-0.5 rounded-full hover:bg-amber-200 transition-colors shadow-xs"
+                              title={isRTL ? 'تحديث متوفر للدرس - اضغط للتحديث' : 'Update available on server - tap to refresh'}
+                            >
+                              <RefreshCw className="w-3 h-3 text-amber-700" />
+                              <span>{isRTL ? 'تحديث متوفر' : 'Update Available'}</span>
+                            </button>
+                          )}
+
+                          {saved && lessonContentStatus?.[lesson.id] === 'no_longer_available' && (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full">
+                              <span>{isRTL ? 'غير متاح على الخادم' : 'No longer available'}</span>
                             </span>
                           )}
                         </div>

@@ -65,10 +65,17 @@ router.get('/submissions', async (req, res, next) => {
 
     let query = `
       SELECT s.*, u.name as learner_name, u.university as learner_university,
-             t.title_en as topic_title_en, t.title_ar as topic_title_ar
+             t.title_en as topic_title_en, t.title_ar as topic_title_ar,
+             ra.mentor_id as assigned_mentor_id, mu.name as assigned_mentor_name
       FROM submissions s
       JOIN users u ON s.learner_id = u.id
       JOIN topics t ON s.topic_id = t.id
+      LEFT JOIN LATERAL (
+        SELECT mentor_id FROM review_assignments 
+        WHERE submission_id = s.id 
+        ORDER BY assigned_at DESC LIMIT 1
+      ) ra ON true
+      LEFT JOIN users mu ON ra.mentor_id = mu.id
     `;
     const params = [];
 
@@ -225,6 +232,82 @@ router.post('/submissions/:id/resolve-escalation', async (req, res, next) => {
     res.status(200).json({
       message: 'Escalation resolved successfully.',
       submission: updated.rows[0],
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Learner requests direct teacher review (FR-10.2)
+router.post('/submissions/:id/request-teacher', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { learnerId, reason } = req.body;
+
+    const subRes = await db.query('SELECT * FROM submissions WHERE id = $1', [id]);
+    if (subRes.rows.length === 0) {
+      return res.status(404).json({ errorCode: 'SUBMISSION_NOT_FOUND', message: 'Submission not found.' });
+    }
+    const submission = subRes.rows[0];
+
+    if (learnerId && submission.learner_id !== learnerId) {
+      return res.status(403).json({
+        errorCode: 'UNAUTHORIZED_LEARNER',
+        message: 'Only the submission author can request a teacher review.',
+      });
+    }
+
+    const comment = reason || 'Learner requested direct review from course lead.';
+    await db.query(
+      `INSERT INTO feedbacks (id, submission_id, author_id, comment, kind)
+       VALUES ($1, $2, $3, $4, 'escalation_resolution')`,
+      [`fb-${Date.now()}`, id, learnerId || submission.learner_id, comment]
+    );
+
+    const updated = await db.query(
+      `UPDATE submissions SET status = 'escalated' WHERE id = $1 RETURNING *`,
+      [id]
+    );
+
+    res.status(200).json({
+      message: 'Teacher review requested successfully.',
+      submission: updated.rows[0],
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Teacher assigns mentor to a submission (FR-9.1)
+router.post('/submissions/:id/assign', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { teacherId, mentorId } = req.body;
+
+    const teacherCheck = await db.query('SELECT role FROM users WHERE id = $1', [teacherId]);
+    if (teacherCheck.rows.length === 0 || teacherCheck.rows[0].role !== 'teacher') {
+      return res.status(403).json({
+        errorCode: 'TEACHER_ONLY',
+        message: 'Only the course teacher can assign reviewers.',
+      });
+    }
+
+    const assignId = `rev-assign-${Date.now()}`;
+    await db.query(
+      `INSERT INTO review_assignments (id, submission_id, mentor_id, assigned_by, state)
+       VALUES ($1, $2, $3, $4, 'assigned')`,
+      [assignId, id, mentorId, teacherId]
+    );
+
+    const updated = await db.query(
+      `UPDATE submissions SET status = 'under_review' WHERE id = $1 RETURNING *`,
+      [id]
+    );
+
+    res.status(200).json({
+      message: 'Reviewer assigned successfully.',
+      submission: updated.rows[0],
+      assignment: { id: assignId, submissionId: id, mentorId },
     });
   } catch (err) {
     next(err);
