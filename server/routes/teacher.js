@@ -149,6 +149,82 @@ router.post('/reset-account', async (req, res, next) => {
   }
 });
 
+// POST /api/teacher/purge-demo-data (NFR-14)
+// Teacher endpoint to purge non-consented demo learners and their submissions/progress records
+router.post('/purge-demo-data', async (req, res, next) => {
+  try {
+    const { teacherId } = req.body;
+
+    // Verify teacher authorization
+    const teacherCheck = await db.query('SELECT role FROM users WHERE id = $1', [teacherId]);
+    if (teacherCheck.rows.length === 0 || teacherCheck.rows[0].role !== 'teacher') {
+      return res.status(403).json({
+        errorCode: 'TEACHER_ONLY',
+        message: 'Only the course teacher can execute demo data purge operations.',
+      });
+    }
+
+    // 1. Identify non-consented demo learners
+    const nonConsentedLearners = await db.query(
+      `SELECT id FROM users 
+       WHERE role = 'learner' AND (consent_given IS NULL OR consent_given = FALSE)`
+    );
+
+    const targetLearnerIds = nonConsentedLearners.rows.map((u) => u.id);
+
+    let purgedSubmissionsCount = 0;
+    let purgedProgressCount = 0;
+
+    if (targetLearnerIds.length > 0) {
+      // Find matching submissions
+      const subs = await db.query(
+        `SELECT id FROM submissions WHERE learner_id = ANY($1::text[])`,
+        [targetLearnerIds]
+      );
+      const subIds = subs.rows.map((s) => s.id);
+
+      if (subIds.length > 0) {
+        await db.query(`DELETE FROM feedbacks WHERE submission_id = ANY($1::text[])`, [subIds]);
+        await db.query(`DELETE FROM review_assignments WHERE submission_id = ANY($1::text[])`, [subIds]);
+        const delSubs = await db.query(`DELETE FROM submissions WHERE id = ANY($1::text[])`, [subIds]);
+        purgedSubmissionsCount = delSubs.rowCount || subIds.length;
+      }
+
+      // Purge progress records
+      const delProg = await db.query(
+        `DELETE FROM progress_records WHERE learner_id = ANY($1::text[])`,
+        [targetLearnerIds]
+      );
+      purgedProgressCount = delProg.rowCount || 0;
+    }
+
+    // Log the purge operation in the audit trail
+    await db.query(
+      `INSERT INTO audit_logs (id, action, performed_by, details)
+       VALUES ($1, 'PURGE_DEMO_DATA', $2, $3)`,
+      [
+        `audit-${Date.now()}`,
+        teacherId,
+        JSON.stringify({
+          purgedLearnersCount: targetLearnerIds.length,
+          purgedSubmissionsCount,
+          purgedProgressCount,
+          purgedAt: new Date().toISOString(),
+        }),
+      ]
+    );
+
+    res.status(200).json({
+      message: 'Non-consented demo data purged successfully according to NFR-14 retention policy.',
+      purgedLearnersCount: targetLearnerIds.length,
+      purgedSubmissionsCount,
+      purgedProgressCount,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // GET /api/teacher/audit-logs
 router.get('/audit-logs', async (req, res, next) => {
   try {
