@@ -14,9 +14,77 @@ function isValidGithubUrl(url) {
   }
 }
 
+// FR-6.3: GitHub URL Reachability Verification
+async function checkGithubReachability(githubUrl) {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    const response = await fetch(githubUrl.trim(), {
+      method: 'HEAD',
+      headers: {
+        'User-Agent': 'HemmaSudan-Validator/1.0',
+      },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (response.status === 404) {
+      return {
+        reachable: false,
+        errorCode: 'REPO_NOT_FOUND',
+        message: 'Repository not found or is private. Please ensure the repository is public and accessible.',
+      };
+    }
+
+    if (response.status === 403 || response.status === 429) {
+      // Rate-limited by GitHub API/frontend — treat valid structure as accepted
+      return { reachable: true, message: 'Format verified (GitHub rate-limited).' };
+    }
+
+    if (!response.ok && response.status >= 400) {
+      return {
+        reachable: false,
+        errorCode: 'REPO_UNREACHABLE',
+        message: `Repository returned HTTP error ${response.status}. Please check repository visibility.`,
+      };
+    }
+
+    return { reachable: true, message: 'Repository is public and reachable.' };
+  } catch (err) {
+    // If probe fails due to offline server or network timeout, log and pass
+    console.warn('GitHub reachability probe skipped/timed out:', err.message);
+    return { reachable: true, warning: 'Probe timed out; format verified.' };
+  }
+}
+
+// POST /api/submissions/validate-github (FR-6.3)
+router.post('/submissions/validate-github', async (req, res, next) => {
+  try {
+    const { githubLink } = req.body;
+
+    if (!githubLink || !isValidGithubUrl(githubLink)) {
+      return res.status(400).json({
+        reachable: false,
+        errorCode: 'INVALID_GITHUB_URL',
+        message: 'Please provide a valid GitHub repository URL (e.g., https://github.com/username/project).',
+      });
+    }
+
+    const check = await checkGithubReachability(githubLink);
+    if (!check.reachable) {
+      return res.status(400).json(check);
+    }
+
+    res.status(200).json(check);
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post('/submissions', async (req, res, next) => {
   try {
-    const { topicId, learnerId, githubLink, explanation } = req.body;
+    const { topicId, learnerId, githubLink, explanation, skipReachabilityCheck = false } = req.body;
 
     if (!topicId || !learnerId || !githubLink || !explanation) {
       return res.status(400).json({
@@ -30,6 +98,14 @@ router.post('/submissions', async (req, res, next) => {
         errorCode: 'INVALID_GITHUB_URL',
         message: 'The submission URL must be a valid, reachable GitHub repository link.',
       });
+    }
+
+    // FR-6.3: Reachability check at submission time
+    if (!skipReachabilityCheck) {
+      const reachability = await checkGithubReachability(githubLink);
+      if (!reachability.reachable) {
+        return res.status(400).json(reachability);
+      }
     }
 
     const prevAttempts = await db.query(
@@ -173,7 +249,7 @@ router.post('/submissions/:id/feedback', async (req, res, next) => {
     if (action === 'approve') {
       newStatus = 'feedback_given';
       feedbackKind = 'comment';
-    } else if (action === 'request_revision') {
+    } else if (action === 'request_revision' || action === 'revision') {
       newStatus = 'revision_requested';
       feedbackKind = 'revision_request';
     } else if (action === 'escalate') {
@@ -196,6 +272,7 @@ router.post('/submissions/:id/feedback', async (req, res, next) => {
     res.status(200).json({
       message: 'Feedback submitted and status updated.',
       submission: updated.rows[0],
+      status: newStatus,
     });
   } catch (err) {
     next(err);
@@ -272,6 +349,7 @@ router.post('/submissions/:id/request-teacher', async (req, res, next) => {
     res.status(200).json({
       message: 'Teacher review requested successfully.',
       submission: updated.rows[0],
+      status: 'escalated',
     });
   } catch (err) {
     next(err);

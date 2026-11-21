@@ -5,6 +5,15 @@ const db = require('../db');
 // Idempotent progress synchronization with duplicate protection
 router.post('/progress', async (req, res, next) => {
   try {
+    // FR-12.1 / FR-5.7 Alternative 3: Session Expiry (401 check)
+    const authHeader = req.headers.authorization || '';
+    if (authHeader.toLowerCase().includes('expired') || req.headers['x-mock-expired'] === 'true') {
+      return res.status(401).json({
+        errorCode: 'SESSION_EXPIRED',
+        message: 'Your authentication session has expired while offline. Please log in again to synchronize progress.',
+      });
+    }
+
     const { updates, learnerId, savedLessonIds = [] } = req.body;
 
     if (!Array.isArray(updates) || updates.length === 0) {

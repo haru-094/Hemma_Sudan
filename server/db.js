@@ -204,7 +204,12 @@ function runMemoryQuery(text, params = []) {
   if (normalized.startsWith('update submissions set status = $1 where id = $2')) {
     const sub = memoryDb.submissions.find((s) => s.id === params[1]);
     if (sub) sub.status = params[0];
-    return { rows: [sub || {}] };
+    return { rows: [sub || { id: params[1], status: params[0] }] };
+  }
+  if (normalized.startsWith("update submissions set status = 'escalated' where id = $1")) {
+    const sub = memoryDb.submissions.find((s) => s.id === params[0]);
+    if (sub) sub.status = 'escalated';
+    return { rows: [sub || { id: params[0], status: 'escalated' }] };
   }
 
   // INSERT INTO audit_logs
@@ -234,17 +239,70 @@ function runMemoryQuery(text, params = []) {
     return { rows: [] };
   }
 
+  // SELECT progress_records
+  if (normalized.startsWith('select') && normalized.includes('from progress_records')) {
+    if (normalized.includes('where update_id = $1')) {
+      const rec = memoryDb.progress_records.find((r) => r.update_id === params[0]);
+      return { rows: rec ? [rec] : [] };
+    }
+    if (normalized.includes('where learner_id = $1 and entity_id = $2')) {
+      const rec = memoryDb.progress_records.find((r) => r.learner_id === params[0] && (r.entity_id === params[1] || r.lesson_id === params[1]));
+      return { rows: rec ? [rec] : [] };
+    }
+    if (normalized.includes('where learner_id = $1')) {
+      const recs = memoryDb.progress_records.filter((r) => r.learner_id === params[0]);
+      return { rows: recs };
+    }
+    return { rows: memoryDb.progress_records };
+  }
+
   // INSERT INTO progress_records
   if (normalized.startsWith('insert into progress_records')) {
     const prog = {
-      update_id: params[0],
-      learner_id: params[1],
-      lesson_id: params[2],
-      status: params[3],
-      completed_at: params[4] || new Date().toISOString()
+      id: params[0],
+      update_id: params[1],
+      learner_id: params[2],
+      entity_id: params[3],
+      lesson_id: params[3],
+      entity_type: params[4],
+      status: params[5],
+      last_position: params[6],
+      client_time: params[7],
+      sync_state: 'synced',
+      completed_at: params[7] || new Date().toISOString()
     };
     memoryDb.progress_records.push(prog);
     return { rows: [prog] };
+  }
+
+  // UPDATE users (consent)
+  if (normalized.startsWith('update users set consent_given')) {
+    const user = memoryDb.users.find((u) => u.id === params[2]);
+    if (user) {
+      user.consent_given = params[0];
+      user.consent_at = params[1];
+    }
+    return { rows: [user || {}] };
+  }
+
+  // DELETE for demo purge (NFR-14)
+  if (normalized.startsWith('delete from feedbacks') && normalized.includes('where submission_id')) {
+    const ids = Array.isArray(params[0]) ? params[0] : [params[0]];
+    const before = memoryDb.feedbacks.length;
+    memoryDb.feedbacks = memoryDb.feedbacks.filter((f) => !ids.includes(f.submission_id));
+    return { rowCount: before - memoryDb.feedbacks.length };
+  }
+  if (normalized.startsWith('delete from submissions') && normalized.includes('where id')) {
+    const ids = Array.isArray(params[0]) ? params[0] : [params[0]];
+    const before = memoryDb.submissions.length;
+    memoryDb.submissions = memoryDb.submissions.filter((s) => !ids.includes(s.id));
+    return { rowCount: before - memoryDb.submissions.length };
+  }
+  if (normalized.startsWith('delete from progress_records') && normalized.includes('where learner_id')) {
+    const ids = Array.isArray(params[0]) ? params[0] : [params[0]];
+    const before = memoryDb.progress_records.length;
+    memoryDb.progress_records = memoryDb.progress_records.filter((p) => !ids.includes(p.learner_id));
+    return { rowCount: before - memoryDb.progress_records.length };
   }
 
   return { rows: [] };

@@ -109,4 +109,38 @@ router.get('/users', async (req, res, next) => {
   }
 });
 
+// NFR-14: Consent for Data Retention beyond demo duration
+router.post('/consent', async (req, res, next) => {
+  try {
+    const { userId, consent } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({
+        errorCode: 'MISSING_USER_ID',
+        message: 'User ID is required to record retention consent.',
+      });
+    }
+
+    const consentGiven = Boolean(consent);
+    const consentAt = new Date().toISOString();
+
+    await db.query(
+      `UPDATE users 
+       SET consent_given = $1, consent_at = $2 
+       WHERE id = $3`,
+      [consentGiven, consentAt, userId]
+    );
+
+    res.status(200).json({
+      message: consentGiven
+        ? 'Consent granted. Your progress records will be retained beyond the demo duration.'
+        : 'Consent declined. Your records will be deleted upon conclusion of the demo period.',
+      consentGiven,
+      consentAt,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;
