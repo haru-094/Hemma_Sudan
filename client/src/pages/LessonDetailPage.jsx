@@ -24,6 +24,7 @@ export default function LessonDetailPage() {
   const { recordProgress, isLessonSaved, toggleSaveOffline } = useSync();
   const [completed, setCompleted] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
+  const [quizCompleted, setQuizCompleted] = useState(false);
 
   const ArrowBackIcon = isRTL ? ArrowRight : ArrowLeft;
   const ArrowNextIcon = isRTL ? ArrowLeft : ArrowRight;
@@ -202,8 +203,8 @@ export default function LessonDetailPage() {
         </div>
       </div>
 
-      {/* Module Quiz Section (Either clicked or displayed at the end of the module) */}
-      {(showQuiz || isLastLesson) && topic?.quiz && (
+      {/* Module Quiz Section — shown only when explicitly opened or on last lesson, hidden once completed */}
+      {(showQuiz || isLastLesson) && topic?.quiz && !quizCompleted && (
         <div id="module-quiz" className="space-y-4 pt-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -215,7 +216,31 @@ export default function LessonDetailPage() {
           <TopicQuiz
             quiz={topic.quiz}
             onProceedToAssignment={() => navigate(`/project/${topic.id}`)}
+            onComplete={(score, total) => {
+              // Save quiz completion to IndexedDB progress_queue
+              const pct = Math.round((score / total) * 100);
+              recordProgress(topic.quiz.id, pct, pct >= 60 ? 'completed' : 'attempted');
+              setQuizCompleted(true);
+            }}
           />
+        </div>
+      )}
+
+      {/* Quiz-completed confirmation badge — shows after the quiz is submitted */}
+      {quizCompleted && topic?.quiz && (
+        <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-sm">
+          <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+          <div>
+            <span className="font-bold text-emerald-900">
+              {isRTL ? 'تم حفظ نتيجة الاختبار' : 'Quiz result saved'}
+            </span>
+            <span className="text-emerald-700 mx-1">—</span>
+            <span className="text-emerald-800">
+              {isRTL
+                ? 'سيتم مزامنة النتيجة مع السيرفر عند توفر الاتصال.'
+                : 'Progress queued and will sync to the server when online.'}
+            </span>
+          </div>
         </div>
       )}
 

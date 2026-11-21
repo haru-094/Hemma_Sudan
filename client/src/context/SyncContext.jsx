@@ -101,7 +101,7 @@ export function SyncProvider({ children }) {
         clearTimeout(retryTimeoutRef.current);
       }
     };
-  }, []);
+  }, [triggerSync]);
 
   // Record progress with client UUID for duplicate protection
   const recordProgress = async (lessonId, lastPosition = 100, status = 'completed') => {
@@ -128,8 +128,8 @@ export function SyncProvider({ children }) {
     }
   };
 
-  // Synchronize queued items with server
-  const triggerSync = async () => {
+  // Synchronize queued items with server (memoised to avoid stale closures in event listeners)
+  const triggerSync = useCallback(async () => {
     if (!navigator.onLine) {
       setSyncStatus('pending');
       return;
@@ -176,7 +176,7 @@ export function SyncProvider({ children }) {
         setSyncStatus('failed');
       }
     }
-  };
+  }, [checkStorageQuota]);
 
   // Manual retry resets the attempt counter
   const manualRetrySync = () => {

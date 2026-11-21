@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { 
   CheckCircle2, 
@@ -7,8 +7,6 @@ import {
   RotateCcw, 
   ArrowRight, 
   ArrowLeft,
-  Award,
-  Code
 } from 'lucide-react';
 
 export default function TopicQuiz({ quiz, onComplete, onProceedToAssignment }) {
@@ -16,6 +14,9 @@ export default function TopicQuiz({ quiz, onComplete, onProceedToAssignment }) {
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
+
+  // Guard: onComplete fires at most once per quiz session (survives retries)
+  const hasRecordedRef = useRef(false);
 
   const handleSelect = (questionId, optionIndex) => {
     if (isSubmitted) return; // Prevent changing after submission
@@ -39,7 +40,9 @@ export default function TopicQuiz({ quiz, onComplete, onProceedToAssignment }) {
     e.preventDefault();
     setIsSubmitted(true);
     const score = calculateScore();
-    if (onComplete) {
+    // Only fire onComplete once per quiz session — not on each retry
+    if (onComplete && !hasRecordedRef.current) {
+      hasRecordedRef.current = true;
       onComplete(score, quiz.questions.length);
     }
   };
@@ -47,6 +50,7 @@ export default function TopicQuiz({ quiz, onComplete, onProceedToAssignment }) {
   const handleRetry = () => {
     setSelectedAnswers({});
     setIsSubmitted(false);
+    // hasRecordedRef intentionally NOT reset — progress is already queued
   };
 
   const allAnswered = quiz.questions.every((q) => selectedAnswers[q.id] !== undefined);
