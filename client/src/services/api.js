@@ -40,6 +40,7 @@ export const api = {
   updateArabicStatus: (lessonId, payload) => request(`/lessons/${lessonId}/arabic-status`, { method: 'PATCH', body: JSON.stringify(payload) }),
 
   // Submissions, Reviews & Multi-attempt History
+  validateGithubRepo: (payload) => request('/submissions/validate-github', { method: 'POST', body: JSON.stringify(payload) }),
   getSubmissions: (params = {}) => {
     const query = new URLSearchParams(params).toString();
     return request(`/submissions${query ? `?${query}` : ''}`);
@@ -51,6 +52,10 @@ export const api = {
   requestTeacherReview: (subId, payload) => request(`/submissions/${subId}/request-teacher`, { method: 'POST', body: JSON.stringify(payload) }),
   assignReviewer: (subId, payload) => request(`/submissions/${subId}/assign`, { method: 'POST', body: JSON.stringify(payload) }),
 
+  // Data Privacy & Retention (NFR-14)
+  updateConsent: (payload) => request('/auth/consent', { method: 'POST', body: JSON.stringify(payload) }),
+  purgeDemoData: (payload) => request('/teacher/purge-demo-data', { method: 'POST', body: JSON.stringify(payload) }),
+
   // Teacher Hub Operations
   getTeacherMentors: () => request('/teacher/mentors'),
   toggleMentorTopic: (payload) => request('/teacher/mentors/toggle-topic', { method: 'POST', body: JSON.stringify(payload) }),
@@ -58,6 +63,6 @@ export const api = {
   getAuditLogs: () => request('/teacher/audit-logs'),
 
   // Offline Sync
-  syncProgress: (payload) => request('/sync/progress', { method: 'POST', body: JSON.stringify(payload) }),
+  syncProgress: (payload, options = {}) => request('/sync/progress', { method: 'POST', body: JSON.stringify(payload), ...options }),
   getLearnerProgress: (learnerId) => request(`/sync/progress/${learnerId}`),
 };

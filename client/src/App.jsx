@@ -6,6 +6,7 @@ import { SyncProvider } from './context/SyncContext';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import OfflineBanner from './components/layout/OfflineBanner';
+import ConsentModal from './components/common/ConsentModal';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -25,6 +26,7 @@ export default function App() {
             <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-emerald-500 selection:text-white">
               <Navbar />
               <OfflineBanner />
+              <ConsentModal />
               <main className="flex-1">
                 <Routes>
                   <Route path="/" element={<LandingPage />} />

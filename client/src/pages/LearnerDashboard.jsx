@@ -20,12 +20,13 @@ import {
   HelpCircle,
   Check,
   FolderGit2,
-  History
+  History,
+  ShieldCheck
 } from 'lucide-react';
 
 export default function LearnerDashboard() {
   const { t, isRTL, language } = useLanguage();
-  const { currentUser } = useAuth();
+  const { currentUser, consentStatus, triggerConsentModalNow } = useAuth();
   const { savedLessons, syncStatus, isOnline, triggerSync } = useSync();
   const [submissions, setSubmissions] = useState(INITIAL_SUBMISSIONS);
   const [expandedHistoryId, setExpandedHistoryId] = useState(null);
@@ -116,6 +117,32 @@ export default function LearnerDashboard() {
           <p className="text-xs sm:text-sm text-slate-600">
             {currentUser?.university || 'University of Khartoum'} • {t.appTagline}
           </p>
+          {/* NFR-14: Consent Badge & Control */}
+          <div className="pt-1 flex flex-wrap items-center gap-2">
+            <span className={`text-[11px] px-2 py-0.5 rounded-md font-medium flex items-center gap-1 border ${
+              consentStatus === 'granted'
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                : consentStatus === 'declined'
+                ? 'bg-slate-100 text-slate-700 border-slate-200'
+                : 'bg-amber-50 text-amber-800 border-amber-200'
+            }`}>
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>
+                {consentStatus === 'granted'
+                  ? (isRTL ? 'بياناتك محفوظة (NFR-14)' : 'Retention Consented (NFR-14)')
+                  : consentStatus === 'declined'
+                  ? (isRTL ? 'حذف بعد التجربة (NFR-14)' : 'Purge After Demo (NFR-14)')
+                  : (isRTL ? 'قرار الخصوصية معلق (NFR-14)' : 'Privacy Consent Pending (NFR-14)')}
+              </span>
+            </span>
+            <button
+              type="button"
+              onClick={triggerConsentModalNow}
+              className="text-[11px] text-teal-700 hover:text-teal-900 underline font-semibold cursor-pointer"
+            >
+              {isRTL ? 'تعديل خيار الخصوصية' : 'Manage Retention Choice'}
+            </button>
+          </div>
         </div>
 
         {/* Sync & Offline Quick Stats */}

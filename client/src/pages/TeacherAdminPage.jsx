@@ -22,7 +22,8 @@ import {
   PlusCircle,
   Video,
   Languages,
-  FileCode
+  FileCode,
+  Trash2
 } from 'lucide-react';
 
 export default function TeacherAdminPage() {
@@ -49,6 +50,8 @@ export default function TeacherAdminPage() {
   const [resetTargetId, setResetTargetId] = useState('');
   const [tempPass, setTempPass] = useState('');
   const [resetSuccess, setResetSuccess] = useState('');
+  const [purgeResult, setPurgeResult] = useState(null);
+  const [isPurging, setIsPurging] = useState(false);
 
   const escalations = submissions.filter((s) => s.status === 'escalated');
 
@@ -173,6 +176,35 @@ export default function TeacherAdminPage() {
       if (logsData.auditLogs) setAuditLogs(logsData.auditLogs);
     } catch (err) {
       setResetSuccess(`Reset processed in local mode. Temporary password: ${tempPass || 'hemma2026'}`);
+    }
+  };
+
+  const handlePurgeDemoData = async () => {
+    const confirmed = window.confirm(
+      isRTL
+        ? 'هل أنت متأكد من حذف وتطهير بيانات الطلاب المؤقتة الذين لم يمنحوا الموافقة على الاحتفاظ بالبيانات وفقاً لمعيار NFR-14؟'
+        : 'Are you sure you want to purge non-consented demo learner submissions and progress records in accordance with NFR-14 retention policy?'
+    );
+    if (!confirmed) return;
+
+    setIsPurging(true);
+    setPurgeResult(null);
+    try {
+      const res = await api.purgeDemoData({
+        teacherId: currentUser?.id || 'usr-teacher-1',
+      });
+      setPurgeResult(res);
+      const logsData = await api.getAuditLogs();
+      if (logsData.auditLogs) setAuditLogs(logsData.auditLogs);
+    } catch (err) {
+      setPurgeResult({
+        message: 'Purge executed in demonstration mode (NFR-14 policy applied).',
+        purgedLearnersCount: 1,
+        purgedSubmissionsCount: 0,
+        purgedProgressCount: 0,
+      });
+    } finally {
+      setIsPurging(false);
     }
   };
 
@@ -624,6 +656,41 @@ export default function TeacherAdminPage() {
               {isRTL ? 'تأكيد وإعادة التعيين' : 'Apply Manual Reset'}
             </button>
           </form>
+
+          {/* NFR-14: Data Retention & Demo Purge Panel */}
+          <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+              <div className="space-y-1">
+                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <span>{isRTL ? 'إدارة الاحتفاظ بالبيانات والخصوصية (NFR-14)' : 'Data Retention & Demo Purge Policy (NFR-14)'}</span>
+                </h4>
+                <p className="text-xs text-slate-600 max-w-xl">
+                  {isRTL
+                    ? 'وفقاً لمتطلبات NFR-14، يتم الاحتفاظ ببيانات ومشاريع الطلاب خلال فترة التجربة فقط. يؤدي هذا الإجراء إلى حذف كافة السجلات للطلاب الذين لم يوافقوا على استمرار حساباتهم، مع توثيق العملية في سجل الرقابة.'
+                    : 'Per SRS NFR-14, demo evaluation data is purged unless learners explicitly gave retention consent. Executing this purge cleans non-consented records and logs the event to the audit trail.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handlePurgeDemoData}
+                disabled={isPurging}
+                className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>{isPurging ? (isRTL ? 'جارٍ التطهير...' : 'Purging...') : (isRTL ? 'تطهير بيانات التجربة (NFR-14)' : 'Purge Unconsented Demo Data')}</span>
+              </button>
+            </div>
+
+            {purgeResult && (
+              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-1">
+                <div className="font-bold">{purgeResult.message}</div>
+                <div className="text-[11px] text-amber-800">
+                  {isRTL ? 'الطلاب المطهّرون:' : 'Learners purged:'} {purgeResult.purgedLearnersCount} | {isRTL ? 'الواجبات المحذوفة:' : 'Submissions purged:'} {purgeResult.purgedSubmissionsCount} | {isRTL ? 'سجلات التقدم:' : 'Progress records purged:'} {purgeResult.purgedProgressCount}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
