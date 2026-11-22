@@ -76,6 +76,7 @@ export default function TopicProjectPage() {
 
   const [githubLink, setGithubLink] = useState('');
   const [explanation, setExplanation] = useState('');
+  const [languageUsed, setLanguageUsed] = useState('python');
   const [errorMsg, setErrorMsg] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [isValidatingGithub, setIsValidatingGithub] = useState(false);
@@ -208,6 +209,7 @@ export default function TopicProjectPage() {
     setIsValidatingGithub(false);
 
     const nextAttempt = latestSub ? latestSub.attemptNo + 1 : 1;
+    const fullExplanation = `[${languageUsed.toUpperCase()}] ${explanation.trim()}`;
     const newSubmission = {
       id: `sub-${Date.now()}`,
       topicId: topic.id,
@@ -216,7 +218,7 @@ export default function TopicProjectPage() {
       learnerId: currentUser?.id || 'usr-learner-1',
       learnerName: currentUser?.name || 'Ahmed Osman',
       githubLink: githubLink.trim(),
-      explanation: explanation.trim(),
+      explanation: fullExplanation,
       attemptNo: nextAttempt,
       status: 'submitted',
       submittedAt: new Date().toISOString(),
@@ -232,7 +234,7 @@ export default function TopicProjectPage() {
       topicId: topic.id,
       learnerId: currentUser?.id || 'usr-learner-1',
       githubLink: githubLink.trim(),
-      explanation: explanation.trim(),
+      explanation: fullExplanation,
     }).catch(() => {
       // Local preview fallback
     });
@@ -505,6 +507,33 @@ export default function TopicProjectPage() {
                 ? 'إرسال رابط المشروع والملاحظات'
                 : 'Submit Project Repository'}
             </h3>
+
+          <div className="space-y-2">
+            <label className="block text-xs sm:text-sm font-bold text-slate-900">
+              {isRTL ? 'لغة برمجة المشروع:' : 'Implementation Language:'}
+              <span className="text-rose-500 mx-1">*</span>
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { id: 'python', label: '🐍 Python' },
+                { id: 'cpp', label: '⚡ C++' },
+                { id: 'java', label: '☕ Java' },
+              ].map((langOpt) => (
+                <button
+                  key={langOpt.id}
+                  type="button"
+                  onClick={() => setLanguageUsed(langOpt.id)}
+                  className={`py-2 px-3 rounded-xl border text-xs font-bold text-center cursor-pointer transition-all ${
+                    languageUsed === langOpt.id
+                      ? 'border-emerald-600 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-500/20'
+                      : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  {langOpt.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div className="space-y-2">
             <label className="block text-xs sm:text-sm font-bold text-slate-900">
