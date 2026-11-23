@@ -62,7 +62,7 @@ export function SyncProvider({ children }) {
     }
 
     if (isSessionExpired || sessionExpiredWhileOffline) {
-      console.warn('Sync paused: Session expired while offline (FR-12.1). Queue safely preserved.');
+      console.warn('Sync paused: Session expired while offline. Queue safely preserved.');
       setSyncStatus('pending');
       setRequiresReauth(true);
       wasReauthRequiredRef.current = true;
@@ -82,14 +82,14 @@ export function SyncProvider({ children }) {
 
       setSyncStatus('pending');
 
-      // Attempt live backend synchronization with content conflict check (FR-5.6)
+      // Attempt live backend synchronization with content conflict check
       const res = await api.syncProgress({
         updates: itemsToSync,
         learnerId: currentUser?.id || 'usr-learner-1',
         savedLessonIds: savedLessons,
       });
 
-      // Update content conflict flags (FR-5.6)
+      // Update content conflict flags
       if (res && res.lessonStatus) {
         const statusMap = {};
         (res.lessonStatus.updateAvailable || []).forEach((id) => {
@@ -112,7 +112,7 @@ export function SyncProvider({ children }) {
     } catch (err) {
       console.warn('Sync attempt failed:', err.message);
 
-      // FR-5.7 & Sequence Diagram Error Classification:
+      // Error Classification:
       if (err.status === 401) {
         // Alternative 3: 401 session expired
         // Do NOT retry automatically. Keep queue as 'pending' and ask learner to log in again.
@@ -158,7 +158,7 @@ export function SyncProvider({ children }) {
     }
   }, [checkStorageQuota, currentUser?.id, isSessionExpired, savedLessons, sessionExpiredWhileOffline]);
 
-  // NFR-3: Beforeunload safety guard to warn user before discarding unsynced progress
+  // Beforeunload safety guard to warn user before discarding unsynced progress
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       if (pendingQueue.length > 0 || syncStatus === 'pending') {
@@ -227,7 +227,7 @@ export function SyncProvider({ children }) {
     };
   }, [triggerSync]);
 
-  // FR-12.1: Handle session expiration and auto-resume after re-authentication
+  // Handle session expiration and auto-resume after re-authentication
   useEffect(() => {
     if (isSessionExpired || sessionExpiredWhileOffline) {
       setRequiresReauth(true);
@@ -271,7 +271,7 @@ export function SyncProvider({ children }) {
     }
   };
 
-  // Refresh updated lesson from server (FR-5.6)
+  // Refresh updated lesson from server
   const refreshSavedLesson = async (lessonId) => {
     try {
       const data = await api.getLesson(lessonId);
@@ -326,7 +326,7 @@ export function SyncProvider({ children }) {
     await checkStorageQuota();
   };
 
-  // NFR-3: Before discarding offline storage, warn if unsynced progress exists
+  // Before discarding offline storage, warn if unsynced progress exists
   const clearCache = async () => {
     if (pendingQueue.length > 0) {
       const confirmed = window.confirm(

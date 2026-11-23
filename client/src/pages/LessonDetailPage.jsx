@@ -64,10 +64,35 @@ export default function LessonDetailPage() {
   const ArrowBackIcon = isRTL ? ArrowRight : ArrowLeft;
   const ArrowNextIcon = isRTL ? ArrowLeft : ArrowRight;
 
+  const allLessons = (() => {
+    try {
+      const custom = JSON.parse(localStorage.getItem('hemma_custom_lessons') || '[]');
+      const seen = new Set();
+      const combined = [];
+      [...custom, ...LESSONS].forEach((item) => {
+        if (!seen.has(item.id)) {
+          seen.add(item.id);
+          combined.push({
+            ...item,
+            topicId: item.topicId || item.topic_id,
+            titleEn: item.titleEn || item.title_en,
+            titleAr: item.titleAr || item.title_ar,
+            notesEn: item.notesEn || item.notes_en,
+            notesAr: item.notesAr || item.notes_ar,
+            codeSnippet: item.codeSnippet || item.code_snippet,
+          });
+        }
+      });
+      return combined;
+    } catch {
+      return LESSONS;
+    }
+  })();
+
   const currentTrack = TRACKS.find((tr) => tr.id === selectedTrack) || TRACKS[0];
-  const lesson = LESSONS.find((l) => l.id === id) || LESSONS[0];
-  const topic = TOPICS.find((top) => top.id === lesson.topicId);
-  const topicLessons = LESSONS.filter((l) => l.topicId === lesson.topicId);
+  const lesson = allLessons.find((l) => l.id === id) || allLessons[0];
+  const topic = TOPICS.find((top) => top.id === (lesson.topicId || lesson.topic_id));
+  const topicLessons = allLessons.filter((l) => (l.topicId || l.topic_id) === (lesson.topicId || lesson.topic_id));
   const currentIdx = topicLessons.findIndex((l) => l.id === lesson.id);
   const nextLesson = topicLessons[currentIdx + 1];
   const prevLesson = topicLessons[currentIdx - 1];
@@ -81,9 +106,9 @@ export default function LessonDetailPage() {
 
   // Fallback to top-level content if track structure is absent
   const basicNotes = language === 'ar'
-    ? (basicContent?.notesAr || lesson.notesAr)
-    : (basicContent?.notesEn || lesson.notesEn);
-  const basicSnippet = basicContent?.codeSnippet || lesson.codeSnippet;
+    ? (basicContent?.notesAr || lesson.notesAr || lesson.notes_ar || lesson.notesEn || lesson.notes_en)
+    : (basicContent?.notesEn || lesson.notesEn || lesson.notes_en || lesson.notesAr || lesson.notes_ar);
+  const basicSnippet = basicContent?.codeSnippet || lesson.codeSnippet || lesson.code_snippet || '';
 
   const advNotes = advContent ? (language === 'ar' ? advContent.notesAr : advContent.notesEn) : null;
   const advSnippet = advContent?.codeSnippet || null;
@@ -342,7 +367,7 @@ export default function LessonDetailPage() {
         {/* MAIN LESSON CONTENT: Basic Example -> Advanced Example    */}
         {/* ========================================================= */}
         <main className="lg:col-span-8 space-y-6">
-          {/* Content Conflict Banners (FR-5.6) */}
+          {/* Content Conflict Banners */}
           {saved && lessonContentStatus?.[lesson.id] === 'update_available' && (
             <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-950 shadow-xs">
               <div className="flex items-center gap-2.5">
@@ -392,7 +417,9 @@ export default function LessonDetailPage() {
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-              {language === 'ar' ? lesson.titleAr : lesson.titleEn}
+              {language === 'ar' 
+                ? (lesson.titleAr || lesson.title_ar || lesson.titleEn || lesson.title_en) 
+                : (lesson.titleEn || lesson.title_en || lesson.titleAr || lesson.title_ar)}
             </h1>
           </div>
 

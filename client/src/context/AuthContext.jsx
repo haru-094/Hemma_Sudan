@@ -74,7 +74,7 @@ export function AuthProvider({ children }) {
     return DEMO_USERS[4];
   });
 
-  // FR-12.1: Session Expiry Tracking
+  // Session Expiry Tracking
   const [expiresAt, setExpiresAt] = useState(() => {
     const saved = localStorage.getItem('hemma_session_expires_at');
     if (saved) {
@@ -98,7 +98,7 @@ export function AuthProvider({ children }) {
     return saved === 'true';
   });
 
-  // NFR-14: Data Retention & Consent Tracking
+  // Data Retention & Consent Tracking
   const [loginCount, setLoginCount] = useState(() => {
     const saved = currentUser ? localStorage.getItem(`hemma_login_count_${currentUser.id}`) : null;
     return saved ? parseInt(saved, 10) : 1;
@@ -143,7 +143,7 @@ export function AuthProvider({ children }) {
     }
   }, [sessionExpiredWhileOffline]);
 
-  // Periodic and event-driven session expiration check (FR-12.1)
+  // Periodic and event-driven session expiration check
   const checkSessionExpiration = useCallback(() => {
     if (!currentUser || !expiresAt) return;
     const now = Date.now();
@@ -193,7 +193,7 @@ export function AuthProvider({ children }) {
     const savedConsent = localStorage.getItem(`hemma_consent_${user.id}`) || 'pending';
     setConsentStatus(savedConsent);
 
-    // NFR-14: Prompt consent modal on second login for learners if not yet decided
+    // Prompt consent modal on second login for learners if not yet decided
     if (newCount >= 2 && savedConsent === 'pending' && user.role === 'learner') {
       setShowConsentModal(true);
     }
@@ -245,7 +245,7 @@ export function AuthProvider({ children }) {
     return newLearner;
   };
 
-  // NFR-14: Update Data Retention Consent
+  // Update Data Retention Consent
   const updateConsent = async (consentGiven) => {
     if (!currentUser) return;
     const status = consentGiven ? 'granted' : 'declined';
@@ -304,14 +304,14 @@ export function AuthProvider({ children }) {
         isTeacher,
         isMentor,
         isLearner,
-        // FR-12.1 session expiry state & controls
+        // Session expiry state & controls
         expiresAt,
         isSessionExpired,
         sessionExpiredWhileOffline,
         setSessionExpiredWhileOffline,
         expireSessionNow,
         resetSessionExpiry,
-        // NFR-14 Data Retention & Privacy
+        // Data Retention & Privacy
         loginCount,
         consentStatus,
         showConsentModal,

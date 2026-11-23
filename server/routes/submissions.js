@@ -14,7 +14,7 @@ function isValidGithubUrl(url) {
   }
 }
 
-// FR-6.3: GitHub URL Reachability Verification
+// GitHub URL Reachability Verification
 async function checkGithubReachability(githubUrl) {
   try {
     const controller = new AbortController();
@@ -58,7 +58,7 @@ async function checkGithubReachability(githubUrl) {
   }
 }
 
-// POST /api/submissions/validate-github (FR-6.3)
+// POST /api/submissions/validate-github
 router.post('/submissions/validate-github', async (req, res, next) => {
   try {
     const { githubLink } = req.body;
@@ -100,7 +100,7 @@ router.post('/submissions', async (req, res, next) => {
       });
     }
 
-    // FR-6.3: Reachability check at submission time
+    // Reachability check at submission time
     if (!skipReachabilityCheck) {
       const reachability = await checkGithubReachability(githubLink);
       if (!reachability.reachable) {
@@ -315,7 +315,7 @@ router.post('/submissions/:id/resolve-escalation', async (req, res, next) => {
   }
 });
 
-// Learner requests direct teacher review (FR-10.2)
+// Learner requests direct teacher review
 router.post('/submissions/:id/request-teacher', async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -356,7 +356,7 @@ router.post('/submissions/:id/request-teacher', async (req, res, next) => {
   }
 });
 
-// Teacher assigns mentor to a submission (FR-9.1)
+// Teacher assigns mentor to a submission
 router.post('/submissions/:id/assign', async (req, res, next) => {
   try {
     const { id } = req.params;

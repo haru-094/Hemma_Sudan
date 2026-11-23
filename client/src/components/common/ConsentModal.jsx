@@ -35,8 +35,8 @@ export default function ConsentModal() {
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-bold text-slate-900">
               {isRTL
-                ? 'إشعار الاحتفاظ بالبيانات والخصوصية (NFR-14)'
-                : 'Data Retention & Privacy Notice (NFR-14)'}
+                ? 'إشعار الاحتفاظ بالبيانات والخصوصية'
+                : 'Data Retention & Privacy Notice'}
             </h3>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold">
               Session #{loginCount}

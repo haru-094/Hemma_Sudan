@@ -158,7 +158,7 @@ router.get('/users', async (req, res, next) => {
   }
 });
 
-// NFR-14: Consent for Data Retention beyond demo duration
+// Consent for Data Retention beyond demo duration
 router.post('/consent', async (req, res, next) => {
   try {
     const { userId, consent } = req.body;

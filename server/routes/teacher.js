@@ -149,7 +149,7 @@ router.post('/reset-account', async (req, res, next) => {
   }
 });
 
-// POST /api/teacher/purge-demo-data (NFR-14)
+// POST /api/teacher/purge-demo-data
 // Teacher endpoint to purge non-consented demo learners and their submissions/progress records
 router.post('/purge-demo-data', async (req, res, next) => {
   try {
@@ -215,7 +215,7 @@ router.post('/purge-demo-data', async (req, res, next) => {
     );
 
     res.status(200).json({
-      message: 'Non-consented demo data purged successfully according to NFR-14 retention policy.',
+      message: 'Non-consented demo data purged successfully according to retention policy.',
       purgedLearnersCount: targetLearnerIds.length,
       purgedSubmissionsCount,
       purgedProgressCount,

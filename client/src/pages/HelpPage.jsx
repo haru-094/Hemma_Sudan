@@ -144,8 +144,8 @@ export default function HelpPage() {
                   </h4>
                   <p>
                     {isRTL
-                      ? 'عند إنهاء كل وحدة، قم بدفع الكود إلى مستودع عام على GitHub وقدم الرابط مع شرح مختصر لحلك. يتطلب التسليم اتصال إنترنت نشطاً ولا يتم حفظه في طابور الانتظار (معيار FR-6.4).'
-                      : 'At the end of each module, push your code to a public GitHub repository and submit the link. Submissions require active connectivity and are never queued offline (FR-6.4).'}
+                      ? 'عند إنهاء كل وحدة، قم بدفع الكود إلى مستودع عام على GitHub وقدم الرابط مع شرح مختصر لحلك. يتطلب التسليم اتصال إنترنت نشطاً ولا يتم حفظه في طابور الانتظار.'
+                      : 'At the end of each module, push your code to a public GitHub repository and submit the link. Submissions require active connectivity and are never queued offline.'}
                   </p>
                 </div>
               </div>
@@ -179,18 +179,18 @@ export default function HelpPage() {
 
                 <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/70 dark:border-slate-800 space-y-1.5">
                   <h4 className="font-bold text-slate-900 dark:text-slate-100">
-                    {isRTL ? 'حل التعارض التلقائي للتقدم (معيار FR-5.5)' : 'Automatic Progress Sync Conflict Resolution (FR-5.5)'}
+                    {isRTL ? 'حل التعارض التلقائي للتقدم' : 'Automatic Progress Sync Conflict Resolution'}
                   </h4>
                   <p>
                     {isRTL
                       ? 'عند استعادة الاتصال، تعتمد المنصة مبدأ "التقدم الأكثر اكتمالاً يفوز" (Furthest Progress Wins). لن يتم أبداً إرجاع درجاتك أو تقليل نسبة إنجازك.'
-                      : 'When your connection returns, the system resolves sync conflicts using "Furthest Progress Wins" (FR-5.5). Your completed quizzes and higher completion percentages will never be overwritten.'}
+                      : 'When your connection returns, the system resolves sync conflicts using "Furthest Progress Wins". Your completed quizzes and higher completion percentages will never be overwritten.'}
                   </p>
                 </div>
 
                 <div className="p-4 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 space-y-1.5">
                   <h4 className="font-bold text-amber-900 dark:text-amber-200">
-                    {isRTL ? 'تحديثات المحتوى من الأستاذ (معيار FR-5.6)' : 'Content Update Notifications (FR-5.6)'}
+                    {isRTL ? 'تحديثات المحتوى من الأستاذ' : 'Content Update Notifications'}
                   </h4>
                   <p>
                     {isRTL
@@ -218,8 +218,8 @@ export default function HelpPage() {
               <div className="space-y-4 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                 <p>
                   {isRTL
-                    ? 'المرشدون هم معيدون أو طلاب متقدمون معتمدون من قبل الأستاذ. بموجب معيار FR-9.2، لا يمكن للمرشد تقييم واجبات إلا في المحاور التي منحه الأستاذ صلاحيتها صراحة.'
-                    : 'Mentors are accredited by the course lead. Per SRS FR-9.2, mentors can only review submissions for topics they have been explicitly accredited for.'}
+                    ? 'المرشدون هم معيدون أو طلاب متقدمون معتمدون من قبل الأستاذ. لا يمكن للمرشد تقييم واجبات إلا في المحاور التي منحه الأستاذ صلاحيتها صراحة.'
+                    : 'Mentors are accredited by the course lead. Mentors can only review submissions for topics they have been explicitly accredited for.'}
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
@@ -240,7 +240,7 @@ export default function HelpPage() {
                     </h5>
                     <p className="text-xs text-slate-600 dark:text-slate-400">
                       {isRTL
-                        ? 'إرجاع الحل للطالب مع ملاحظات بناّءة، مما يتيح له إعادة المحاولة (معيار FR-7).'
+                        ? 'إرجاع الحل للطالب مع ملاحظات بناّءة، مما يتيح له إعادة المحاولة.'
                         : 'Requests revision with targeted remarks, allowing the student to resubmit.'}
                     </p>
                   </div>
@@ -283,10 +283,10 @@ export default function HelpPage() {
                       : 'Make final, binding grading decisions on disputed or directly escalated submissions.'}
                   </li>
                   <li>
-                    <strong>{isRTL ? 'إعادة تعيين كلمات المرور وتطهير البيانات:' : 'Credentials & NFR-14 Purge:'} </strong>
+                    <strong>{isRTL ? 'إعادة تعيين كلمات المرور وتطهير البيانات:' : 'Credentials & Data Purge:'} </strong>
                     {isRTL
                       ? 'إعادة تعيين كلمة مرور الطلاب يدوياً أثناء انقطاع البريد الإلكتروني، وتطهير بيانات التجربة غير المعتمدة.'
-                      : 'Manually reset student passwords during email outages, and execute NFR-14 consent purges.'}
+                      : 'Manually reset student passwords during email outages, and execute data consent purges.'}
                   </li>
                 </ul>
               </div>
@@ -324,8 +324,8 @@ export default function HelpPage() {
                   </h4>
                   <p className="text-slate-600 dark:text-slate-400">
                     {isRTL
-                      ? 'ج: ينص معيار FR-6.4 على أن تسليمات GitHub تتطلب اتصالاً مباشراً للتحقق من وجود المستودع العام، ولا يتم تخزين روابط المشاريع في طابور الانتظار منعاً لتضارب النسخ.'
-                      : 'A: SRS FR-6.4 mandates that GitHub project submissions require active connectivity to validate public reachability, preventing dangling or invalid links.'}
+                      ? 'ج: تسليمات GitHub تتطلب اتصالاً مباشراً للتحقق من وجود المستودع العام، ولا يتم تخزين روابط المشاريع في طابور الانتظار منعاً لتضارب النسخ.'
+                      : 'A: GitHub project submissions require active connectivity to validate public reachability, preventing dangling or invalid links.'}
                   </p>
                 </div>
 

@@ -31,7 +31,8 @@ import {
   Sliders,
   Sparkles,
   ExternalLink,
-  Shield
+  Shield,
+  X
 } from 'lucide-react';
 
 // Reusable Clean Pagination Component
@@ -147,18 +148,50 @@ export default function TeacherAdminPage() {
       try {
         const topicsData = await api.getTopics();
         if (topicsData.topics && topicsData.topics.length > 0) {
-          const normalized = topicsData.topics.map((t) => ({
-            ...t,
-            titleEn: t.titleEn || t.title_en || t.title || t.id,
-            titleAr: t.titleAr || t.title_ar || t.titleEn || t.title_en || t.id,
-            displayOrder: t.displayOrder || t.display_order || 1,
-          }));
-          setTopicsList(normalized);
+          // Merge server topics with TOPICS so all 7 platform modules are always present
+          const serverMap = new Map(topicsData.topics.map((t) => [t.id, t]));
+          const merged = TOPICS.map((base) => {
+            const serv = serverMap.get(base.id);
+            return {
+              ...base,
+              ...(serv || {}),
+              titleEn: serv?.titleEn || serv?.title_en || base.titleEn,
+              titleAr: serv?.titleAr || serv?.title_ar || base.titleAr,
+              displayOrder: serv?.displayOrder !== undefined ? serv.displayOrder : (serv?.display_order !== undefined ? serv.display_order : base.displayOrder),
+            };
+          });
+
+          // Also include any custom server-authored topics
+          topicsData.topics.forEach((t) => {
+            if (!merged.some((m) => m.id === t.id)) {
+              merged.push({
+                ...t,
+                titleEn: t.titleEn || t.title_en || t.id,
+                titleAr: t.titleAr || t.title_ar || t.id,
+                displayOrder: t.displayOrder !== undefined ? t.displayOrder : (t.display_order !== undefined ? t.display_order : 99),
+              });
+            }
+          });
+
+          merged.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+          setTopicsList(merged);
+
+          const custom = (() => {
+            try { return JSON.parse(localStorage.getItem('hemma_custom_lessons') || '[]'); } catch { return []; }
+          })();
           const allLessons = [];
           topicsData.topics.forEach((top) => {
             if (top.lessons) allLessons.push(...top.lessons);
           });
-          if (allLessons.length > 0) setLessonsList(allLessons);
+          const seen = new Set();
+          const combinedLessons = [];
+          [...custom, ...allLessons, ...LESSONS].forEach((item) => {
+            if (!seen.has(item.id)) {
+              seen.add(item.id);
+              combinedLessons.push(item);
+            }
+          });
+          setLessonsList(combinedLessons);
         } else {
           setTopicsList(TOPICS);
         }
@@ -189,6 +222,13 @@ export default function TeacherAdminPage() {
       : [...currentList, topicId];
 
     setMentorApprovals((prev) => ({ ...prev, [mentorId]: updated }));
+
+    // When granting approval to a learner, promote their role to mentor
+    if (!isApproved) {
+      setMentorsList((prev) =>
+        prev.map((m) => (m.id === mentorId ? { ...m, role: 'mentor' } : m))
+      );
+    }
 
     try {
       await api.toggleMentorTopic({
@@ -264,8 +304,8 @@ export default function TeacherAdminPage() {
   const handlePurgeDemoData = async () => {
     const confirmed = window.confirm(
       isRTL
-        ? 'هل أنت متأكد من حذف وتطهير بيانات الطلاب المؤقتة الذين لم يمنحوا الموافقة على الاحتفاظ بالبيانات وفقاً لمعيار NFR-14؟'
-        : 'Are you sure you want to purge non-consented demo learner submissions and progress records in accordance with NFR-14 retention policy?'
+        ? 'هل أنت متأكد من حذف وتطهير بيانات الطلاب المؤقتة الذين لم يمنحوا الموافقة على الاحتفاظ بالبيانات؟'
+        : 'Are you sure you want to purge non-consented demo learner submissions and progress records in accordance with retention policy?'
     );
     if (!confirmed) return;
 
@@ -280,7 +320,7 @@ export default function TeacherAdminPage() {
       if (logsData.auditLogs) setAuditLogs(logsData.auditLogs);
     } catch (err) {
       setPurgeResult({
-        message: 'Purge executed in demonstration mode (NFR-14 policy applied).',
+        message: 'Purge executed in demonstration mode (retention policy applied).',
         purgedLearnersCount: 1,
         purgedSubmissionsCount: 0,
         purgedProgressCount: 0,
@@ -642,75 +682,115 @@ export default function TeacherAdminPage() {
                 <div className="space-y-1 border-b border-slate-100 dark:border-slate-800 pb-4">
                   <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                     <UserCheck className="w-5 h-5 text-emerald-800 dark:text-emerald-400" />
-                    <span>{isRTL ? 'مصفوفة اعتماد المرشدين حسب المواضيع' : 'Topic-Based Mentor Approvals'}</span>
+                    <span>{isRTL ? 'اعتماد المرشدين حسب موضوعات المنهج' : 'Topic-Based Mentor Accreditation'}</span>
                   </h2>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     {isRTL
-                      ? 'الأستاذ هو المخول الوحيد بمنح وإلغاء صلاحيات التقييم للمرشدين لكل وحدة بشكل مستقل.'
-                      : 'Only the course teacher can approve or revoke mentor permissions for specific topics.'}
+                      ? 'اختر أي موضوع من المنهج لمنح المرشد صلاحية تقييمه أو ترقية الطالب إلى مرشد. يمكنك إلغاء الاعتماد بالنقر على (✕) بجانب اسم الموضوع.'
+                      : 'Accredit mentors or promote learners by selecting course topics from the dropdown. Revoke permissions by clicking (✕) on any topic badge.'}
                   </p>
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left rtl:text-right text-xs border border-slate-200 rounded-xl overflow-hidden">
-                    <thead className="bg-[#fbfaf6] border-b border-slate-200 text-slate-700">
+                  <table className="w-full text-left rtl:text-right text-xs border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
+                    <thead className="bg-[#fbfaf6] dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
                       <tr>
-                        <th className="p-3.5 font-bold">{isRTL ? 'اسم المرشد والجامعة' : 'Mentor & Institution'}</th>
-                        <th className="p-3.5 font-bold text-center">{isRTL ? 'الحالة الحالية' : 'Current Role'}</th>
-                        {topicsList.map((topic) => (
-                          <th key={topic.id} className="p-3.5 font-bold text-center">
-                            {isRTL ? `المحور ${topic.displayOrder || topic.display_order}` : `Topic ${topic.displayOrder || topic.display_order}`}
-                          </th>
-                        ))}
+                        <th className="p-3.5 font-bold">{isRTL ? 'المرشد / المرشح' : 'Mentor / Candidate'}</th>
+                        <th className="p-3.5 font-bold text-center">{isRTL ? 'الرتبة' : 'Role'}</th>
+                        <th className="p-3.5 font-bold">{isRTL ? 'الموضوعات المعتمدة' : 'Accredited Topics'}</th>
+                        <th className="p-3.5 font-bold text-center">{isRTL ? 'منح اعتماد موضوع' : 'Accredit Topic'}</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                       {paginatedMentors.map((mentor) => {
                         const approved = mentorApprovals[mentor.id] || [];
 
                         return (
-                          <tr key={mentor.id} className="hover:bg-slate-50/50">
-                            <td className="p-3.5">
-                              <div className="font-bold text-slate-900">{mentor.name}</div>
-                              <div className="text-[11px] text-slate-500">{mentor.university || 'University of Khartoum'}</div>
+                          <tr key={mentor.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                            <td className="p-3.5 align-middle">
+                              <div className="font-bold text-slate-900 dark:text-slate-100 text-sm">{mentor.name}</div>
+                              <div className="text-[11px] text-slate-500 dark:text-slate-400">{mentor.university || 'University of Khartoum'}</div>
+                              <div className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">{mentor.email}</div>
                             </td>
 
-                            <td className="p-3.5 text-center">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                                mentor.role === 'mentor' ? 'bg-teal-100 text-teal-800' : 'bg-slate-100 text-slate-600'
+                            <td className="p-3.5 text-center align-middle">
+                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1 ${
+                                mentor.role === 'mentor' 
+                                  ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' 
+                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
                               }`}>
-                                {mentor.role}
+                                {mentor.role === 'mentor' ? (
+                                  <>
+                                    <Check className="w-3 h-3 text-emerald-600" />
+                                    <span>{isRTL ? 'مرشد معتمد' : 'Mentor'}</span>
+                                  </>
+                                ) : (
+                                  <span>{isRTL ? 'طالب (مرشح)' : 'Learner'}</span>
+                                )}
                               </span>
                             </td>
 
-                            {topicsList.map((topic) => {
-                              const isApproved = approved.includes(topic.id);
+                            <td className="p-3.5 align-middle max-w-md">
+                              {approved.length > 0 ? (
+                                <div className="flex flex-wrap gap-1.5">
+                                  {approved.map((topId) => {
+                                    const topObj = topicsList.find((t) => t.id === topId);
+                                    const title = topObj
+                                      ? (isRTL ? (topObj.titleAr || topObj.titleEn) : (topObj.titleEn || topObj.titleAr))
+                                      : topId;
+                                    return (
+                                      <span
+                                        key={topId}
+                                        className="inline-flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800/80 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-2xs group"
+                                      >
+                                        <Check className="w-3 h-3 text-emerald-600 shrink-0" />
+                                        <span>{title}</span>
+                                        <button
+                                          type="button"
+                                          onClick={() => toggleMentorTopic(mentor.id, topId)}
+                                          className="text-emerald-700 hover:text-rose-600 dark:text-emerald-400 dark:hover:text-rose-400 transition-colors p-0.5 rounded cursor-pointer ml-1 rtl:mr-1 rtl:ml-0"
+                                          title={isRTL ? 'إلغاء الاعتماد لهذا الموضوع' : 'Revoke accreditation for this topic'}
+                                        >
+                                          <X className="w-3 h-3" />
+                                        </button>
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              ) : (
+                                <span className="text-slate-400 dark:text-slate-500 italic text-xs">
+                                  {isRTL ? 'لم يتم اعتماد أي موضوع بعد (غير مصرح بالتقييم)' : 'No accredited topics yet (cannot review)'}
+                                </span>
+                              )}
+                            </td>
 
-                              return (
-                                <td key={topic.id} className="p-3.5 text-center">
-                                  <button
-                                    onClick={() => toggleMentorTopic(mentor.id, topic.id)}
-                                    className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-colors inline-flex items-center gap-1 cursor-pointer ${
-                                      isApproved
-                                        ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                                        : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
-                                    }`}
-                                  >
-                                    {isApproved ? (
-                                      <>
-                                        <Check className="w-3.5 h-3.5 text-emerald-700" />
-                                        <span>{isRTL ? 'معتمد' : 'Approved'}</span>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <XCircle className="w-3.5 h-3.5 text-slate-400" />
-                                        <span>{isRTL ? 'غير معتمد' : 'Revoked'}</span>
-                                      </>
-                                    )}
-                                  </button>
-                                </td>
-                              );
-                            })}
+                            <td className="p-3.5 text-center align-middle">
+                              <select
+                                value=""
+                                onChange={(e) => {
+                                  if (e.target.value) {
+                                    toggleMentorTopic(mentor.id, e.target.value);
+                                  }
+                                }}
+                                className="w-full sm:w-auto text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 font-medium text-slate-800 dark:text-slate-200 cursor-pointer hover:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-2xs"
+                              >
+                                <option value="">
+                                  {isRTL ? '+ اختر موضوعاً للاعتماد...' : '+ Choose topic to accredit...'}
+                                </option>
+                                {topicsList.map((top) => {
+                                  const isAlreadyApproved = approved.includes(top.id);
+                                  const topicOrder = top.displayOrder !== undefined 
+                                    ? top.displayOrder 
+                                    : (top.display_order !== undefined ? top.display_order : '');
+                                  const topicTitle = isRTL ? (top.titleAr || top.titleEn) : (top.titleEn || top.titleAr);
+                                  return (
+                                    <option key={top.id} value={top.id} disabled={isAlreadyApproved}>
+                                      {topicOrder !== '' ? `${topicOrder}. ` : ''}{topicTitle} {isAlreadyApproved ? (isRTL ? '(معتمد ✓)' : '(Accredited ✓)') : ''}
+                                    </option>
+                                  );
+                                })}
+                              </select>
+                            </td>
                           </tr>
                         );
                       })}
@@ -895,18 +975,18 @@ export default function TeacherAdminPage() {
                   </button>
                 </form>
 
-                {/* NFR-14: Data Retention & Demo Purge Panel */}
+                {/* Data Retention & Demo Purge Panel */}
                 <div className="bg-[#fbfaf6] rounded-xl p-5 border border-slate-200/80 space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                     <div className="space-y-1">
                       <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                         <ShieldCheck className="w-4 h-4 text-emerald-700" />
-                        <span>{isRTL ? 'إدارة الاحتفاظ بالبيانات والخصوصية (NFR-14)' : 'Data Retention & Demo Purge Policy (NFR-14)'}</span>
+                        <span>{isRTL ? 'إدارة الاحتفاظ بالبيانات والخصوصية' : 'Data Retention & Demo Purge Policy'}</span>
                       </h4>
                       <p className="text-xs text-slate-600 max-w-xl">
                         {isRTL
-                          ? 'وفقاً لمتطلبات NFR-14، يتم الاحتفاظ ببيانات ومشاريع الطلاب خلال فترة التجربة فقط. يؤدي هذا الإجراء إلى حذف كافة السجلات للطلاب الذين لم يوافقوا على استمرار حساباتهم، مع توثيق العملية في سجل الرقابة.'
-                          : 'Per SRS NFR-14, demo evaluation data is purged unless learners explicitly gave retention consent. Executing this purge cleans non-consented records and logs the event to the audit trail.'}
+                          ? 'يتم الاحتفاظ ببيانات ومشاريع الطلاب خلال فترة التجربة فقط. يؤدي هذا الإجراء إلى حذف كافة السجلات للطلاب الذين لم يوافقوا على استمرار حساباتهم، مع توثيق العملية في سجل الرقابة.'
+                          : 'Demo evaluation data is purged unless learners explicitly gave retention consent. Executing this purge cleans non-consented records and logs the event to the audit trail.'}
                       </p>
                     </div>
                     <button
@@ -916,7 +996,7 @@ export default function TeacherAdminPage() {
                       className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer disabled:opacity-50 shrink-0"
                     >
                       <Trash2 className="w-4 h-4" />
-                      <span>{isPurging ? (isRTL ? 'جارٍ التطهير...' : 'Purging...') : (isRTL ? 'تطهير بيانات التجربة (NFR-14)' : 'Purge Unconsented Demo Data')}</span>
+                      <span>{isPurging ? (isRTL ? 'جارٍ التطهير...' : 'Purging...') : (isRTL ? 'تطهير بيانات التجربة' : 'Purge Unconsented Demo Data')}</span>
                     </button>
                   </div>
 
@@ -948,46 +1028,69 @@ export default function TeacherAdminPage() {
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left rtl:text-right text-xs border border-slate-200 rounded-xl overflow-hidden">
-                    <thead className="bg-[#fbfaf6] border-b border-slate-200 text-slate-700">
+                  <table className="w-full text-left rtl:text-right text-xs border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
+                    <thead className="bg-[#fbfaf6] dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
                       <tr>
                         <th className="p-3 font-bold">{isRTL ? 'التاريخ والوقت' : 'Timestamp'}</th>
                         <th className="p-3 font-bold">{isRTL ? 'نوع العملية' : 'Action'}</th>
+                        <th className="p-3 font-bold">{isRTL ? 'الموضوع المعني / التفاصيل' : 'Affected Topic / Details'}</th>
                         <th className="p-3 font-bold">{isRTL ? 'المنفذ' : 'Performed By'}</th>
                         <th className="p-3 font-bold">{isRTL ? 'المستفيد' : 'Target User'}</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 font-mono">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-mono">
                       {auditLogs.length > 0 ? (
-                        paginatedAuditLogs.map((log) => (
-                          <tr key={log.id} className="hover:bg-slate-50/50">
-                            <td className="p-3 text-slate-500 font-sans">{new Date(log.created_at).toLocaleString()}</td>
-                            <td className="p-3">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                log.action === 'MENTOR_APPROVED'
-                                  ? 'bg-emerald-100 text-emerald-800'
-                                  : log.action === 'MENTOR_REVOKED'
-                                  ? 'bg-rose-100 text-rose-800'
-                                  : 'bg-amber-100 text-amber-800'
-                              }`}>
-                                {isRTL
-                                  ? log.action === 'MENTOR_APPROVED'
-                                    ? 'اعتماد مرشد'
+                        paginatedAuditLogs.map((log) => {
+                          let detailTopicTitle = '—';
+                          if (log.details) {
+                            try {
+                              const d = typeof log.details === 'string' ? JSON.parse(log.details) : log.details;
+                              if (d.topicId) {
+                                const topObj = topicsList.find((t) => t.id === d.topicId);
+                                detailTopicTitle = topObj
+                                  ? (isRTL ? (topObj.titleAr || topObj.titleEn) : (topObj.titleEn || topObj.titleAr))
+                                  : d.topicId;
+                              } else if (d.purgedLearnersCount !== undefined) {
+                                detailTopicTitle = isRTL ? `${d.purgedLearnersCount} طالب تم تطهيره` : `${d.purgedLearnersCount} purged`;
+                              }
+                            } catch {
+                              detailTopicTitle = '—';
+                            }
+                          }
+
+                          return (
+                            <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                              <td className="p-3 text-slate-500 font-sans">{new Date(log.created_at).toLocaleString()}</td>
+                              <td className="p-3">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  log.action === 'MENTOR_APPROVED'
+                                    ? 'bg-emerald-100 text-emerald-800'
                                     : log.action === 'MENTOR_REVOKED'
-                                    ? 'إلغاء اعتماد'
-                                    : log.action === 'RESET_PASSWORD'
-                                    ? 'إعادة تعيين كلمة مرور'
-                                    : log.action
-                                  : log.action}
-                              </span>
-                            </td>
-                            <td className="p-3 text-slate-700 font-sans">{log.performed_by_name || log.performed_by}</td>
-                            <td className="p-3 text-slate-700 font-sans">{log.target_user_name || log.target_user_id || '—'}</td>
-                          </tr>
-                        ))
+                                    ? 'bg-rose-100 text-rose-800'
+                                    : 'bg-amber-100 text-amber-800'
+                                }`}>
+                                  {isRTL
+                                    ? log.action === 'MENTOR_APPROVED'
+                                      ? 'اعتماد مرشد'
+                                      : log.action === 'MENTOR_REVOKED'
+                                      ? 'إلغاء اعتماد'
+                                      : log.action === 'RESET_PASSWORD'
+                                      ? 'إعادة تعيين كلمة مرور'
+                                      : log.action
+                                    : log.action}
+                                </span>
+                              </td>
+                              <td className="p-3 text-slate-800 dark:text-slate-200 font-sans font-semibold text-[11px]">
+                                {detailTopicTitle}
+                              </td>
+                              <td className="p-3 text-slate-700 dark:text-slate-300 font-sans">{log.performed_by_name || log.performed_by}</td>
+                              <td className="p-3 text-slate-700 dark:text-slate-300 font-sans">{log.target_user_name || log.target_user_id || '—'}</td>
+                            </tr>
+                          );
+                        })
                       ) : (
                         <tr>
-                          <td colSpan={4} className="p-6 text-center text-slate-400 font-sans">
+                          <td colSpan={5} className="p-6 text-center text-slate-400 font-sans">
                             {isRTL ? 'لا توجد سجلات رقابة مسجلة حتى الآن.' : 'No audit records logged yet.'}
                           </td>
                         </tr>

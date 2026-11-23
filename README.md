@@ -70,11 +70,11 @@ In areas affected by conflict or severe infrastructure instability like Sudan, u
 - **📋 Interactive Capstone Rubric & Starter Repositories:**  
   Transparent checklist of evaluation criteria displayed directly to learners and reviewers on capstone project pages.
 
-- **🔒 Offline Project Submission Guard (FR-6.4):**  
+- **🔒 Offline Project Submission Guard:**  
   Project submissions are explicitly gated offline with prominent "needs internet" status badges, ensuring only live submissions can be made.
 
-- **⚡ NFR-12 & NFR-1 Verified Concurrency & Latency:**  
-  Benchmarked for 20+ concurrent learner sessions with server response latencies consistently under 10ms (surpassing the 2000ms NFR-1 threshold).
+- **⚡ Verified Concurrency & Latency:**  
+  Benchmarked for 20+ concurrent learner sessions with server response latencies consistently under 10ms (well under the 2000ms threshold).
 
 - **🔒 Data Privacy & Demo Retention Consent:**  
   Prompts returning students for consent to retain their data across sessions, and gives instructors the ability to purge temporary demonstration data with administrative audit logging.
@@ -181,7 +181,7 @@ To automatically test all core flows (offline quiz sync, duplicate protection, r
 npm --prefix server run test:e2e
 ```
 
-To run the automated NFR-12 (20 concurrent virtual learners) and NFR-1 (<2000ms response time) load benchmark:
+To run the automated (20 concurrent virtual learners) and (<2000ms response time) load benchmark:
 ```bash
 npm --prefix server run test:load
 ```

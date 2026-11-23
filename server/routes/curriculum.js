@@ -162,17 +162,24 @@ router.post('/lessons', async (req, res, next) => {
       });
     }
 
-    // Get max display order for topic
-    const orderRes = await db.query(
-      `SELECT COALESCE(MAX(display_order), 0) + 1 AS next_order FROM lessons WHERE topic_id = $1`,
-      [topicId]
-    );
-    const nextOrder = orderRes.rows[0].next_order;
+    // Get max display order for topic with robust fallback
+    let nextOrder = 1;
+    try {
+      const orderRes = await db.query(
+        `SELECT COALESCE(MAX(display_order), 0) + 1 AS next_order FROM lessons WHERE topic_id = $1`,
+        [topicId]
+      );
+      if (orderRes?.rows?.[0]?.next_order != null) {
+        nextOrder = parseInt(orderRes.rows[0].next_order, 10) || 1;
+      }
+    } catch {
+      nextOrder = 1;
+    }
 
     const newId = `lesson-${Date.now()}`;
     const result = await db.query(
-      `INSERT INTO lessons (id, topic_id, display_order, title_en, title_ar, notes_en, notes_ar, code_snippet, recording_link, arabic_status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      `INSERT INTO lessons (id, topic_id, display_order, title_en, title_ar, notes_en, notes_ar, code_snippet, recording_link, arabic_status, is_published, version)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, TRUE, 1)
        RETURNING *`,
       [
         newId,

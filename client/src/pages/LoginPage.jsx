@@ -82,15 +82,15 @@ export default function LoginPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white dark:bg-[#151d30] py-8 px-6 sm:px-10 shadow-sm border border-slate-200 dark:border-slate-800 rounded-3xl space-y-6">
-          {/* FR-12.1: Prominent Re-auth notice if session expired while offline */}
+          {/* Re-auth notice if session expired while offline */}
           {showReauthNotice && (
             <div className="p-4 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-purple-900 dark:text-purple-200 text-xs sm:text-sm space-y-2">
               <div className="flex items-center gap-2 font-bold text-purple-800 dark:text-purple-300">
                 <Lock className="w-4 h-4 text-purple-700 dark:text-purple-400 shrink-0" />
                 <span>
                   {isRTL
-                    ? 'انتهت صلاحية جلستك أثناء عدم الاتصال (FR-12.1)'
-                    : 'Session Expired While Offline (FR-12.1)'}
+                    ? 'انتهت صلاحية جلستك أثناء عدم الاتصال'
+                    : 'Session Expired While Offline'}
                 </span>
               </div>
               <p className="text-purple-700 dark:text-purple-300 leading-relaxed text-xs">
@@ -199,7 +199,7 @@ export default function LoginPage() {
               ))}
             </div>
 
-            {/* Quick simulation helper for FR-12.1 evaluation */}
+            {/* Quick simulation helper for session expiration evaluation */}
             <div className="text-center pt-3">
               <button
                 type="button"
@@ -207,8 +207,8 @@ export default function LoginPage() {
                 className="text-[11px] text-slate-500 dark:text-slate-400 hover:text-purple-700 dark:hover:text-purple-300 underline font-medium transition-colors cursor-pointer"
               >
                 {isRTL
-                  ? '⚡ محاكاة سيناريو انتهاء صلاحية الجلسة أثناء انقطاع الإنترنت (FR-12.1)'
-                  : '⚡ Simulate Session Expiry While Offline (FR-12.1)'}
+                  ? '⚡ محاكاة سيناريو انتهاء صلاحية الجلسة أثناء انقطاع الإنترنت'
+                  : '⚡ Simulate Session Expiry While Offline'}
               </button>
             </div>
           </div>

@@ -5,7 +5,7 @@ const db = require('../db');
 // Idempotent progress synchronization with duplicate protection
 router.post('/progress', async (req, res, next) => {
   try {
-    // FR-12.1 / FR-5.7 Alternative 3: Session Expiry (401 check)
+    // Session Expiry (401 check)
     const authHeader = req.headers.authorization || '';
     if (authHeader.toLowerCase().includes('expired') || req.headers['x-mock-expired'] === 'true') {
       return res.status(401).json({
@@ -52,7 +52,7 @@ router.post('/progress', async (req, res, next) => {
         continue;
       }
 
-      // 2. Progress Conflict Resolution (FR-5.5):
+      // 2. Progress Conflict Resolution:
       // When two devices or an offline update and the server disagree on a lesson marked as done,
       // the server shall revert to incomplete. For fields such as the last position, the update with the latest client timestamp wins.
       const existingProgress = await db.query(
@@ -110,7 +110,7 @@ router.post('/progress', async (req, res, next) => {
       processed.push(updateId);
     }
 
-    // 3. Content Conflict Detection (FR-5.6)
+    // 3. Content Conflict Detection
     // Server published version always wins. If updated -> update available. If unpublished -> no longer available.
     const updateAvailable = [];
     const noLongerAvailable = [];

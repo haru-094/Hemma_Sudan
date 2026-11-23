@@ -57,7 +57,7 @@ export const api = {
   requestTeacherReview: (subId, payload) => request(`/submissions/${subId}/request-teacher`, { method: 'POST', body: JSON.stringify(payload) }),
   assignReviewer: (subId, payload) => request(`/submissions/${subId}/assign`, { method: 'POST', body: JSON.stringify(payload) }),
 
-  // Data Privacy & Retention (NFR-14)
+  // Data Privacy & Retention
   updateConsent: (payload) => request('/auth/consent', { method: 'POST', body: JSON.stringify(payload) }),
   purgeDemoData: (payload) => request('/teacher/purge-demo-data', { method: 'POST', body: JSON.stringify(payload) }),
 

@@ -1,8 +1,8 @@
 /**
- * Hemma Sudan — NFR-12 & NFR-1 Load & Concurrency Simulation Test
+ * Hemma Sudan — Load & Concurrency Simulation Test
  * 
- * SRS NFR-12: System supports at least 20 concurrent learner sessions.
- * SRS NFR-1: Response times remain under 2.0 seconds (2000ms) under load.
+ * Supports at least 20 concurrent learner sessions.
+ * Response times remain under 2.0 seconds (2000ms) under load.
  */
 
 const { EventEmitter } = require('events');
@@ -67,7 +67,7 @@ function simulateRequest(app, method, url, body = {}, headers = {}) {
 
 async function runLoadTest() {
   console.log('========================================================================');
-  console.log(`⚡ HEMMA SUDAN — NFR-12 (20 CONCURRENT SESSIONS) & NFR-1 LATENCY BENCHMARK`);
+  console.log(`⚡ HEMMA SUDAN — 20 CONCURRENT SESSIONS & LATENCY BENCHMARK`);
   console.log('========================================================================');
   console.log(`Engine: Express In-Memory Dispatcher`);
   console.log(`Concurrent Virtual Users: ${CONCURRENT_USERS}`);
@@ -84,7 +84,7 @@ async function runLoadTest() {
   const avgHealth = (healthDurations.reduce((a, b) => a + b, 0) / healthDurations.length).toFixed(1);
   const maxHealth = Math.max(...healthDurations);
   console.log(`   ✅ Success Rate: ${healthPassed}/${CONCURRENT_USERS} (${((healthPassed / CONCURRENT_USERS) * 100).toFixed(0)}%)`);
-  console.log(`   ⏱ Latency: Avg ${avgHealth}ms | Max ${maxHealth}ms (NFR-1 limit: 2000ms)\n`);
+  console.log(`   ⏱ Latency: Avg ${avgHealth}ms | Max ${maxHealth}ms (latency limit: 2000ms)\n`);
 
   // Phase 2: 20 Concurrent Curriculum / Topic Queries
   console.log(`▶ Phase 2: Firing ${CONCURRENT_USERS} concurrent requests to /api/topics...`);
@@ -97,7 +97,7 @@ async function runLoadTest() {
   const avgTopic = (topicDurations.reduce((a, b) => a + b, 0) / topicDurations.length).toFixed(1);
   const maxTopic = Math.max(...topicDurations);
   console.log(`   ✅ Success Rate: ${topicPassed}/${CONCURRENT_USERS} (${((topicPassed / CONCURRENT_USERS) * 100).toFixed(0)}%)`);
-  console.log(`   ⏱ Latency: Avg ${avgTopic}ms | Max ${maxTopic}ms (NFR-1 limit: 2000ms)\n`);
+  console.log(`   ⏱ Latency: Avg ${avgTopic}ms | Max ${maxTopic}ms (latency limit: 2000ms)\n`);
 
   // Phase 3: 20 Concurrent Offline Progress Sync Flushes
   console.log(`▶ Phase 3: Firing ${CONCURRENT_USERS} concurrent offline sync flushes to /api/sync/progress...`);
@@ -121,11 +121,11 @@ async function runLoadTest() {
   const avgSync = (syncDurations.reduce((a, b) => a + b, 0) / syncDurations.length).toFixed(1);
   const maxSync = Math.max(...syncDurations);
   console.log(`   ✅ Success Rate: ${syncPassed}/${CONCURRENT_USERS} (${((syncPassed / CONCURRENT_USERS) * 100).toFixed(0)}%)`);
-  console.log(`   ⏱ Latency: Avg ${avgSync}ms | Max ${maxSync}ms (NFR-1 limit: 2000ms)\n`);
+  console.log(`   ⏱ Latency: Avg ${avgSync}ms | Max ${maxSync}ms (latency limit: 2000ms)\n`);
 
   console.log('========================================================================');
   if (healthPassed === CONCURRENT_USERS && topicPassed === CONCURRENT_USERS && syncPassed === CONCURRENT_USERS && maxHealth < 2000 && maxTopic < 2000 && maxSync < 2000) {
-    console.log(`🏁 LOAD TEST PASSED: Full compliance with NFR-12 (20 users) and NFR-1 (<2000ms)`);
+    console.log(`🏁 LOAD TEST PASSED: Full compliance (20 users) and (<2000ms)`);
   } else {
     console.log(`⚠️ LOAD TEST FAILED or degraded under load.`);
   }

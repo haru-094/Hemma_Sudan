@@ -19,7 +19,7 @@ export default function OfflineBanner() {
 
   return (
     <div className="space-y-1">
-      {/* Session Expired While Offline (FR-12.1 / Alternative 3) */}
+      {/* Session Expired While Offline */}
       {requiresReauth && (
         <div className="bg-purple-800 text-white text-xs sm:text-sm py-2.5 px-4 shadow-md flex flex-wrap items-center justify-center gap-2 border-b border-purple-900">
           <div className="flex items-center gap-1.5 font-bold">
@@ -52,7 +52,7 @@ export default function OfflineBanner() {
         </div>
       )}
 
-      {/* Sync Rejected (FR-5.7 / Alternative 4) */}
+      {/* Sync Rejected */}
       {syncError && syncError.status !== 401 && (
         <div className="bg-rose-700 text-white text-xs sm:text-sm py-2 px-4 shadow-inner flex flex-wrap items-center justify-center gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0" />

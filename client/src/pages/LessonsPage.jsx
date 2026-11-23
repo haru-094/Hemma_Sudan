@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useSync } from '../context/SyncContext';
 import { TOPICS, LESSONS, TRACKS } from '../data/mockData';
+import { api } from '../services/api';
 import { 
   DownloadCloud, 
   Check, 
@@ -39,8 +40,65 @@ export default function LessonsPage() {
 
   const activeTrack = TRACKS.find((t) => t.id === activeTrackId) || TRACKS[0];
 
+  // Dynamic lessons merging static, localStorage custom authored lessons, and server lessons
+  const [dynamicLessons, setDynamicLessons] = useState(() => {
+    try {
+      const custom = JSON.parse(localStorage.getItem('hemma_custom_lessons') || '[]');
+      const seen = new Set();
+      const combined = [];
+      [...custom, ...LESSONS].forEach((item) => {
+        if (!seen.has(item.id)) {
+          seen.add(item.id);
+          combined.push(item);
+        }
+      });
+      return combined;
+    } catch {
+      return LESSONS;
+    }
+  });
+
+  useEffect(() => {
+    async function loadCurriculum() {
+      try {
+        const data = await api.getTopics();
+        if (data && data.topics) {
+          const backendLessons = [];
+          data.topics.forEach((t) => {
+            if (t.lessons) {
+              t.lessons.forEach((l) => {
+                backendLessons.push({
+                  ...l,
+                  topicId: l.topicId || l.topic_id,
+                  titleEn: l.titleEn || l.title_en,
+                  titleAr: l.titleAr || l.title_ar,
+                  notesEn: l.notesEn || l.notes_en,
+                  notesAr: l.notesAr || l.notes_ar,
+                  codeSnippet: l.codeSnippet || l.code_snippet,
+                });
+              });
+            }
+          });
+          const custom = JSON.parse(localStorage.getItem('hemma_custom_lessons') || '[]');
+          const seen = new Set();
+          const combined = [];
+          [...custom, ...backendLessons, ...LESSONS].forEach((item) => {
+            if (!seen.has(item.id)) {
+              seen.add(item.id);
+              combined.push(item);
+            }
+          });
+          setDynamicLessons(combined);
+        }
+      } catch (err) {
+        // Fallback already in place
+      }
+    }
+    loadCurriculum();
+  }, []);
+
   // Calculate saved offline lessons count
-  const savedCount = LESSONS.filter((l) => isLessonSaved(l.id)).length;
+  const savedCount = dynamicLessons.filter((l) => isLessonSaved(l.id)).length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -247,7 +305,7 @@ export default function LessonsPage() {
           }
           return !topic.languages || topic.languages.includes(activeTrackId);
         }).map((topic, topicIdx) => {
-          const topicLessons = LESSONS.filter((l) => l.topicId === topic.id);
+          const topicLessons = dynamicLessons.filter((l) => (l.topicId || l.topic_id) === topic.id);
           const completedCount = topicLessons.filter((l) => isLessonSaved(l.id)).length;
 
           return (
@@ -363,7 +421,7 @@ export default function LessonsPage() {
                       <div className="space-y-1.5 max-w-2xl">
                         <div className="flex flex-wrap items-center gap-2">
                           <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                            {idx + 1}. {language === 'ar' ? lesson.titleAr : lesson.titleEn}
+                            {idx + 1}. {language === 'ar' ? (lesson.titleAr || lesson.title_ar || lesson.titleEn || lesson.title_en) : (lesson.titleEn || lesson.title_en || lesson.titleAr)}
                           </h4>
 
                           {/* Status Badges & Low-Bandwidth Payload Size */}
@@ -400,7 +458,9 @@ export default function LessonsPage() {
                         </div>
 
                         <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                          {language === 'ar' ? lesson.notesAr?.slice(0, 120) : lesson.notesEn?.slice(0, 120)}...
+                          {language === 'ar' 
+                            ? (lesson.notesAr || lesson.notes_ar || lesson.notesEn || lesson.notes_en)?.slice(0, 120) 
+                            : (lesson.notesEn || lesson.notes_en || lesson.notesAr)?.slice(0, 120)}...
                         </p>
 
                         <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
@@ -452,7 +512,7 @@ export default function LessonsPage() {
                 })}
               </div>
 
-              {/* Module Checkpoint & Project Box (FR-6.4 Offline Guard) */}
+              {/* Module Checkpoint & Project Box (Offline Guard) */}
               <div className="bg-[#faf8f4] dark:bg-[#10192d] border border-slate-200/80 dark:border-slate-700/80 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
                 <div className="space-y-1 max-w-xl">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -466,14 +526,14 @@ export default function LessonsPage() {
                     ) : (
                       <span className="bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 text-[10px] font-bold px-2 py-0.5 rounded-md inline-flex items-center gap-1">
                         <WifiOff className="w-3 h-3" />
-                        <span>{isRTL ? 'يتطلب اتصال إنترنت (معيار FR-6.4)' : 'Needs internet (FR-6.4)'}</span>
+                        <span>{isRTL ? 'يتطلب اتصال إنترنت' : 'Needs internet'}</span>
                       </span>
                     )}
                   </div>
                   <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                     {isRTL
-                      ? 'ارفع رابط مستودع GitHub مع شرح الكود. تتطلب المشاريع اتصالاً مباشراً بالإنترنت ولا تُحفظ في قائمة الانتظار وفقاً لمعيار FR-6.4.'
-                      : 'Submit your GitHub link with an explanation. Submissions need an active internet connection and are never queued (FR-6.4).'}
+                      ? 'ارفع رابط مستودع GitHub مع شرح الكود. تتطلب المشاريع اتصالاً مباشراً بالإنترنت ولا تُحفظ في قائمة الانتظار.'
+                      : 'Submit your GitHub link with an explanation. Submissions need an active internet connection and are never queued.'}
                   </p>
                 </div>
 
@@ -489,7 +549,7 @@ export default function LessonsPage() {
                     type="button"
                     disabled
                     className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-semibold rounded-lg shadow-none shrink-0 inline-flex items-center justify-center cursor-not-allowed opacity-80"
-                    title={isRTL ? 'يتطلب اتصالاً بالإنترنت لتسليم المشروع (معيار FR-6.4)' : 'Internet connection required to submit project (FR-6.4)'}
+                    title={isRTL ? 'يتطلب اتصالاً بالإنترنت لتسليم المشروع' : 'Internet connection required to submit project'}
                   >
                     <span>{isRTL ? 'تسليم المشروع (غير متصل)' : 'Submit project (Offline)'}</span>
                   </button>

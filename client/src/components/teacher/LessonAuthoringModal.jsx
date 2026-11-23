@@ -104,8 +104,27 @@ export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onL
       };
 
       const result = await api.createLesson(payload);
+      const created = result?.lesson ? {
+        ...result.lesson,
+        topicId: result.lesson.topic_id || result.lesson.topicId || payload.topicId,
+        titleEn: result.lesson.title_en || result.lesson.titleEn || payload.titleEn,
+        titleAr: result.lesson.title_ar || result.lesson.titleAr || payload.titleAr,
+        notesEn: result.lesson.notes_en || result.lesson.notesEn || payload.notesEn,
+        notesAr: result.lesson.notes_ar || result.lesson.notesAr || payload.notesAr,
+        codeSnippet: result.lesson.code_snippet || result.lesson.codeSnippet || payload.codeSnippet,
+      } : {
+        id: `lesson-${Date.now()}`,
+        ...payload,
+      };
+
+      try {
+        const custom = JSON.parse(localStorage.getItem('hemma_custom_lessons') || '[]');
+        const updated = [created, ...custom.filter((l) => l.id !== created.id)];
+        localStorage.setItem('hemma_custom_lessons', JSON.stringify(updated));
+      } catch (e) {}
+
       if (onLessonCreated) {
-        onLessonCreated(result.lesson || payload);
+        onLessonCreated(created);
       }
       onClose();
     } catch (err) {

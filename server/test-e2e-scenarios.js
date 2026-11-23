@@ -64,7 +64,6 @@ async function runE2ESimulation() {
 
   // ============================================================================
   // SCENARIO 1: Offline Learning, Quiz Completion & Idempotent Sync
-  // SRS Ref: FR-5.1, FR-5.5, FR-5.6, FR-5.7
   // ============================================================================
   console.log('📌 SCENARIO 1: Offline Learning, IDB Quiz Completion & Sync Conflict Resolution');
   try {
@@ -99,7 +98,7 @@ async function runE2ESimulation() {
       syncResDuplicate.status === 200 && syncResDuplicate.data.duplicatesIgnoredCount === 1
     );
 
-    // 1.4: Conflict resolution check (FR-5.5)
+    // 1.4: Conflict resolution check
     // Send a new update for the same entity with conflicting completion
     const conflictUpdate = {
       updateId: `upd-quiz-${Date.now()}-conflict`,
@@ -114,12 +113,12 @@ async function runE2ESimulation() {
       learnerId: 'usr-learner-1',
     });
     const conflictRecorded = (syncResConflict.data.conflictsResolvedCount || 0) >= 0;
-    recordStep('Scenario 1', '1.3 Progress Conflict Resolution (FR-5.5)', syncResConflict.status === 200 && conflictRecorded);
+    recordStep('Scenario 1', '1.3 Progress Conflict Resolution', syncResConflict.status === 200 && conflictRecorded);
 
-    // 1.5: Content conflict check (FR-5.6)
+    // 1.5: Content conflict check
     recordStep(
       'Scenario 1',
-      '1.4 Content Conflict Detection (FR-5.6)',
+      '1.4 Content Conflict Detection',
       syncRes1.data && syncRes1.data.lessonStatus !== undefined
     );
   } catch (err) {
@@ -128,7 +127,6 @@ async function runE2ESimulation() {
 
   // ============================================================================
   // SCENARIO 2: Project Submission, Reachability, Revision & Multi-Attempt
-  // SRS Ref: FR-6.3, FR-7, FR-11.2
   // ============================================================================
   console.log('\n📌 SCENARIO 2: Project Submission, Reachability Check & Revision Cycle');
   try {
@@ -138,11 +136,11 @@ async function runE2ESimulation() {
     });
     recordStep('Scenario 2', '2.1 Format Validation Rejects Non-GitHub URL', invalidRes.status === 400);
 
-    // 2.2: Reachable public repository URL verified (FR-6.3)
+    // 2.2: Reachable public repository URL verified
     const validRes = await simulateRequest(app, 'POST', '/api/submissions/validate-github', {
       githubLink: 'https://github.com/torvalds/linux',
     });
-    recordStep('Scenario 2', '2.2 Valid Public Repo Validated (FR-6.3)', validRes.status === 200 && validRes.data.reachable === true);
+    recordStep('Scenario 2', '2.2 Valid Public Repo Validated', validRes.status === 200 && validRes.data.reachable === true);
 
     // 2.3: Learner creates Attempt #1
     const subRes1 = await simulateRequest(app, 'POST', '/api/submissions', {
@@ -155,13 +153,13 @@ async function runE2ESimulation() {
     const sub1Id = subRes1.data.submission?.id || 'sub-101';
     recordStep('Scenario 2', '2.3 Learner Submits Attempt #1', subRes1.status === 201);
 
-    // 2.4: Mentor reviews and requests revision with feedback remarks (FR-7)
+    // 2.4: Mentor reviews and requests revision with feedback remarks
     const fbRes1 = await simulateRequest(app, 'POST', `/api/submissions/${sub1Id}/feedback`, {
       authorId: 'usr-mentor-1',
       comment: 'Please add error handling for non-numeric input and include unit tests in tests.py.',
       action: 'revision',
     });
-    recordStep('Scenario 2', '2.4 Mentor Requests Revision with Remarks (FR-7)', fbRes1.status === 200 && fbRes1.data.status === 'revision_requested');
+    recordStep('Scenario 2', '2.4 Mentor Requests Revision with Remarks', fbRes1.status === 200 && fbRes1.data.status === 'revision_requested');
 
     // 2.5: Learner queries history and verifies revision remarks are returned
     const historyRes = await simulateRequest(app, 'GET', `/api/submissions/history/topic-1/usr-learner-1`);
@@ -192,7 +190,6 @@ async function runE2ESimulation() {
 
   // ============================================================================
   // SCENARIO 3: Escalation Workflow & Teacher Review Assignment
-  // SRS Ref: FR-10.2, FR-9.1, FR-11.2
   // ============================================================================
   console.log('\n📌 SCENARIO 3: Direct Escalation Workflow & Teacher Review Assignment');
   try {
@@ -207,24 +204,24 @@ async function runE2ESimulation() {
     const escSubId = escSubRes.data.submission?.id || 'sub-102';
     recordStep('Scenario 3', '3.1 Submission Created for Escalation Test', escSubRes.status === 201);
 
-    // 3.2: Learner directly requests Teacher review (FR-10.2)
+    // 3.2: Learner directly requests Teacher review
     const reqTeacherRes = await simulateRequest(app, 'POST', `/api/submissions/${escSubId}/request-teacher`, {
       learnerId: 'usr-learner-1',
       reason: 'No mentor assigned for 48 hours; requesting teacher evaluation.',
     });
-    recordStep('Scenario 3', '3.2 Learner Requests Teacher Review (FR-10.2)', reqTeacherRes.status === 200 && reqTeacherRes.data.status === 'escalated');
+    recordStep('Scenario 3', '3.2 Learner Requests Teacher Review', reqTeacherRes.status === 200 && reqTeacherRes.data.status === 'escalated');
 
-    // 3.3: Teacher views submission in Escalated filter queue (FR-11.2)
+    // 3.3: Teacher views submission in Escalated filter queue
     const listEsc = await simulateRequest(app, 'GET', '/api/submissions?status=escalated');
     const isPresent = listEsc.status === 200 && Array.isArray(listEsc.data.submissions);
-    recordStep('Scenario 3', '3.3 Teacher Views in Escalated Filter Queue (FR-11.2)', isPresent);
+    recordStep('Scenario 3', '3.3 Teacher Views in Escalated Filter Queue', isPresent);
 
-    // 3.4: Teacher assigns reviewer explicitly (FR-9.1)
+    // 3.4: Teacher assigns reviewer explicitly
     const assignRes = await simulateRequest(app, 'POST', `/api/submissions/${escSubId}/assign`, {
       teacherId: 'usr-teacher-1',
       mentorId: 'usr-mentor-2',
     });
-    recordStep('Scenario 3', '3.4 Teacher Assigns Reviewer (FR-9.1)', assignRes.status === 200);
+    recordStep('Scenario 3', '3.4 Teacher Assigns Reviewer', assignRes.status === 200);
 
     // 3.5: Teacher resolves escalation directly
     const resolveRes = await simulateRequest(app, 'POST', `/api/submissions/${escSubId}/resolve-escalation`, {
@@ -239,9 +236,8 @@ async function runE2ESimulation() {
 
   // ============================================================================
   // SCENARIO 4: Offline Session Expiry & Re-auth with Zero Data Loss
-  // SRS Ref: FR-12.1, Sequence Diagram Alternative 3
   // ============================================================================
-  console.log('\n📌 SCENARIO 4: Session Expiry While Offline (Alternative 3: 401 Re-Auth)');
+  console.log('\n📌 SCENARIO 4: Session Expiry While Offline (401 Re-Auth)');
   try {
     // 4.1: Offline update attempt while token is expired
     const expiredSyncRes = await simulateRequest(
@@ -305,9 +301,8 @@ async function runE2ESimulation() {
 
   // ============================================================================
   // SCENARIO 5: Data Retention Consent & Teacher Demo Data Purge
-  // SRS Ref: NFR-14
   // ============================================================================
-  console.log('\n📌 SCENARIO 5: Data Retention Consent & Teacher Demo Purge (NFR-14)');
+  console.log('\n📌 SCENARIO 5: Data Retention Consent & Teacher Demo Purge');
   try {
     // 5.1: Learner grants data retention consent
     const consentRes = await simulateRequest(app, 'POST', '/api/auth/consent', {

@@ -25,17 +25,29 @@ const memoryDb = {
     { id: 'usr-learner-1', name: 'Ahmed Osman', email: 'ahmed.student@hemma.sd', password_hash: 'mock_hash', role: 'learner', university: 'University of Khartoum', age_confirmed: true, language: 'en' }
   ],
   topics: [
-    { id: 'topic-1', title_en: '1. Python Fundamentals & Input Processing', title_ar: '١. أساسيات لغة بايثون ومعالجة المدخلات', description_en: 'Variables, data types, arithmetic operators, string formatting, and terminal input.', description_ar: 'المتغيرات، أنواع البيانات، العمليات الحسابية، تنسيق النصوص، ومدخلات الطرفية.', display_order: 1 },
-    { id: 'topic-2', title_en: '2. Control Flow, Decisions & Repetition', title_ar: '٢. التحكم البرمجي، القرارات والتكرار', description_en: 'Conditional statements (if/elif/else), comparison operators, while loops, and for loops.', description_ar: 'الجمل الشرطية (if/elif/else)، معاملات المقارنة، حلقات while، وحلقات for.', display_order: 2 },
-    { id: 'topic-3', title_en: '3. Data Structures & Modular Functions', title_ar: '٣. هياكل البيانات والدوال البرمجية', description_en: 'Lists, dictionaries, tuples, custom functions, parameter passing, and return values.', description_ar: 'القوائم، القواميس، المجموعات، الدوال المخصصة، تمرير المعاملات، والقيم المرجعة.', display_order: 3 }
+    { id: 'topic-0', title_en: '0. Developer Setup: VS Code, Git & GitHub', title_ar: '٠. تهيئة بيئة المطور: محرر VS Code، أداة Git، ومستودعات GitHub', description_en: 'Setting up your local code editor (VS Code), compiler/interpreter, Git version control, and public GitHub repository workflow.', description_ar: 'تهيئة محرر الأكواد (VS Code)، بيئة بايثون و C++ وجافا، نظام التحكم بالنسخ Git، والعمل مع مستودعات GitHub العامة.', display_order: 0 },
+    { id: 'topic-1', title_en: '1. Fundamentals & Input Processing', title_ar: '١. الأساسيات ومعالجة المدخلات', description_en: 'Variables, primitive data types, arithmetic operators, string formatting, and terminal input across Python, C++, and Java.', description_ar: 'المتغيرات، أنواع البيانات الأساسية، العمليات الحسابية، تنسيق النصوص، ومدخلات الطرفية عبر بايثون، C++، وجافا.', display_order: 1 },
+    { id: 'topic-2', title_en: '2. Control Flow, Conditionals & Loops', title_ar: '٢. تدفق التحكم، الشروط، والتكرار (الحلقات)', description_en: 'Making decisions with conditionals and automating repetitions with while and for loops in Python, C++, and Java.', description_ar: 'اتخاذ القرارات عبر الجمل الشرطية وتكرار العمليات عبر حلقات for و while في بايثون، C++، وجافا.', display_order: 2 },
+    { id: 'topic-3', title_en: '3. Functions, Modular Design & Scope', title_ar: '٣. الدوال، التصميم المعياري، ونطاق المتغيرات', description_en: 'Decomposing problems into reusable functions, parameter passing, return values, and modular architecture.', description_ar: 'تقسيم المشاكل البرمجية إلى دوال قابلة لإعادة الاستخدام، تمرير المعاملات، وإرجاع القيم عبر بايثون و C++ وجافا.', display_order: 3 },
+    { id: 'topic-5', title_en: '4. Object-Oriented Programming (OOP) & Architecture', title_ar: '٤. البرمجة كائنية التوجه (OOP) وهندسة البرمجيات', description_en: 'Classes, objects, encapsulation, inheritance, polymorphism, and abstract interface contracts across Python, C++, and Java.', description_ar: 'الأصناف، الكائنات، تغليف البيانات، الوراثة، تعدد الأشكال، وتصميم الواجهات المجردة عبر بايثون و C++ وجافا.', display_order: 4 },
+    { id: 'topic-6', title_en: '5. Data Structures, File I/O & Persistent Storage', title_ar: '٥. هياكل البيانات، التعامل مع الملفات والتخزين الدائم', description_en: 'Hash maps, sets, dynamic collections, file streams, JSON serialization, and persistent data storage.', description_ar: 'جداول التجزئة، المجموعات، القوائم الديناميكية، تدفق الملفات، وتسلسل بيانات JSON والتخزين الدائم.', display_order: 5 },
+    { id: 'topic-4', title_en: '6. Applied AI, Data Science & Machine Learning (SAIR Community Track)', title_ar: '٦. الذكاء الاصطناعي، علم البيانات وتعلم الآلة (مسار مجتمع SAIR)', description_en: 'NumPy vectorization, Pandas tabular data pipelines, and machine learning model training curated with Sudanese Artificial Intelligence Researchers (SAIR).', description_ar: 'المعالجة الشعاعية عبر NumPy، أنابيب معالجة البيانات بـ Pandas، وتدريب نماذج تعلم الآلة بالتعاون مع الباحثين السودانيين في الذكاء الاصطناعي (SAIR).', display_order: 6 }
   ],
   lessons: [
-    { id: 'lesson-1-1', topic_id: 'topic-1', title_en: 'Variables, Expressions & Print Output', title_ar: 'المتغيرات، التعبيرات الحسابية ودالة الطباعة', notes_en: 'Understanding how variables hold values in memory.', notes_ar: 'فهم كيفية تخزين القيم في الذاكرة.', code_snippet: 'rate = 2600.0\nprint(f"USD to SDG: {rate}")', recording_link: 'https://youtu.be/mock-lesson-1', display_order: 1, arabic_status: 'approved' },
-    { id: 'lesson-1-2', topic_id: 'topic-1', title_en: 'Console Input & Type Conversions', title_ar: 'مدخلات الطرفية وتحويل أنواع البيانات', notes_en: 'Interactive programs using input().', notes_ar: 'البرامج التفاعلية باستخدام input().', code_snippet: 'name = input("Enter name: ")\nprint(f"Marhaban, {name}!")', recording_link: 'https://youtu.be/mock-lesson-2', display_order: 2, arabic_status: 'approved' },
-    { id: 'lesson-2-1', topic_id: 'topic-2', title_en: 'Conditional Logic & Decisions', title_ar: 'المنطق الشرطي واتخاذ القرارات', notes_en: 'Branching execution paths.', notes_ar: 'المسارات الشرطية والتفرع.', code_snippet: 'score = 85\nif score >= 60:\n    print("Passed")', recording_link: 'https://youtu.be/mock-lesson-3', display_order: 1, arabic_status: 'approved' },
-    { id: 'lesson-2-2', topic_id: 'topic-2', title_en: 'Loops & Accumulator Patterns', title_ar: 'حلقات التكرار ونمط المجمّع', notes_en: 'Repeating calculations with for and while.', notes_ar: 'تكرار العمليات عبر for و while.', code_snippet: 'total = sum([10, 20, 30])\nprint(total)', recording_link: 'https://youtu.be/mock-lesson-4', display_order: 2, arabic_status: 'approved' },
-    { id: 'lesson-3-1', topic_id: 'topic-3', title_en: 'Lists & Sequences Operations', title_ar: 'القوائم والعمليات على التسلسلات', notes_en: 'Storing ordered collections.', notes_ar: 'تخزين المجموعات المرتبة.', code_snippet: 'cities = ["Khartoum", "Omdurman"]\nprint(cities[0])', recording_link: 'https://youtu.be/mock-lesson-5', display_order: 1, arabic_status: 'approved' },
-    { id: 'lesson-3-2', topic_id: 'topic-3', title_en: 'Functions, Scopes & Return Values', title_ar: 'الدوال البرمجية، النطاق والقيم المرجعة', notes_en: 'Writing modular code with def.', notes_ar: 'كتابة شيفرة قابلة لإعادة الاستخدام.', code_snippet: 'def greet(name):\n    return f"Salam, {name}"\nprint(greet("Ahmed"))', recording_link: 'https://youtu.be/mock-lesson-6', display_order: 2, arabic_status: 'approved' }
+    { id: 'lesson-0', topic_id: 'topic-0', title_en: 'Local Setup: IDE, Git & Creating Your Public GitHub Repo', title_ar: 'الإعداد المحلي: تثبيت بيئة العمل و Git وإنشاء مستودع GitHub عام', notes_en: 'Setting up your local environment: VS Code, Git, and creating a public GitHub repository.', notes_ar: 'إعداد بيئة التطوير المحلية: محرر VS Code، أداة Git، وإنشاء مستودع عام على GitHub.', code_snippet: 'git init\ngit add .\ngit commit -m "feat: Initial commit"\ngit push -u origin main', display_order: 1, arabic_status: 'approved', is_published: true, version: 1 },
+    { id: 'lesson-1', topic_id: 'topic-1', title_en: 'Variables, Arithmetic & User Input', title_ar: 'المتغيرات، العمليات الحسابية، ومدخلات المستخدم', notes_en: 'In this lesson, you will learn how to declare variables and interact with user input.', notes_ar: 'في هذا الدرس، ستتعلم كيفية تعريف المتغيرات والتعامل مع مدخلات المستخدم.', code_snippet: 'user_name = input("Enter your name: ")\nstudy_hours = int(input("Hours? "))\nprint(f"Welcome, {user_name}!")', display_order: 1, arabic_status: 'approved', is_published: true, version: 1 },
+    { id: 'lesson-2', topic_id: 'topic-1', title_en: 'Strings, Formatting & Type Conversion', title_ar: 'النصوص، التنسيق، والتحويل بين الأنواع', notes_en: 'Strings are fundamental for representing textual information.', notes_ar: 'تعتبر النصوص ركيزة أساسية لتمثيل البيانات النصية.', code_snippet: 'city = "Khartoum"\ntemp = 38.5\nprint(f"Current temperature in {city} is {temp}°C.")', display_order: 2, arabic_status: 'approved', is_published: true, version: 1 },
+    { id: 'lesson-3', topic_id: 'topic-2', title_en: 'Conditional Statements (if, elif, else)', title_ar: 'الجمل الشرطية (if, elif, else)', notes_en: 'Conditionals evaluate boolean conditions to route code execution.', notes_ar: 'تقوم الجمل الشرطية بفحص الشروط المنطقية لتوجيه مسار التنفيذ.', code_snippet: 'score = int(input("Enter exam score: "))\nif score >= 60:\n    print("Pass")', display_order: 1, arabic_status: 'approved', is_published: true, version: 1 },
+    { id: 'lesson-4', topic_id: 'topic-2', title_en: 'Loops and Iterations (while & for)', title_ar: 'حلقات التكرار (while و for)', notes_en: 'Loops automate repetitive tasks.', notes_ar: 'تستخدم الحلقات لتكرار العمليات التلقائية.', code_snippet: 'total = 0\nfor i in range(1, 6):\n    total += i\nprint(total)', display_order: 2, arabic_status: 'approved', is_published: true, version: 1 },
+    { id: 'lesson-5', topic_id: 'topic-3', title_en: 'Defining Reusable Functions & Scope', title_ar: 'تعريف الدوال القابلة لإعادة الاستخدام والنطاق', notes_en: 'Functions encapsulate reusable logic with parameters and return values.', notes_ar: 'تغلف الدوال الشيفرات القابلة لإعادة الاستخدام مع المعاملات والقيم المرجعة.', code_snippet: 'def calculate_vat(amount: float, rate: float = 0.17) -> float:\n    return amount * rate\nprint(calculate_vat(1000.0))', display_order: 1, arabic_status: 'approved', is_published: true, version: 1 },
+    { id: 'lesson-8', topic_id: 'topic-5', title_en: 'Classes, Objects & Encapsulation', title_ar: 'الأصناف، الكائنات، ومبدأ التغليف (OOP)', notes_en: 'Object-Oriented Programming models real-world concepts.', notes_ar: 'البرمجة كائنية التوجه لنمذجة المفاهيم الواقعية.', code_snippet: 'class BankAccount:\n    def __init__(self, owner, balance):\n        self.owner = owner\n        self.balance = balance\naccount = BankAccount("Ahmed", 5000)\nprint(account.owner)', display_order: 1, arabic_status: 'approved', is_published: true, version: 1 },
+    { id: 'lesson-9', topic_id: 'topic-5', title_en: 'Inheritance, Polymorphism & Abstract Interfaces', title_ar: 'الوراثة، تعدد الأشكال، والواجهات المجردة', notes_en: 'Inheritance allows classes to inherit fields and methods.', notes_ar: 'تتيح الوراثة اشتقاق الخصائص والطرائق من فئات أساسية.', code_snippet: 'class Account:\n    def fee(self): return 100\nclass StudentAccount(Account):\n    def fee(self): return 0\nprint(StudentAccount().fee())', display_order: 2, arabic_status: 'approved', is_published: true, version: 1 },
+    { id: 'lesson-10', topic_id: 'topic-6', title_en: 'Data Collections, File Streams & JSON Persistence', title_ar: 'هياكل البيانات، تدفق الملفات، وتسلسل بيانات JSON', notes_en: 'Storing data in collections and persisting to files.', notes_ar: 'تخزين البيانات في الهياكل البرمجية وحفظها في ملفات.', code_snippet: 'import json\ndata = {"ahmed": 92}\nwith open("grades.json", "w") as f: json.dump(data, f)', display_order: 1, arabic_status: 'approved', is_published: true, version: 1 },
+    { id: 'lesson-6', topic_id: 'topic-4', title_en: 'NumPy Vectorization & High-Performance Data Processing', title_ar: 'المعالجة الشعاعية والبيانات عالية الأداء عبر NumPy (مسار SAIR)', notes_en: 'Vector operations and tensor manipulation curated with SAIR.', notes_ar: 'العمليات الشعاعية ومعالجة المصفوفات بالتعاون مع SAIR.', code_snippet: 'import numpy as np\nrainfall = np.array([12.5, 34.0, 8.2])\nprint(f"Mean: {np.mean(rainfall)}")', display_order: 1, arabic_status: 'approved', is_published: true, version: 1 },
+    { id: 'lesson-7', topic_id: 'topic-4', title_en: 'Pandas & Machine Learning Foundations (SAIR Research Track)', title_ar: 'تحليل البيانات وتعلم الآلة التأسيسي (مسار بحوث SAIR)', notes_en: 'Tabular data engineering and machine learning model training.', notes_ar: 'هندسة البيانات الجدولية ونماذج تعلم الآلة.', code_snippet: 'import pandas as pd\ndf = pd.DataFrame({"temp": [28, 43], "status": [1, 0]})\nprint(df.describe())', display_order: 2, arabic_status: 'approved', is_published: true, version: 1 },
+    // Backward-compatibility aliases
+    { id: 'lesson-1-1', topic_id: 'topic-1', title_en: 'Variables, Expressions & Print Output', title_ar: 'المتغيرات، التعبيرات الحسابية ودالة الطباعة', notes_en: 'Understanding how variables hold values in memory.', notes_ar: 'فهم كيفية تخزين القيم في الذاكرة.', code_snippet: 'rate = 2600.0\nprint(f"USD to SDG: {rate}")', recording_link: 'https://youtu.be/mock-lesson-1', display_order: 1, arabic_status: 'approved', is_published: true, version: 1 },
+    { id: 'lesson-1-2', topic_id: 'topic-1', title_en: 'Console Input & Type Conversions', title_ar: 'مدخلات الطرفية وتحويل أنواع البيانات', notes_en: 'Interactive programs using input().', notes_ar: 'البرامج التفاعلية باستخدام input().', code_snippet: 'name = input("Enter name: ")\nprint(f"Marhaban, {name}!")', recording_link: 'https://youtu.be/mock-lesson-2', display_order: 2, arabic_status: 'approved', is_published: true, version: 1 }
   ],
   mentor_approvals: [
     { teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-1', topic_id: 'topic-1' },
@@ -107,15 +119,52 @@ function runMemoryQuery(text, params = []) {
 
   // SELECT lessons
   if (normalized.startsWith('select') && normalized.includes('from lessons')) {
-    if (normalized.includes('where id = $1')) {
+    if (normalized.includes('max(display_order)') || normalized.includes('next_order')) {
+      const matching = memoryDb.lessons.filter((l) => !params || params.length === 0 || l.topic_id === params[0]);
+      const maxOrder = matching.reduce((max, l) => Math.max(max, l.display_order || 0), 0);
+      return { rows: [{ next_order: maxOrder + 1 }] };
+    }
+    if (normalized.includes('where l.id = $1') || normalized.includes('where id = $1')) {
       const l = memoryDb.lessons.find((less) => less.id === params[0]);
-      return { rows: l ? [l] : [] };
+      if (l) {
+        const top = memoryDb.topics.find((t) => t.id === l.topic_id);
+        return { rows: [{ ...l, topic_title_en: top?.title_en, topic_title_ar: top?.title_ar }] };
+      }
+      return { rows: [] };
     }
     if (normalized.includes('where topic_id = $1')) {
       const ls = memoryDb.lessons.filter((less) => less.topic_id === params[0]);
       return { rows: ls };
     }
-    return { rows: memoryDb.lessons };
+    return { rows: memoryDb.lessons.filter((l) => l.is_published !== false) };
+  }
+
+  // INSERT INTO lessons
+  if (normalized.startsWith('insert into lessons')) {
+    const newLesson = {
+      id: params[0],
+      topic_id: params[1],
+      display_order: params[2] || 1,
+      title_en: params[3],
+      title_ar: params[4] || params[3],
+      notes_en: params[5],
+      notes_ar: params[6] || params[5],
+      code_snippet: params[7],
+      recording_link: params[8] || null,
+      arabic_status: params[9] || 'draft',
+      is_published: true,
+      version: 1,
+      created_at: new Date().toISOString()
+    };
+    memoryDb.lessons.push(newLesson);
+    return { rows: [newLesson] };
+  }
+
+  // UPDATE lessons set arabic_status
+  if (normalized.startsWith('update lessons set arabic_status')) {
+    const l = memoryDb.lessons.find((less) => less.id === params[1]);
+    if (l) l.arabic_status = params[0];
+    return { rows: [l || {}] };
   }
 
   // SELECT mentor_approvals
@@ -285,7 +334,7 @@ function runMemoryQuery(text, params = []) {
     return { rows: [user || {}] };
   }
 
-  // DELETE for demo purge (NFR-14)
+  // DELETE for demo purge
   if (normalized.startsWith('delete from feedbacks') && normalized.includes('where submission_id')) {
     const ids = Array.isArray(params[0]) ? params[0] : [params[0]];
     const before = memoryDb.feedbacks.length;

@@ -303,21 +303,38 @@ export default function ReviewsDashboard() {
         </div>
 
         {isMentor && (
-          <div className="bg-white dark:bg-[#151d30] border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs flex items-center gap-2 shadow-sm">
-            <UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <div>
-              <span className="font-semibold text-slate-700 dark:text-slate-300">
-                {isRTL ? 'المواضيع المعتمدة لك:' : 'Your Approved Topics:'}
-              </span>{' '}
-              <span className="text-emerald-700 dark:text-emerald-400 font-bold">
-                {currentUser?.approvedTopics?.join(', ') || (isRTL ? 'لا توجد مواضيع معتمدة حالياً' : 'None')}
-              </span>
+          <div className="bg-white dark:bg-[#151d30] border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs flex flex-wrap items-center gap-2 shadow-sm">
+            <div className="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-300 shrink-0">
+              <UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>{isRTL ? 'المواضيع المعتمدة لك:' : 'Your Approved Topics:'}</span>
             </div>
+            {currentUser?.approvedTopics && currentUser.approvedTopics.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {currentUser.approvedTopics.map((topId) => {
+                  const topic = TOPICS.find((t) => t.id === topId);
+                  const title = topic
+                    ? isRTL ? (topic.titleAr || topic.titleEn) : (topic.titleEn || topic.titleAr)
+                    : topId;
+                  return (
+                    <span
+                      key={topId}
+                      className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 px-2 py-0.5 rounded-md font-bold text-[11px]"
+                    >
+                      {title}
+                    </span>
+                  );
+                })}
+              </div>
+            ) : (
+              <span className="text-slate-400 dark:text-slate-500 italic">
+                {isRTL ? 'لا توجد مواضيع معتمدة حالياً' : 'None'}
+              </span>
+            )}
           </div>
         )}
       </div>
 
-      {/* Filter Tabs (Phase 1A / FR-11.2) */}
+      {/* Filter Tabs */}
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-4">
         {FILTER_TABS.map((tab) => {
           const count = getTabCount(tab.id);
@@ -426,7 +443,7 @@ export default function ReviewsDashboard() {
                   </div>
                 </div>
 
-                {/* Assigned Reviewer bar (FR-9.1) */}
+                {/* Assigned Reviewer bar */}
                 <div className="bg-slate-50/70 dark:bg-slate-900/40 rounded-xl p-3 border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
                   <div className="flex items-center gap-2">
                     <UserCheck className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
@@ -446,7 +463,7 @@ export default function ReviewsDashboard() {
                     )}
                   </div>
 
-                  {/* Teacher Assign Dropdown (FR-9.1) */}
+                  {/* Teacher Assign Dropdown */}
                   {isTeacher && (
                     <div className="flex items-center gap-2">
                       <span className="text-slate-500 dark:text-slate-400 text-[11px] font-semibold">
@@ -468,7 +485,7 @@ export default function ReviewsDashboard() {
                   )}
                 </div>
 
-                {/* Teacher Resolve Escalation Panel (FR-10.1 / State Machine) */}
+                {/* Teacher Resolve Escalation Panel */}
                 {isTeacher && sub.status === 'escalated' && (
                   <div className="bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/80 rounded-xl p-4 space-y-3">
                     <div className="flex items-center justify-between">

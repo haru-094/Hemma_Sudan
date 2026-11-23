@@ -183,15 +183,15 @@ export default function TopicProjectPage() {
       return;
     }
 
-    // FR-6.3: Reachability probe check
+    // Reachability probe check
     setIsValidatingGithub(true);
     try {
       const probe = await api.validateGithubRepo({ githubLink: githubLink.trim() });
       if (probe && probe.reachable === false) {
         setErrorMsg(
           isRTL
-            ? 'المستودع غير موجود أو أنه خاص. يرجى التأكد من أن المستودع عام ويمكن الوصول إليه (FR-6.3).'
-            : (probe.message || 'Repository not found or is private — please ensure your repository is public and reachable (FR-6.3).')
+            ? 'المستودع غير موجود أو أنه خاص. يرجى التأكد من أن المستودع عام ويمكن الوصول إليه.'
+            : (probe.message || 'Repository not found or is private — please ensure your repository is public and reachable.')
         );
         setIsValidatingGithub(false);
         return;
@@ -200,8 +200,8 @@ export default function TopicProjectPage() {
       if (err.status === 400 && (err.errorCode === 'REPO_NOT_FOUND' || err.errorCode === 'INVALID_GITHUB_URL' || err.errorCode === 'REPO_UNREACHABLE')) {
         setErrorMsg(
           isRTL
-            ? 'المستودع غير موجود أو أنه خاص. يرجى التأكد من أن المستودع عام ويمكن الوصول إليه (FR-6.3).'
-            : (err.message || 'Repository not found or is private — please ensure your repository is public and reachable (FR-6.3).')
+            ? 'المستودع غير موجود أو أنه خاص. يرجى التأكد من أن المستودع عام ويمكن الوصول إليه.'
+            : (err.message || 'Repository not found or is private — please ensure your repository is public and reachable.')
         );
         setIsValidatingGithub(false);
         return;
@@ -338,7 +338,7 @@ export default function TopicProjectPage() {
             <span className="w-4 h-4 rounded text-emerald-700 dark:text-emerald-400 font-bold">✓</span>
             <div>
               <strong className="text-slate-900 dark:text-slate-100 block">
-                {isRTL ? '٤. مستودع GitHub عام وتوثيق README (معيار FR-6.3)' : '4. Public GitHub Repo & README (FR-6.3)'}
+                {isRTL ? '٤. مستودع GitHub عام وتوثيق README' : '4. Public GitHub Repo & README'}
               </strong>
               <span>
                 {isRTL ? 'المستودع عام ومتاح للوصول، ويحتوي على ملف README.md يوضح طريقة التشغيل وشرح الحل.' : 'Repository is publicly reachable with a clear README.md explaining execution and architecture.'}
@@ -405,7 +405,7 @@ export default function TopicProjectPage() {
           </div>
         )}
 
-        {/* 1B: Prominent Mentor Revision Remarks Callout (FR-7) */}
+        {/* 1B: Prominent Mentor Revision Remarks Callout */}
         {latestSub?.status === 'revision_requested' && latestSub.feedbacks?.length > 0 && (
           <div className="bg-amber-50/90 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-800/80 rounded-2xl p-5 sm:p-6 space-y-4 shadow-sm">
             <div className="flex items-center justify-between border-b border-amber-200 dark:border-amber-800/60 pb-3">
@@ -469,7 +469,7 @@ export default function TopicProjectPage() {
           </div>
         )}
 
-        {/* 2A: Learner Direct Teacher Review Request (FR-10.2) */}
+        {/* 2A: Learner Direct Teacher Review Request */}
         {latestSub && (latestSub.status === 'submitted' || latestSub.status === 'under_review') && (
           <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <div className="space-y-1">
@@ -501,7 +501,7 @@ export default function TopicProjectPage() {
           </div>
         )}
 
-        {/* Feedback Given Decision Banner (FR-10.2 State Machine) */}
+        {/* Feedback Given Decision Banner */}
         {latestSub && latestSub.status === 'feedback_given' && (
           <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 rounded-2xl p-5 space-y-3">
             <div className="flex items-center justify-between">
@@ -677,8 +677,8 @@ export default function TopicProjectPage() {
                   <Loader2 className="w-4 h-4 animate-spin text-emerald-800 dark:text-emerald-300" />
                   <span className="text-slate-700 dark:text-slate-200">
                     {isRTL
-                      ? 'جارٍ التحقق من إمكانية الوصول للمستودع (FR-6.3)...'
-                      : 'Verifying Repository Reachability (FR-6.3)...'}
+                      ? 'جارٍ التحقق من إمكانية الوصول للمستودع...'
+                      : 'Verifying Repository Reachability...'}
                   </span>
                 </>
               ) : (
