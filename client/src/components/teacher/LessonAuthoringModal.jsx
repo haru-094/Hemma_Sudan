@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { api } from '../../services/api';
+import { TOPICS } from '../../data/mockData';
 import { 
   Sparkles, 
   Languages, 
@@ -17,7 +18,8 @@ import {
 export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onLessonCreated }) {
   const { isRTL } = useLanguage();
 
-  const [topicId, setTopicId] = useState(topics[0]?.id || 'topic-1');
+  const availableTopics = (topics && topics.length > 0) ? topics : TOPICS;
+  const [topicId, setTopicId] = useState(availableTopics[0]?.id || 'topic-1');
   const [titleEn, setTitleEn] = useState('');
   const [titleAr, setTitleAr] = useState('');
   const [notesEn, setNotesEn] = useState('');
@@ -25,6 +27,14 @@ export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onL
   const [codeSnippet, setCodeSnippet] = useState('');
   const [recordingLink, setRecordingLink] = useState('');
   const [arabicStatus, setArabicStatus] = useState('draft'); // 'draft' | 'approved' | 'pending'
+
+  useEffect(() => {
+    if (isOpen && availableTopics.length > 0) {
+      if (!availableTopics.some((t) => t.id === topicId)) {
+        setTopicId(availableTopics[0].id);
+      }
+    }
+  }, [isOpen, availableTopics]);
 
   const [isTranslating, setIsTranslating] = useState(false);
   const [translationNotice, setTranslationNotice] = useState('');
@@ -107,19 +117,19 @@ export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onL
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-slate-200 my-8 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+      <div className="bg-white dark:bg-[#151d30] rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-slate-200 dark:border-slate-800 my-8 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
           <div>
-            <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider block">
+            <span className="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider block">
               {isRTL ? 'منشئ المحتوى التعليمي' : 'Curriculum Authoring'}
             </span>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100">
               {isRTL ? 'إضافة درس برمجي جديد ومسودة عربية' : 'Create Lesson & Bilingual Content'}
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
           >
             ✕
           </button>
@@ -143,24 +153,29 @@ export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onL
           {/* Target Topic & External Recording Link */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1">
+              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">
                 {isRTL ? 'اختر الوحدة / المحور' : 'Course Module / Topic'}
               </label>
               <select
                 value={topicId}
                 onChange={(e) => setTopicId(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-slate-300 text-xs bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer"
               >
-                {topics.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.titleEn || t.title}
-                  </option>
-                ))}
+                {availableTopics.map((t) => {
+                  const label = isRTL
+                    ? (t.titleAr || t.title_ar || t.titleEn || t.title_en || t.title || t.id)
+                    : (t.titleEn || t.title_en || t.title || t.titleAr || t.id);
+                  return (
+                    <option key={t.id} value={t.id} className="text-slate-800 dark:text-slate-100 py-1">
+                      {label}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1">
+              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">
                 {isRTL ? 'رابط تسجيل الجلسة المباشرة (Zoom / Google Meet)' : 'Live Session Recording URL'}
               </label>
               <div className="relative">
@@ -173,17 +188,17 @@ export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onL
                   value={recordingLink}
                   onChange={(e) => setRecordingLink(e.target.value)}
                   placeholder="https://meet.google.com/xyz-hemma-demo"
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 text-xs font-mono ltr-forced focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 text-xs font-mono ltr-forced focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
             </div>
           </div>
 
           {/* English Input Section */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
+          <div className="bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                <FileText className="w-4 h-4 text-emerald-600" />
+              <span className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>Primary English Content</span>
               </span>
 
@@ -204,7 +219,7 @@ export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onL
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Lesson Title (English) *
               </label>
               <input
@@ -214,12 +229,12 @@ export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onL
                 onChange={(e) => setTitleEn(e.target.value)}
                 placeholder="e.g. Dictionaries & Key-Value Pair Mapping"
                 required
-                className="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-sans ltr-forced bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-sans ltr-forced bg-white dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Conceptual Notes & Theory (English) *
               </label>
               <textarea
@@ -229,22 +244,22 @@ export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onL
                 onChange={(e) => setNotesEn(e.target.value)}
                 placeholder="Explain the theoretical foundations, syntax rules, and use cases..."
                 required
-                className="w-full p-3 rounded-xl border border-slate-300 text-xs font-sans ltr-forced bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none leading-relaxed"
+                className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-sans ltr-forced bg-white dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none leading-relaxed"
               ></textarea>
             </div>
           </div>
 
           {/* Arabic Draft & Review Workflow Section */}
-          <div className="bg-emerald-50/50 border border-emerald-200 rounded-2xl p-5 space-y-4">
+          <div className="bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl p-5 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
-                <Languages className="w-4 h-4 text-emerald-700" />
+              <span className="text-xs font-bold text-emerald-950 dark:text-emerald-200 flex items-center gap-1.5">
+                <Languages className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
                 <span>{isRTL ? 'المسودة العربية والمراجعة' : 'Arabic Translation Draft'}</span>
               </span>
 
               {/* Status Radio Pills: draft | approved | pending */}
               <div className="flex items-center gap-1.5 text-xs">
-                <span className="text-[11px] font-semibold text-slate-600 mr-1">Status:</span>
+                <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 mr-1">Status:</span>
                 {[
                   { key: 'draft', label: 'Draft / مسودة' },
                   { key: 'approved', label: 'Approved / معتمد' },
@@ -257,7 +272,7 @@ export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onL
                     className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                       arabicStatus === s.key
                         ? 'bg-emerald-700 text-white shadow-sm'
-                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                     }`}
                   >
                     {s.label}
@@ -267,7 +282,7 @@ export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onL
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 {isRTL ? 'عنوان الدرس (بالعربية)' : 'Lesson Title (Arabic Draft)'}
               </label>
               <input
@@ -276,12 +291,12 @@ export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onL
                 value={titleAr}
                 onChange={(e) => setTitleAr(e.target.value)}
                 placeholder="عنوان الدرس المترجم..."
-                className="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-sans bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-sans bg-white dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 {isRTL ? 'الملاحظات والشرح المفاهيمي (بالعربية)' : 'Conceptual Notes (Arabic Draft)'}
               </label>
               <textarea
@@ -290,7 +305,7 @@ export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onL
                 value={notesAr}
                 onChange={(e) => setNotesAr(e.target.value)}
                 placeholder="شرح المفاهيم البرمجية بالعربية لمراجعة واعتماد الأستاذ..."
-                className="w-full p-3 rounded-xl border border-slate-300 text-xs font-sans bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none leading-relaxed"
+                className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-sans bg-white dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none leading-relaxed"
               ></textarea>
             </div>
           </div>
@@ -316,11 +331,11 @@ export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onL
           </div>
 
           {/* Submit Actions */}
-          <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
+          <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+              className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
             >
               {isRTL ? 'إلغاء' : 'Cancel'}
             </button>

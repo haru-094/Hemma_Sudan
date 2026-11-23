@@ -1,6 +1,37 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
 const db = require('../db');
+
+function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
+  const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
+  return `${salt}:${hash}`;
+}
+
+function verifyPassword(password, storedHash) {
+  if (!storedHash) return true; // Demo fallback
+  if (storedHash.startsWith('mock_hash') || storedHash === 'mock_hash') {
+    return true;
+  }
+  const parts = storedHash.split(':');
+  if (parts.length !== 2) return false;
+  const [salt, key] = parts;
+  const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
+  return key === hash;
+}
+
+function generateToken(user) {
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+  const payload = Buffer.from(JSON.stringify({
+    id: user.id,
+    role: user.role,
+    email: user.email,
+    exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60), // 7 days
+  })).toString('base64url');
+  const secret = process.env.JWT_SECRET || 'hemma_dev_secret_key_2026';
+  const signature = crypto.createHmac('sha256', secret).update(`${header}.${payload}`).digest('base64url');
+  return `${header}.${payload}.${signature}`;
+}
 
 // Registration strictly restricted to Learner role
 router.post('/register', async (req, res, next) => {
@@ -30,7 +61,7 @@ router.post('/register', async (req, res, next) => {
     }
 
     const newId = `usr-learner-${Date.now()}`;
-    const passwordHash = `mock_hash_${password}`;
+    const passwordHash = hashPassword(password);
 
     const result = await db.query(
       `INSERT INTO users (id, name, email, password_hash, role, language, university, age_confirmed)
@@ -39,9 +70,13 @@ router.post('/register', async (req, res, next) => {
       [newId, name.trim(), email.trim().toLowerCase(), passwordHash, university.trim(), true]
     );
 
+    const registeredUser = result.rows[0];
+    const token = generateToken(registeredUser);
+
     res.status(201).json({
       message: 'Learner registered successfully.',
-      user: result.rows[0],
+      token,
+      user: registeredUser,
     });
   } catch (err) {
     next(err);
@@ -60,7 +95,7 @@ router.post('/login', async (req, res, next) => {
     }
 
     const result = await db.query(
-      `SELECT id, name, email, role, language, university, course_title 
+      `SELECT id, name, email, role, language, university, course_title, password_hash 
        FROM users 
        WHERE LOWER(email) = LOWER($1)`,
       [email.trim()]
@@ -75,6 +110,14 @@ router.post('/login', async (req, res, next) => {
 
     const user = result.rows[0];
 
+    // Verify password if hash exists
+    if (user.password_hash && !verifyPassword(password, user.password_hash)) {
+      return res.status(401).json({
+        errorCode: 'AUTH_FAILED',
+        message: 'Invalid email or password.',
+      });
+    }
+
     let approvedTopics = [];
     if (user.role === 'mentor') {
       const approvals = await db.query(
@@ -84,10 +127,16 @@ router.post('/login', async (req, res, next) => {
       approvedTopics = approvals.rows.map((r) => r.topic_id);
     }
 
+    const token = generateToken(user);
+
+    // Strip password_hash before returning
+    const { password_hash, ...safeUser } = user;
+
     res.status(200).json({
       message: 'Login successful.',
+      token,
       user: {
-        ...user,
+        ...safeUser,
         approvedTopics,
       },
     });

@@ -69,42 +69,42 @@ export default function LandingPage() {
       {/* Feature Pillar Highlights */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center">
+          <div className="bg-white dark:bg-[#151d30] p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow space-y-3">
+            <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center justify-center">
               <WifiOff className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
               {isRTL ? 'حفظ الدروس دون اتصال' : 'Save Lessons Offline'}
             </h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
               {isRTL
                 ? 'قم بتحميل الملاحظات التوضيحية والأمثلة البرمجية بنقرة واحدة لتدرسها وتجربها بدون الحاجة إلى إنترنت.'
                 : 'Download lightweight lesson packages and code examples directly to your browser storage to study anytime.'}
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+          <div className="bg-white dark:bg-[#151d30] p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow space-y-3">
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
               <RefreshCw className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
               {isRTL ? 'مزامنة ذكية للتقدم' : 'Smart Progress Sync'}
             </h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
               {isRTL
                 ? 'يسجل النظام إنجازك محلياً وعندما يعود الاتصال بالإنترنت تتم مزامنة تقدمك تلقائياً دون تكرار.'
                 : 'Progress is tracked locally with duplicate protection. When internet reconnects, updates sync smoothly.'}
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center">
+          <div className="bg-white dark:bg-[#151d30] p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow space-y-3">
+            <div className="w-12 h-12 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 flex items-center justify-center">
               <Users className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
               {isRTL ? 'إرشاد وتقييم أكاديمي' : 'Teacher & Mentor Feedback'}
             </h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
               {isRTL
                 ? 'قدم مشاريعك عبر روابط GitHub عندما تكون متصلاً، وتلقى ملاحظات دقيقة من مرشدين معتمدين أو الأستاذ.'
                 : 'Submit code repositories via GitHub when online. Receive detailed feedback, revision requests, or escalations.'}
@@ -115,12 +115,12 @@ export default function LandingPage() {
 
       {/* Course Overview Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
               {isRTL ? 'منهاج المقرر: مقدمة في بايثون' : 'Course Curriculum: Introduction to Python'}
             </h2>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               {isRTL
                 ? 'المقرر التكميلي لطلاب الجامعات في السودان'
                 : 'Supplementary pilot curriculum for university students in Sudan'}
@@ -128,7 +128,7 @@ export default function LandingPage() {
           </div>
           <Link
             to="/lessons"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300"
           >
             <span>{isRTL ? 'عرض جميع الوحدات' : 'View All Modules'}</span>
             <ArrowIcon className="w-4 h-4" />
@@ -139,28 +139,28 @@ export default function LandingPage() {
           {TOPICS.map((topic) => (
             <div
               key={topic.id}
-              className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between hover:border-emerald-300 transition-colors"
+              className="bg-white dark:bg-[#151d30] rounded-2xl border border-slate-200 dark:border-slate-800 p-6 flex flex-col justify-between hover:border-emerald-300 dark:hover:border-emerald-600/60 transition-colors"
             >
               <div className="space-y-3">
-                <span className="inline-block px-2.5 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-700">
+                <span className="inline-block px-2.5 py-0.5 rounded text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                   {isRTL ? `الوحدة ${topic.displayOrder}` : `Topic ${topic.displayOrder}`}
                 </span>
-                <h4 className="text-base font-bold text-slate-900">
+                <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">
                   {language === 'ar' ? topic.titleAr : topic.titleEn}
                 </h4>
-                <p className="text-xs text-slate-600">
+                <p className="text-xs text-slate-600 dark:text-slate-400">
                   {language === 'ar' ? topic.descriptionAr : topic.descriptionEn}
                 </p>
               </div>
 
-              <div className="pt-6 border-t border-slate-100 mt-6 flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">
+              <div className="pt-6 border-t border-slate-100 dark:border-slate-800 mt-6 flex items-center justify-between">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
                   {LESSONS.filter((l) => l.topicId === topic.id).length}{' '}
                   {isRTL ? 'دروس متوفرة' : 'lessons available'}
                 </span>
                 <Link
                   to="/lessons"
-                  className="text-xs font-bold text-emerald-700 hover:underline inline-flex items-center gap-1"
+                  className="text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
                 >
                   <span>{isRTL ? 'ابدأ' : 'Start'}</span>
                   <ArrowIcon className="w-3.5 h-3.5" />

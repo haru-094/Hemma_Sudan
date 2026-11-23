@@ -65,10 +65,12 @@ export default function LoginPage() {
   return (
     <div className="min-h-[85vh] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-3">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-700 to-teal-500 mx-auto flex items-center justify-center text-white shadow-md">
-          <BookOpen className="w-6 h-6" />
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+        <img
+          src="/hemma-logo-v2-192.png"
+          alt="Hemma Sudan Logo"
+          className="w-14 h-14 object-contain mx-auto rounded-2xl shadow-md"
+        />
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
           {isRTL ? 'تسجيل الدخول إلى همة السودان' : 'Sign in to Hemma Sudan'}
         </h1>
         <p className="text-xs sm:text-sm text-slate-500">
@@ -79,26 +81,26 @@ export default function LoginPage() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-6 sm:px-10 shadow-sm border border-slate-200 rounded-3xl space-y-6">
+        <div className="bg-white dark:bg-[#151d30] py-8 px-6 sm:px-10 shadow-sm border border-slate-200 dark:border-slate-800 rounded-3xl space-y-6">
           {/* FR-12.1: Prominent Re-auth notice if session expired while offline */}
           {showReauthNotice && (
-            <div className="p-4 rounded-2xl bg-purple-50 border border-purple-200 text-purple-900 text-xs sm:text-sm space-y-2">
-              <div className="flex items-center gap-2 font-bold text-purple-800">
-                <Lock className="w-4 h-4 text-purple-700 shrink-0" />
+            <div className="p-4 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-purple-900 dark:text-purple-200 text-xs sm:text-sm space-y-2">
+              <div className="flex items-center gap-2 font-bold text-purple-800 dark:text-purple-300">
+                <Lock className="w-4 h-4 text-purple-700 dark:text-purple-400 shrink-0" />
                 <span>
                   {isRTL
                     ? 'انتهت صلاحية جلستك أثناء عدم الاتصال (FR-12.1)'
                     : 'Session Expired While Offline (FR-12.1)'}
                 </span>
               </div>
-              <p className="text-purple-700 leading-relaxed text-xs">
+              <p className="text-purple-700 dark:text-purple-300 leading-relaxed text-xs">
                 {isRTL
                   ? 'تم حفظ جميع التمارين وسجلات التقدم في الذاكرة المحلية بأمان. يرجى تسجيل الدخول مجدداً لاستئناف المزامنة التلقائية فوراً دون فقدان أي تقدم.'
                   : 'All your completed exercises and progress records are safely preserved in local storage. Sign in to automatically resume synchronization with zero progress loss.'}
               </p>
               {pendingQueue.length > 0 && (
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-100 text-purple-900 font-mono text-[11px] font-bold">
-                  <Database className="w-3.5 h-3.5 text-purple-700" />
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-100 dark:bg-purple-900/60 text-purple-900 dark:text-purple-200 font-mono text-[11px] font-bold">
+                  <Database className="w-3.5 h-3.5 text-purple-700 dark:text-purple-400" />
                   <span>
                     {pendingQueue.length} {isRTL ? 'تحديث بانتظار المزامنة التلقائية' : 'progress records ready to sync'}
                   </span>
@@ -108,15 +110,15 @@ export default function LoginPage() {
           )}
 
           {errorMsg && (
-            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2.5">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800/60 text-rose-800 dark:text-rose-300 text-xs flex items-center gap-2.5">
+              <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-900 mb-1">
+              <label className="block text-xs font-bold text-slate-900 dark:text-slate-100 mb-1">
                 {isRTL ? 'البريد الإلكتروني الجامعي' : 'University / Student Email'}
               </label>
               <div className="relative">
@@ -130,20 +132,20 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="student@university.edu.sd"
                   required
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-xs sm:text-sm font-sans ltr-forced"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 dark:bg-slate-850 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-xs sm:text-sm font-sans ltr-forced"
                 />
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-bold text-slate-900">
+                <label className="block text-xs font-bold text-slate-900 dark:text-slate-100">
                   {isRTL ? 'كلمة المرور' : 'Password'}
                 </label>
                 <button
                   type="button"
                   onClick={() => setShowForgotModal(true)}
-                  className="text-[11px] font-semibold text-emerald-700 hover:underline"
+                  className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 hover:underline cursor-pointer"
                 >
                   {isRTL ? 'نسيت كلمة المرور؟' : 'Forgot password?'}
                 </button>
@@ -159,7 +161,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-xs sm:text-sm font-sans ltr-forced"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 dark:bg-slate-850 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-xs sm:text-sm font-sans ltr-forced"
                 />
               </div>
             </div>
@@ -174,8 +176,8 @@ export default function LoginPage() {
           </form>
 
           {/* Quick Demo Selector for fast evaluation */}
-          <div className="pt-2 border-t border-slate-100">
-            <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 text-center">
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+            <span className="block text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-2 text-center">
               {isRTL ? 'تسجيل سريع بحسابات التجربة' : 'One-Click Demo Accounts'}
             </span>
             <div className="grid grid-cols-1 gap-1.5 text-xs">
@@ -183,13 +185,13 @@ export default function LoginPage() {
                 <button
                   key={u.id}
                   onClick={() => handleDemoSelect(u)}
-                  className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-left rtl:text-right flex items-center justify-between text-slate-700 hover:text-slate-900 transition-colors"
+                  className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-left rtl:text-right flex items-center justify-between text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                 >
                   <span className="font-semibold truncate">
                     {u.name}
                   </span>
                   <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase shrink-0 ${
-                    u.role === 'teacher' ? 'bg-purple-100 text-purple-800' : u.role === 'mentor' ? 'bg-teal-100 text-teal-800' : 'bg-slate-100 text-slate-700'
+                    u.role === 'teacher' ? 'bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300' : u.role === 'mentor' ? 'bg-teal-100 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                   }`}>
                     {u.role}
                   </span>
@@ -202,7 +204,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => expireSessionNow(true)}
-                className="text-[11px] text-slate-500 hover:text-purple-700 underline font-medium transition-colors cursor-pointer"
+                className="text-[11px] text-slate-500 dark:text-slate-400 hover:text-purple-700 dark:hover:text-purple-300 underline font-medium transition-colors cursor-pointer"
               >
                 {isRTL
                   ? '⚡ محاكاة سيناريو انتهاء صلاحية الجلسة أثناء انقطاع الإنترنت (FR-12.1)'
@@ -211,9 +213,9 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="text-center pt-2 text-xs text-slate-600">
+          <div className="text-center pt-2 text-xs text-slate-600 dark:text-slate-400">
             <span>{isRTL ? 'ليس لديك حساب طالب؟ ' : "Don't have a learner account? "}</span>
-            <Link to="/register" className="font-bold text-emerald-700 hover:underline">
+            <Link to="/register" className="font-bold text-emerald-700 dark:text-emerald-400 hover:underline">
               {isRTL ? 'إنشاء حساب جديد' : 'Register as a Learner'}
             </Link>
           </div>

@@ -1,327 +1,499 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useSync } from '../context/SyncContext';
 import { TOPICS, LESSONS, TRACKS } from '../data/mockData';
 import { 
   DownloadCloud, 
   Check, 
-  Trash2, 
-  Video, 
-  FileText, 
-  ArrowRight, 
-  ArrowLeft,
-  HardDrive,
-  HelpCircle,
-  FolderGit2,
   RefreshCw,
-  Sparkles,
+  Video,
+  ExternalLink,
   Code2,
-  Compass,
-  CheckCircle2
+  WifiOff,
+  FolderDown
 } from 'lucide-react';
 
 export default function LessonsPage() {
-  const { t, isRTL, language } = useLanguage();
-  const { isLessonSaved, toggleSaveOffline, storageUsagePercent, quotaWarning, lessonContentStatus, refreshSavedLesson } = useSync();
-  const [selectedTrack, setSelectedTrack] = useState('python');
-  const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
+  const { isRTL, language } = useLanguage();
+  const { 
+    isOnline,
+    isLessonSaved, 
+    toggleSaveOffline, 
+    storageUsagePercent, 
+    lessonContentStatus, 
+    refreshSavedLesson 
+  } = useSync();
+  const navigate = useNavigate();
 
-  const currentTrack = TRACKS.find((tr) => tr.id === selectedTrack) || TRACKS[0];
+  const saveWholeModule = async (topicLessons) => {
+    for (const l of topicLessons) {
+      if (!isLessonSaved(l.id)) {
+        await toggleSaveOffline(l.id);
+      }
+    }
+  };
+
+  // Selected track state (default 'python')
+  const [activeTrackId, setActiveTrackId] = useState('python');
+
+  const activeTrack = TRACKS.find((t) => t.id === activeTrackId) || TRACKS[0];
+
+  // Calculate saved offline lessons count
+  const savedCount = LESSONS.filter((l) => isLessonSaved(l.id)).length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Header with storage usage info */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
+      {/* Top Header with Offline Storage Widget */}
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            {isRTL ? 'المسارات التخصصية والوحدات التعليمية' : 'Focus Tracks & Curriculum Modules'}
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+            {isRTL ? 'مساراتك التعليمية' : 'Your learning tracks'}
           </h1>
-          <p className="text-sm text-slate-600 mt-1">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-xl">
             {isRTL
-              ? 'اختر مسارك البرمجي المركز (بايثون للذكاء الاصطناعي، C++ للأنظمة، أو جافا للمؤسسات). يبدأ كل درس بالأمثلة الأساسية ثم يتدرج للمفاهيم المتقدمة.'
-              : 'Select your focus programming track (Python AI, C++ Systems, or Java Enterprise). Each lesson starts with basic foundations then progresses to advanced concepts.'}
+              ? 'اختر مساراً برمجياً، احفظ الدروس أثناء اتصالك بالإنترنت، وتابع التعلم دون انقطاع حتى عند ضعف الشبكة.'
+              : 'Pick a track, save lessons while you are online, and keep studying when the connection drops.'}
           </p>
         </div>
 
-        {/* Local Storage Quota Widget */}
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 shrink-0">
-          <HardDrive className="w-5 h-5 text-slate-500" />
-          <div className="text-xs">
-            <div className="flex justify-between items-center gap-4">
-              <span className="font-semibold text-slate-700">
-                {isRTL ? 'سعة التخزين المحلي (IndexedDB)' : 'Offline Cache Quota'}
-              </span>
-              <span className={`font-bold ${quotaWarning ? 'text-rose-600' : 'text-slate-600'}`}>
-                {storageUsagePercent}%
-              </span>
+        {/* Offline Storage Widget Card */}
+        <div className="bg-white dark:bg-[#151d30] p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs w-full sm:w-72 space-y-1.5 shrink-0">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-semibold text-slate-800 dark:text-slate-200">
+              {isRTL ? 'التخزين المحلي' : 'Offline storage'}
+            </span>
+            <span className="font-bold text-slate-700 dark:text-slate-300">
+              {storageUsagePercent}% {isRTL ? 'مستخدم' : 'used'}
+            </span>
+          </div>
+          <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+            <div
+              className="bg-[#0f5132] dark:bg-emerald-500 h-full rounded-full transition-all duration-300"
+              style={{ width: `${Math.min(storageUsagePercent, 100)}%` }}
+            ></div>
+          </div>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">
+            {isRTL
+              ? 'يظهر تنبيه عند بلوغ 80%. يتوقف الحفظ المؤقت عند امتلاء السعة.'
+              : 'You get a warning at 80%. Saving pauses when space runs out.'}
+          </p>
+        </div>
+      </div>
+
+      {/* 3 Learning Track Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {/* Track 1: Python & AI Engineering */}
+        <div
+          className={`bg-white dark:bg-[#151d30] rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-4 transition-all ${
+            activeTrackId === 'python'
+              ? 'border-2 border-emerald-600 dark:border-emerald-500 ring-2 ring-emerald-600/10'
+              : 'border border-slate-200 dark:border-slate-800'
+          }`}
+        >
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="w-9 h-9 rounded-xl bg-emerald-700 dark:bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                Py
+              </div>
+              {activeTrackId === 'python' ? (
+                <span className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
+                  {isRTL ? 'المسار النشط' : 'Active track'}
+                </span>
+              ) : (
+                <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">AI & ML</span>
+              )}
             </div>
-            <div className="w-36 sm:w-44 bg-slate-100 rounded-full h-1.5 mt-1.5 overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all ${
-                  quotaWarning ? 'bg-rose-500' : 'bg-emerald-600'
-                }`}
-                style={{ width: `${Math.min(storageUsagePercent, 100)}%` }}
-              ></div>
+
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                {language === 'ar' ? 'بايثون والذكاء الاصطناعي (SAIR)' : 'Python & AI Engineering'}
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mt-1">
+                {isRTL
+                  ? 'من الأساسيات إلى NumPy و Pandas ونماذج تعلم الآلة المعتمدة مع مجتمع SAIR.'
+                  : 'From fundamentals to NumPy, Pandas and machine learning models.'}
+              </p>
             </div>
           </div>
+
+          {activeTrackId === 'python' ? (
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
+              <span>{isRTL ? '٢٥٪ مكتمل' : '25% complete'}</span>
+              <span>{savedCount} {isRTL ? 'محفوظ أوفلاين' : 'saved offline'}</span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setActiveTrackId('python')}
+              className="w-full py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+            >
+              {isRTL ? 'التحويل لهذا المسار' : 'Switch to this track'}
+            </button>
+          )}
         </div>
-      </div>
 
-      {/* Focus Track Selection Cards */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-            <Compass className="w-5 h-5 text-emerald-600" />
-            <span>{isRTL ? 'اختر مسار التعلم المفضل لديك:' : 'Choose Your Active Focus Track:'}</span>
-          </h2>
-          <span className="text-xs text-slate-500">
-            {isRTL ? 'يمكنك التبديل بين المسارات في أي وقت' : 'Switch tracks anytime inside lessons'}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {TRACKS.map((track) => {
-            const isSelected = selectedTrack === track.id;
-            return (
-              <div
-                key={track.id}
-                onClick={() => setSelectedTrack(track.id)}
-                className={`p-5 rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden ${
-                  isSelected
-                    ? 'border-emerald-600 bg-emerald-50/40 shadow-sm ring-2 ring-emerald-500/10'
-                    : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-xs'
-                }`}
-              >
-                {track.isSairTrack && (
-                  <div className="absolute top-0 right-0 rtl:left-0 rtl:right-auto bg-purple-600 text-white text-[10px] font-bold px-3 py-0.5 rounded-bl-lg rtl:rounded-bl-none rtl:rounded-br-lg flex items-center gap-1 shadow-xs">
-                    <Sparkles className="w-3 h-3" />
-                    <span>SAIR AI Community</span>
-                  </div>
-                )}
-
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-xl shadow-xs">
-                    {track.icon}
-                  </div>
-                  {isSelected ? (
-                    <span className="text-emerald-700 font-bold text-xs flex items-center gap-1 bg-emerald-100 px-2 py-0.5 rounded-full">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>{isRTL ? 'المسار النشط' : 'Active'}</span>
-                    </span>
-                  ) : (
-                    <span className="text-slate-400 text-xs">
-                      {language === 'ar' ? track.badgeAr : track.badgeEn}
-                    </span>
-                  )}
-                </div>
-
-                <h3 className="text-base font-bold text-slate-900 mb-1">
-                  {language === 'ar' ? track.titleAr : track.titleEn}
-                </h3>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  {language === 'ar' ? track.descriptionAr : track.descriptionEn}
-                </p>
-
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-                  <span className="font-mono text-emerald-800 font-semibold">{track.syntax}</span>
-                  <span className="font-semibold text-slate-700">★ Basic & ★★ Advanced</span>
-                </div>
+        {/* Track 2: C++ & High-Performance Systems */}
+        <div
+          className={`bg-white dark:bg-[#151d30] rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-4 transition-all ${
+            activeTrackId === 'cpp'
+              ? 'border-2 border-emerald-600 dark:border-emerald-500 ring-2 ring-emerald-600/10'
+              : 'border border-slate-200 dark:border-slate-800'
+          }`}
+        >
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="w-9 h-9 rounded-xl bg-slate-900 dark:bg-slate-800 text-white flex items-center justify-center font-bold text-xs shadow-xs border dark:border-slate-700">
+                C++
               </div>
-            );
-          })}
+              <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                {activeTrackId === 'cpp' ? (
+                  <span className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
+                    {isRTL ? 'المسار النشط' : 'Active track'}
+                  </span>
+                ) : (
+                  isRTL ? 'أنظمة' : 'Systems'
+                )}
+              </span>
+            </div>
+
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                {language === 'ar' ? 'سي++ والأنظمة عالية الأداء' : 'C++ & High-Performance Systems'}
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mt-1">
+                {isRTL
+                  ? 'إدارة الذاكرة، المؤشرات الآمنة، والحوسبة المحسنة للذاكرة المخبئية.'
+                  : 'Memory management, pointer safety and cache-aware algorithms.'}
+              </p>
+            </div>
+          </div>
+
+          {activeTrackId === 'cpp' ? (
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
+              <span>{isRTL ? '٠٪ مكتمل' : '0% complete'}</span>
+              <span>{savedCount} {isRTL ? 'محفوظ أوفلاين' : 'saved offline'}</span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setActiveTrackId('cpp')}
+              className="w-full py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+            >
+              {isRTL ? 'التحويل لهذا المسار' : 'Switch to this track'}
+            </button>
+          )}
+        </div>
+
+        {/* Track 3: Java & Enterprise Architecture */}
+        <div
+          className={`bg-white dark:bg-[#151d30] rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-4 transition-all ${
+            activeTrackId === 'java'
+              ? 'border-2 border-emerald-600 dark:border-emerald-500 ring-2 ring-emerald-600/10'
+              : 'border border-slate-200 dark:border-slate-800'
+          }`}
+        >
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="w-9 h-9 rounded-xl bg-amber-800 dark:bg-amber-700 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                Jv
+              </div>
+              <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                {activeTrackId === 'java' ? (
+                  <span className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
+                    {isRTL ? 'المسار النشط' : 'Active track'}
+                  </span>
+                ) : (
+                  isRTL ? 'أنظمة خلفية' : 'Backend'
+                )}
+              </span>
+            </div>
+
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                {language === 'ar' ? 'جافا وهندسة البرمجيات' : 'Java & Enterprise Architecture'}
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mt-1">
+                {isRTL
+                  ? 'التصميم كائني التوجه، سجلات جافا، التدفقات المتوازية، والأنظمة القابلة للتوسع.'
+                  : 'Object-oriented design, records, streams and scalable backends.'}
+              </p>
+            </div>
+          </div>
+
+          {activeTrackId === 'java' ? (
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
+              <span>{isRTL ? '٠٪ مكتمل' : '0% complete'}</span>
+              <span>{savedCount} {isRTL ? 'محفوظ أوفلاين' : 'saved offline'}</span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setActiveTrackId('java')}
+              className="w-full py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+            >
+              {isRTL ? 'التحويل لهذا المسار' : 'Switch to this track'}
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Modules List for Selected Track */}
-      <div className="space-y-10 pt-2">
-        {TOPICS.map((topic) => {
+      {/* Modules List */}
+      <div className="space-y-8">
+        {TOPICS.filter((topic) => {
+          // AI / SAIR track ONLY shows in Python track
+          if (topic.sairTrack || topic.trackOnly === 'python' || topic.id === 'topic-4') {
+            return activeTrackId === 'python';
+          }
+          return !topic.languages || topic.languages.includes(activeTrackId);
+        }).map((topic, topicIdx) => {
           const topicLessons = LESSONS.filter((l) => l.topicId === topic.id);
+          const completedCount = topicLessons.filter((l) => isLessonSaved(l.id)).length;
 
           return (
             <div
               key={topic.id}
-              className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm space-y-0"
+              className="bg-white dark:bg-[#151d30] rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-7 space-y-6 shadow-xs"
             >
-              {/* Topic Header */}
-              <div className="bg-slate-50 px-6 py-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                <div className="space-y-1.5 max-w-3xl">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-100 px-2 py-0.5 rounded">
-                      {isRTL ? `المحور ${topic.displayOrder}` : `Module ${topic.displayOrder}`}
-                    </span>
-                    {topic.sairTrack && (
-                      <span className="text-xs font-bold text-purple-800 bg-purple-100 px-2 py-0.5 rounded inline-flex items-center gap-1 border border-purple-200">
-                        <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-                        <span>{isRTL ? 'مسار مجتمع SAIR للذكاء الاصطناعي' : 'SAIR AI Track'}</span>
-                      </span>
+              {/* Module Header */}
+              <div className="space-y-1.5 border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <span className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-[11px] font-bold px-2.5 py-1 rounded-md tracking-wider uppercase">
+                    {isRTL ? `المحور ${topicIdx + 1}` : `MODULE ${topicIdx + 1}`}
+                  </span>
+                  
+                  <div className="flex items-center gap-2">
+                    {completedCount < topicLessons.length && (
+                      <button
+                        type="button"
+                        onClick={() => saveWholeModule(topicLessons)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-colors cursor-pointer"
+                        title={isRTL ? 'حفظ كافة دروس هذه الوحدة دفعة واحدة للدراسة بدون إنترنت' : 'Save all lessons in this module for offline study'}
+                      >
+                        <FolderDown className="w-3.5 h-3.5" />
+                        <span>{isRTL ? 'حفظ كامل الوحدة' : 'Save whole module'}</span>
+                      </button>
                     )}
-                    <span className="text-[11px] font-semibold text-slate-700 bg-slate-200/80 px-2 py-0.5 rounded flex items-center gap-1">
-                      <span>{currentTrack.icon}</span>
-                      <span>{language === 'ar' ? currentTrack.shortTitleAr : currentTrack.shortTitleEn}</span>
-                    </span>
-                    <span className="text-[11px] font-semibold text-slate-600 bg-slate-200/60 px-2 py-0.5 rounded">
-                      ★ {isRTL ? 'أساسي' : 'Basic'} & ★★ {isRTL ? 'متقدم' : 'Advanced'}
+                    <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                      {completedCount} {isRTL ? `من ${topicLessons.length} دروس مكتملة` : `of ${topicLessons.length} lessons done`}
                     </span>
                   </div>
-                  <h2 className="text-xl font-bold text-slate-900">
-                    {language === 'ar' ? topic.titleAr : topic.titleEn}
-                  </h2>
-                  <p className="text-xs text-slate-600">
-                    {language === 'ar' ? topic.descriptionAr : topic.descriptionEn}
-                  </p>
                 </div>
 
-                <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-xs text-slate-500 font-medium">
-                    {topicLessons.length} {isRTL ? 'دروس' : 'lessons'} + {isRTL ? 'اختبار' : 'quiz'} + {isRTL ? 'مشروع' : 'project'}
-                  </span>
-                </div>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                  {language === 'ar' ? topic.titleAr : topic.titleEn}
+                </h2>
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  {language === 'ar' ? topic.descriptionAr : topic.descriptionEn}
+                </p>
               </div>
 
-              {/* Module Lessons */}
-              <div className="divide-y divide-slate-100">
+              {/* Dedicated Module Live or Recorded Session Banner */}
+              {topic.session && (
+                <div className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 transition-colors ${
+                  topic.session.type === 'live'
+                    ? 'bg-rose-50/70 dark:bg-rose-950/30 border-rose-200 dark:border-rose-900/60'
+                    : 'bg-slate-50/80 dark:bg-[#10192d] border-slate-200/90 dark:border-slate-800'
+                }`}>
+                  <div className="flex items-start gap-3">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-2xs ${
+                      topic.session.type === 'live'
+                        ? 'bg-rose-600 text-white'
+                        : 'bg-indigo-600 text-white'
+                    }`}>
+                      <Video className="w-5 h-5" />
+                    </div>
+
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {topic.session.type === 'live' ? (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-600 text-white animate-pulse">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
+                            <span>{isRTL ? 'بث مباشر الآن' : 'LIVE CLASS NOW'}</span>
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/40">
+                            {topic.session.platform} • {topic.session.duration}
+                          </span>
+                        )}
+
+                        <span className="text-[11px] text-slate-500 font-medium">
+                          {topic.session.instructor || 'Dr. Al-Amin'}
+                        </span>
+                      </div>
+
+                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
+                        {language === 'ar' ? topic.session.titleAr : topic.session.titleEn}
+                      </h4>
+                    </div>
+                  </div>
+
+                  <a
+                    href={topic.session.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold inline-flex items-center justify-center gap-1.5 shrink-0 shadow-2xs transition-all cursor-pointer ${
+                      topic.session.type === 'live'
+                        ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-200 dark:shadow-none'
+                        : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200 dark:shadow-none'
+                    }`}
+                  >
+                    <Video className="w-3.5 h-3.5" />
+                    <span>
+                      {topic.session.type === 'live'
+                        ? (isRTL ? 'انضم للبث المباشر' : 'Join Live Class')
+                        : (isRTL ? 'مشاهدة التسجيل' : 'Watch Recording')}
+                    </span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
+
+              {/* Module Lessons List */}
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {topicLessons.map((lesson, idx) => {
                   const saved = isLessonSaved(lesson.id);
-                  const trackData = lesson.languages?.[selectedTrack];
-                  const hasAdvanced = !!trackData?.advanced;
+                  const statusConflict = lessonContentStatus?.[lesson.id];
 
                   return (
                     <div
                       key={lesson.id}
-                      className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors"
+                      className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                     >
                       <div className="space-y-1.5 max-w-2xl">
-                        <div className="flex items-center gap-2">
-                          <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold flex items-center justify-center">
-                            {idx + 1}
-                          </span>
-                          <h3 className="text-base font-bold text-slate-900">
-                            {language === 'ar' ? lesson.titleAr : lesson.titleEn}
-                          </h3>
-                          {saved && (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
-                              <Check className="w-3 h-3" />
-                              {t.common.savedOffline}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                            {idx + 1}. {language === 'ar' ? lesson.titleAr : lesson.titleEn}
+                          </h4>
+
+                          {/* Status Badges & Low-Bandwidth Payload Size */}
+                          {saved ? (
+                            <span className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-[11px] font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                              <span>{isRTL ? 'محفوظ أوفلاين' : 'Saved offline'}</span>
+                            </span>
+                          ) : (
+                            <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-medium px-2 py-0.5 rounded-full">
+                              {isRTL ? 'غير محفوظ' : 'Not saved'}
                             </span>
                           )}
 
-                          {/* Content Conflict Flags (FR-5.6) */}
-                          {saved && lessonContentStatus?.[lesson.id] === 'update_available' && (
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono px-1">
+                            ~12 KB
+                          </span>
+
+                          {saved && (
+                            <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-medium px-2 py-0.5 rounded-full">
+                              {isRTL ? 'متزامن' : 'Synced'}
+                            </span>
+                          )}
+
+                          {statusConflict === 'update_available' && (
                             <button
                               type="button"
                               onClick={() => refreshSavedLesson(lesson.id)}
-                              className="inline-flex items-center gap-1 text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-0.5 rounded-full hover:bg-amber-200 transition-colors shadow-xs cursor-pointer"
-                              title={isRTL ? 'تحديث متوفر للدرس - اضغط للتحديث' : 'Update available on server - tap to refresh'}
+                              className="bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800/60 text-[11px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 cursor-pointer"
                             >
-                              <RefreshCw className="w-3 h-3 text-amber-700" />
-                              <span>{isRTL ? 'تحديث متوفر' : 'Update Available'}</span>
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-600 dark:bg-amber-400"></span>
+                              <span>{isRTL ? 'تحديث متوفر' : 'Update available'}</span>
                             </button>
-                          )}
-
-                          {saved && lessonContentStatus?.[lesson.id] === 'no_longer_available' && (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full">
-                              <span>{isRTL ? 'غير متاح على الخادم' : 'No longer available'}</span>
-                            </span>
                           )}
                         </div>
 
-                        <p className="text-xs text-slate-600 line-clamp-1 pl-7 rtl:pr-7 rtl:pl-0">
-                          {language === 'ar' ? lesson.notesAr : lesson.notesEn}
+                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                          {language === 'ar' ? lesson.notesAr?.slice(0, 120) : lesson.notesEn?.slice(0, 120)}...
                         </p>
 
-                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 pt-1 pl-7 rtl:pr-7 rtl:pl-0">
-                          <span className="flex items-center gap-1 text-emerald-700 font-semibold">
-                            <FileText className="w-3.5 h-3.5 text-emerald-600" />
-                            {isRTL ? '★ مثال أساسي' : '★ Basic Example'}
-                          </span>
-                          {hasAdvanced && (
-                            <span className="flex items-center gap-1 text-purple-700 font-semibold">
-                              <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-                              {isRTL ? '★★ تطبيق متقدم' : '★★ Advanced Application'}
-                            </span>
-                          )}
-                          {lesson.recordingLink && (
-                            <span className="flex items-center gap-1 text-blue-600">
-                              <Video className="w-3.5 h-3.5" />
-                              {isRTL ? 'تسجيل الجلسة' : 'Class Recording'}
-                            </span>
-                          )}
+                        <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
+                          <Link
+                            to={`/lessons/${lesson.id}?track=${activeTrackId}`}
+                            className="hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+                          >
+                            {isRTL ? 'المثال الأساسي' : 'Basic example'}
+                          </Link>
+                          <span>·</span>
+                          <Link
+                            to={`/lessons/${lesson.id}?track=${activeTrackId}`}
+                            className="hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+                          >
+                            {isRTL ? 'التطبيق المتقدم' : 'Advanced application'}
+                          </Link>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 sm:self-center shrink-0">
-                        {/* Offline Save Toggle */}
-                        <button
-                          onClick={() => toggleSaveOffline(lesson.id)}
-                          className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
-                            saved
-                              ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'
-                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
-                          }`}
-                          title={saved ? t.common.removeOffline : t.common.saveOffline}
-                        >
-                          {saved ? (
-                            <>
-                              <Trash2 className="w-4 h-4 text-rose-500" />
-                              <span className="hidden sm:inline">{t.common.removeOffline}</span>
-                            </>
-                          ) : (
-                            <>
-                              <DownloadCloud className="w-4 h-4 text-slate-600" />
-                              <span>{t.common.saveOffline}</span>
-                            </>
-                          )}
-                        </button>
+                      {/* Right Action Buttons */}
+                      <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
+                        {saved ? (
+                          <button
+                            type="button"
+                            onClick={() => toggleSaveOffline(lesson.id)}
+                            className="px-3.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-medium cursor-pointer transition-colors"
+                          >
+                            {isRTL ? 'حذف من الجهاز' : 'Remove from device'}
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => toggleSaveOffline(lesson.id)}
+                            className="px-3.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-medium cursor-pointer transition-colors"
+                          >
+                            {isRTL ? 'حفظ بدون إنترنت' : 'Save for offline'}
+                          </button>
+                        )}
 
-                        {/* Open Lesson in Active Track */}
                         <Link
-                          to={`/lessons/${lesson.id}?track=${selectedTrack}`}
-                          className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1 shadow-sm transition-colors"
+                          to={`/lessons/${lesson.id}?track=${activeTrackId}`}
+                          className="px-4 py-1.5 bg-[#0f5132] hover:bg-[#0b3b24] dark:bg-emerald-700 dark:hover:bg-emerald-800 text-white rounded-lg text-xs font-semibold shadow-2xs transition-colors"
                         >
-                          <span>{isRTL ? 'فتح الدرس' : 'Study Lesson'}</span>
-                          <ArrowIcon className="w-3.5 h-3.5" />
+                          {isRTL ? 'فتح الدرس' : 'Study lesson'}
                         </Link>
                       </div>
                     </div>
                   );
                 })}
+              </div>
 
-                {/* Module Checkpoint Bar: Quiz + Capstone Project */}
-                <div className="bg-amber-50/40 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-amber-100">
-                  <div className="flex items-start sm:items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0">
-                      <HelpCircle className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-amber-900 block">
-                        {isRTL ? 'محطة المراجعة والمشروع النهائي' : 'Module Checkpoint & Capstone Project'}
+              {/* Module Checkpoint & Project Box (FR-6.4 Offline Guard) */}
+              <div className="bg-[#faf8f4] dark:bg-[#10192d] border border-slate-200/80 dark:border-slate-700/80 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
+                <div className="space-y-1 max-w-xl">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                      {isRTL ? 'محطة المراجعة ومشروع الوحدة' : 'Module checkpoint & project'}
+                    </h4>
+                    {isOnline ? (
+                      <span className="bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                        {isRTL ? 'يتطلب إنترنت' : 'Online only'}
                       </span>
-                      <h4 className="text-sm font-bold text-slate-900">
-                        {language === 'ar' ? topic.assignment.titleAr : topic.assignment.titleEn}
-                      </h4>
-                    </div>
+                    ) : (
+                      <span className="bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 text-[10px] font-bold px-2 py-0.5 rounded-md inline-flex items-center gap-1">
+                        <WifiOff className="w-3 h-3" />
+                        <span>{isRTL ? 'يتطلب اتصال إنترنت (معيار FR-6.4)' : 'Needs internet (FR-6.4)'}</span>
+                      </span>
+                    )}
                   </div>
-
-                  <div className="flex items-center gap-3 shrink-0">
-                    <Link
-                      to={`/lessons/${topicLessons[topicLessons.length - 1]?.id}?track=${selectedTrack}#module-quiz`}
-                      className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-white border border-amber-300 text-amber-900 hover:bg-amber-50 flex items-center gap-1 shadow-sm"
-                    >
-                      <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
-                      <span>{isRTL ? 'اختبار المفاهيم' : 'Self Quiz'}</span>
-                    </Link>
-
-                    <Link
-                      to={`/project/${topic.id}`}
-                      className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white flex items-center gap-1 shadow-sm transition-colors"
-                    >
-                      <FolderGit2 className="w-4 h-4 text-emerald-400" />
-                      <span>{isRTL ? 'مشروع الوحدة (GitHub)' : 'Module Project'}</span>
-                      <ArrowIcon className="w-3.5 h-3.5" />
-                    </Link>
-                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    {isRTL
+                      ? 'ارفع رابط مستودع GitHub مع شرح الكود. تتطلب المشاريع اتصالاً مباشراً بالإنترنت ولا تُحفظ في قائمة الانتظار وفقاً لمعيار FR-6.4.'
+                      : 'Submit your GitHub link with an explanation. Submissions need an active internet connection and are never queued (FR-6.4).'}
+                  </p>
                 </div>
+
+                {isOnline ? (
+                  <Link
+                    to={`/project/${topic.id}`}
+                    className="px-4 py-2 bg-[#0f5132] hover:bg-[#0b3b24] dark:bg-emerald-700 dark:hover:bg-emerald-800 text-white text-xs font-semibold rounded-lg shadow-2xs shrink-0 inline-flex items-center justify-center transition-colors"
+                  >
+                    {isRTL ? 'تسليم المشروع' : 'Submit project'}
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    disabled
+                    className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-semibold rounded-lg shadow-none shrink-0 inline-flex items-center justify-center cursor-not-allowed opacity-80"
+                    title={isRTL ? 'يتطلب اتصالاً بالإنترنت لتسليم المشروع (معيار FR-6.4)' : 'Internet connection required to submit project (FR-6.4)'}
+                  >
+                    <span>{isRTL ? 'تسليم المشروع (غير متصل)' : 'Submit project (Offline)'}</span>
+                  </button>
+                )}
               </div>
             </div>
           );

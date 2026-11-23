@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -40,4 +42,290 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* ========================================================= */
+/* NATIVE DARK MODE PALETTE (NO INVERT, PURPOSE-BUILT CONTRAST) */
+/* ========================================================= */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0c1220;
+  color: #f8fafc;
+}
+
+html.dark .bg-\[\#fbfaf6\],
+html.dark .bg-\[\#faf8f4\] {
+  background-color: #0c1220 !important;
+}
+
+html.dark .bg-white {
+  background-color: #151d30 !important;
+  color: #f8fafc;
+}
+
+html.dark .bg-slate-50,
+html.dark .bg-slate-50\/70,
+html.dark .bg-slate-50\/50,
+html.dark .bg-slate-50\/20 {
+  background-color: #0f172a !important;
+}
+
+html.dark .bg-slate-100 {
+  background-color: #1e293b !important;
+  color: #cbd5e1 !important;
+}
+
+/* Fix active topic and active track green tint in dark mode */
+html.dark .bg-\[\#f2f8f4\] {
+  background-color: #09261a !important;
+  border-color: #059669 !important;
+  color: #a7f3d0 !important;
+}
+
+/* Primary Forest Green Buttons in Dark Mode */
+html.dark .bg-\[\#0f5132\],
+html.dark .bg-\[\#0b3b24\] {
+  background-color: #059669 !important;
+  color: #ffffff !important;
+}
+
+html.dark button.bg-\[\#0f5132\]:hover,
+html.dark a.bg-\[\#0f5132\]:hover {
+  background-color: #047857 !important;
+}
+
+/* Emerald accents */
+html.dark .bg-emerald-50,
+html.dark .bg-emerald-50\/30,
+html.dark .bg-emerald-50\/40,
+html.dark .bg-emerald-50\/50,
+html.dark .bg-emerald-50\/60,
+html.dark .bg-emerald-50\/70,
+html.dark .bg-emerald-50\/80,
+html.dark .bg-emerald-100,
+html.dark .bg-emerald-100\/40,
+html.dark .bg-emerald-100\/50,
+html.dark .bg-emerald-100\/70 {
+  background-color: rgba(6, 78, 59, 0.45) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(5, 150, 105, 0.5) !important;
+}
+
+html.dark .text-emerald-700,
+html.dark .text-emerald-800,
+html.dark .text-emerald-900,
+html.dark .text-emerald-950,
+html.dark .text-\[\#0f5132\] {
+  color: #34d399 !important;
+}
+
+html.dark .border-\[\#0f5132\] {
+  border-color: #059669 !important;
+}
+
+/* SAIR Purple accents in Dark Mode */
+html.dark .bg-purple-50,
+html.dark .bg-purple-50\/50,
+html.dark .bg-purple-50\/70,
+html.dark .bg-purple-100,
+html.dark .bg-purple-950\/40,
+html.dark .bg-purple-950\/50 {
+  background-color: rgba(88, 28, 135, 0.45) !important;
+  color: #e9d5ff !important;
+  border-color: rgba(147, 51, 234, 0.5) !important;
+}
+
+html.dark .text-purple-700,
+html.dark .text-purple-800,
+html.dark .text-purple-900,
+html.dark .text-purple-950 {
+  color: #e9d5ff !important;
+}
+
+html.dark .text-purple-600 {
+  color: #c084fc !important;
+}
+
+html.dark .border-purple-200,
+html.dark .border-purple-800\/60,
+html.dark .border-purple-800\/80 {
+  border-color: rgba(147, 51, 234, 0.5) !important;
+}
+
+/* Indigo badges & recordings */
+html.dark .bg-indigo-50,
+html.dark .bg-indigo-50\/70,
+html.dark .bg-indigo-100 {
+  background-color: rgba(49, 46, 129, 0.45) !important;
+  color: #c7d2fe !important;
+  border-color: rgba(99, 102, 241, 0.5) !important;
+}
+
+html.dark .text-indigo-700,
+html.dark .text-indigo-800,
+html.dark .text-indigo-900 {
+  color: #a5b4fc !important;
+}
+
+/* Teal badges */
+html.dark .bg-teal-50,
+html.dark .bg-teal-100 {
+  background-color: rgba(19, 78, 74, 0.45) !important;
+  color: #99f6e4 !important;
+  border-color: rgba(20, 184, 166, 0.5) !important;
+}
+
+html.dark .text-teal-700,
+html.dark .text-teal-800,
+html.dark .text-teal-900 {
+  color: #5eead4 !important;
+}
+
+/* Blue badges */
+html.dark .bg-blue-50,
+html.dark .bg-blue-100 {
+  background-color: rgba(30, 58, 138, 0.45) !important;
+  color: #bfdbfe !important;
+  border-color: rgba(37, 99, 235, 0.5) !important;
+}
+
+html.dark .text-blue-900,
+html.dark .text-blue-800,
+html.dark .text-blue-700 {
+  color: #93c5fd !important;
+}
+
+html.dark .border-blue-200 {
+  border-color: rgba(37, 99, 235, 0.5) !important;
+}
+
+/* Amber badges */
+html.dark .bg-amber-50,
+html.dark .bg-amber-100,
+html.dark .bg-amber-50\/90 {
+  background-color: rgba(120, 53, 15, 0.45) !important;
+  color: #fde68a !important;
+  border-color: rgba(217, 119, 6, 0.5) !important;
+}
+
+html.dark .text-amber-700,
+html.dark .text-amber-800,
+html.dark .text-amber-900,
+html.dark .text-amber-950 {
+  color: #fde68a !important;
+}
+
+html.dark .border-amber-200,
+html.dark .border-amber-300 {
+  border-color: rgba(217, 119, 6, 0.5) !important;
+}
+
+/* Rose / Escalation badges */
+html.dark .bg-rose-50,
+html.dark .bg-rose-100,
+html.dark .bg-rose-50\/20,
+html.dark .bg-rose-50\/40 {
+  background-color: rgba(136, 19, 55, 0.45) !important;
+  color: #fecdd3 !important;
+  border-color: rgba(225, 29, 72, 0.5) !important;
+}
+
+html.dark .text-rose-700,
+html.dark .text-rose-800,
+html.dark .text-rose-900 {
+  color: #fecdd3 !important;
+}
+
+html.dark .border-rose-100,
+html.dark .border-rose-200,
+html.dark .border-rose-300 {
+  border-color: rgba(225, 29, 72, 0.5) !important;
+}
+
+/* Slate Borders & Dividers in Dark Mode */
+html.dark .border-slate-200,
+html.dark .border-slate-200\/90,
+html.dark .border-slate-200\/80,
+html.dark .border-slate-200\/70,
+html.dark .border-slate-200\/60,
+html.dark .border-slate-300 {
+  border-color: #27354f !important;
+}
+
+html.dark .border-slate-100,
+html.dark .border-slate-100\/70 {
+  border-color: #1e2c45 !important;
+}
+
+html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-slate-100\/70 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #27354f !important;
+}
+
+/* Inactive / Disabled Buttons & Number Badges in Dark Mode */
+html.dark .bg-slate-200 {
+  background-color: #1e293b !important;
+  color: #94a3b8 !important;
+}
+
+html.dark .bg-slate-300 {
+  background-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+/* Typography High-Contrast Standards in Dark Mode (WCAG AAA) */
+html.dark .text-slate-900 {
+  color: #ffffff !important;
+}
+
+html.dark .text-slate-800 {
+  color: #f1f5f9 !important;
+}
+
+html.dark .text-slate-700 {
+  color: #e2e8f0 !important;
+}
+
+html.dark .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+html.dark .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+html.dark .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+/* Header & navigation in dark mode */
+html.dark header {
+  background-color: rgba(21, 29, 48, 0.95) !important;
+  border-color: #27354f !important;
+}
+
+/* Form inputs & controls in dark mode */
+html.dark input,
+html.dark select,
+html.dark textarea {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Green pill badges & Navbar active states */
+html.dark .bg-\[\#e2f1e8\],
+html.dark .bg-\[\#e6f4ea\] {
+  background-color: rgba(6, 78, 59, 0.45) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(5, 150, 105, 0.45) !important;
 }

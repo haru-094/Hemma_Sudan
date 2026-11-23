@@ -60,13 +60,15 @@ export default function RegisterPage() {
   return (
     <div className="min-h-[85vh] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-3">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-700 to-teal-500 mx-auto flex items-center justify-center text-white shadow-md">
-          <BookOpen className="w-6 h-6" />
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+        <img
+          src="/hemma-logo-v2-192.png"
+          alt="Hemma Sudan Logo"
+          className="w-14 h-14 object-contain mx-auto rounded-2xl shadow-md"
+        />
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
           {isRTL ? 'إنشاء حساب طالب جديد' : 'Learner Registration'}
         </h1>
-        <p className="text-xs sm:text-sm text-slate-500">
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
           {isRTL
             ? 'انضم إلى منصة همة السودان التكميلية لدراسة مقررات البرمجة'
             : 'Join the Hemma Sudan supplementary programming pilot'}
@@ -74,10 +76,10 @@ export default function RegisterPage() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-6 sm:px-10 shadow-sm border border-slate-200 rounded-3xl space-y-6">
+        <div className="bg-white dark:bg-[#151d30] py-8 px-6 sm:px-10 shadow-sm border border-slate-200 dark:border-slate-800 rounded-3xl space-y-6">
           {/* Role Specification Callout */}
-          <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-xs text-emerald-900 flex items-start gap-2.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+          <div className="p-3.5 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-xs text-emerald-900 dark:text-emerald-200 flex items-start gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-700 dark:text-emerald-400 shrink-0 mt-0.5" />
             <div>
               <strong className="block font-bold">
                 {isRTL ? 'تسجيل الطلاب فقط' : 'Learner Self-Registration'}
@@ -91,15 +93,15 @@ export default function RegisterPage() {
           </div>
 
           {errorMsg && (
-            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2.5">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800/60 text-rose-800 dark:text-rose-300 text-xs flex items-center gap-2.5">
+              <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-900 mb-1">
+              <label className="block text-xs font-bold text-slate-900 dark:text-slate-100 mb-1">
                 {isRTL ? 'الاسم الكامل' : 'Full Name'}
                 <span className="text-rose-500 mx-1">*</span>
               </label>
@@ -113,13 +115,13 @@ export default function RegisterPage() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder={isRTL ? 'مثال: محمد أحمد علي' : 'e.g. Ahmed Osman'}
                   required
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-xs sm:text-sm font-sans"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 dark:bg-slate-850 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-xs sm:text-sm font-sans"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-900 mb-1">
+              <label className="block text-xs font-bold text-slate-900 dark:text-slate-100 mb-1">
                 {isRTL ? 'البريد الإلكتروني' : 'Email Address'}
                 <span className="text-rose-500 mx-1">*</span>
               </label>
@@ -134,13 +136,13 @@ export default function RegisterPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="student@uofk.edu.sd"
                   required
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-xs sm:text-sm font-sans ltr-forced"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 dark:bg-slate-850 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-xs sm:text-sm font-sans ltr-forced"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-900 mb-1">
+              <label className="block text-xs font-bold text-slate-900 dark:text-slate-100 mb-1">
                 {isRTL ? 'الجامعة أو الكلية (في السودان)' : 'University / College'}
                 <span className="text-rose-500 mx-1">*</span>
               </label>
@@ -154,13 +156,13 @@ export default function RegisterPage() {
                   onChange={(e) => setUniversity(e.target.value)}
                   placeholder={isRTL ? 'جامعة الخرطوم، جامعة السودان...' : 'University of Khartoum, SUST...'}
                   required
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-xs sm:text-sm font-sans"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 dark:bg-slate-850 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-xs sm:text-sm font-sans"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-900 mb-1">
+              <label className="block text-xs font-bold text-slate-900 dark:text-slate-100 mb-1">
                 {isRTL ? 'كلمة المرور' : 'Password'}
                 <span className="text-rose-500 mx-1">*</span>
               </label>
@@ -175,14 +177,14 @@ export default function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-xs sm:text-sm font-sans ltr-forced"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 dark:bg-slate-850 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-xs sm:text-sm font-sans ltr-forced"
                 />
               </div>
             </div>
 
             {/* Age Confirmation Checkbox */}
             <div className="pt-2">
-              <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-700 select-none">
+              <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-700 dark:text-slate-300 select-none">
                 <input
                   type="checkbox"
                   checked={ageConfirmed}
@@ -212,9 +214,9 @@ export default function RegisterPage() {
             </button>
           </form>
 
-          <div className="text-center pt-2 text-xs text-slate-600 border-t border-slate-100">
+          <div className="text-center pt-2 text-xs text-slate-600 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800">
             <span>{isRTL ? 'لديك حساب مسجل بالفعل؟ ' : 'Already have an account? '}</span>
-            <Link to="/login" className="font-bold text-emerald-700 hover:underline">
+            <Link to="/login" className="font-bold text-emerald-700 dark:text-emerald-400 hover:underline">
               {isRTL ? 'تسجيل الدخول' : 'Sign In'}
             </Link>
           </div>

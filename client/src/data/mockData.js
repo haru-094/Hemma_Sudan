@@ -45,6 +45,79 @@ export const TRACKS = [
 
 export const TOPICS = [
   {
+    id: 'topic-0',
+    displayOrder: 0,
+    titleEn: '0. Developer Setup: VS Code, Git & GitHub',
+    titleAr: '٠. تهيئة بيئة المطور: محرر VS Code، أداة Git، ومستودعات GitHub',
+    descriptionEn: 'Setting up your local code editor (VS Code), compiler/interpreter, Git version control, and public GitHub repository workflow.',
+    descriptionAr: 'تهيئة محرر الأكواد (VS Code)، بيئة بايثون و C++ وجافا، نظام التحكم بالنسخ Git، والعمل مع مستودعات GitHub العامة.',
+    languages: ['python', 'cpp', 'java'],
+    levels: ['basic'],
+    lessons: ['lesson-0'],
+    session: {
+      type: 'recorded',
+      platform: 'YouTube',
+      url: 'https://youtube.com/watch?v=demo-hemma-setup-guide',
+      titleEn: 'Module 0 Workshop: Local Tooling & GitHub Workflow',
+      titleAr: 'ورشة الوحدة صفر: تثبيت الأدوات المحلية والعمل مع GitHub',
+      duration: '42m',
+      instructor: 'Dr. Al-Amin',
+    },
+    quiz: {
+      id: 'quiz-0',
+      titleEn: 'Module 0 Tooling Check (Self-Assessment)',
+      titleAr: 'اختبار المعرفة لأدوات المطور للوحدة صفر',
+      questions: [
+        {
+          id: 'q0-1',
+          questionEn: 'Which command sets your global username for Git commits?',
+          questionAr: 'ما هو الأمر البرمجي في Git لضبط اسم المستخدم الخاص بك؟',
+          codeSnippet: 'git config --global user.name "Your Name"',
+          optionsEn: ['git config --global user.name "Your Name"', 'git init user "Your Name"', 'git set name "Your Name"', 'git commit -name "Your Name"'],
+          optionsAr: ['git config --global user.name "Your Name"', 'git init user "Your Name"', 'git set name "Your Name"', 'git commit -name "Your Name"'],
+          correctIndex: 0,
+          explanationEn: 'The git config command records your authorship metadata for all repositories on your computer.',
+          explanationAr: 'يقوم الأمر git config بتسجيل هويتك البرمجية لجميع المستودعات على جهازك.',
+        },
+        {
+          id: 'q0-2',
+          questionEn: 'Why must project submission repositories on GitHub be configured as "Public"?',
+          questionAr: 'لماذا يجب إنشاء مستودع المشروع على GitHub كـ "عام" (Public)؟',
+          optionsEn: [
+            'So mentors and instructors can inspect your code without authentication roadblocks (FR-6.3).',
+            'Because Git does not allow private repositories.',
+            'To make the computer run faster.',
+            'Private repositories cannot contain code files.',
+          ],
+          optionsAr: [
+            'ليتمكن المرشدون وأستاذ المساق من فحص الكود وتصحيحه بدون حواجز صلاحيات (معيار FR-6.3).',
+            'لأن Git لا يسمح بالمستودعات الخاصة.',
+            'لتسريع أداء الحاسوب.',
+            'المستودعات الخاصة لا يمكنها تخزين ملفات برمجية.',
+          ],
+          correctIndex: 0,
+          explanationEn: 'Per SRS Section 2.7 & FR-6.3, submissions are validated against public URLs accessible by mentors.',
+          explanationAr: 'وفقاً لمتطلبات المنصة FR-6.3، يجب أن يكون الرابط عاماً للتحقق من وصول المرشدين إليه.',
+        },
+      ],
+    },
+    assignment: {
+      id: 'assign-0',
+      titleEn: 'Module 0 Project: Hello Hemma Public GitHub Repository',
+      titleAr: 'مشروع الوحدة صفر: إنشاء مستودع GitHub عام ورفع أول كود برمجياً',
+      promptEn: `Create and publish your first public GitHub repository:
+1. Initialize a local directory with Git: git init.
+2. Create a hello script in your chosen language (hello.py, main.cpp, or Main.java).
+3. Create a README.md explaining your student name and university affiliation.
+4. Push to a new public repository on GitHub.com and submit the link below.`,
+      promptAr: `أنشئ أول مستودع GitHub عام لك:
+1. قم بتهيئة مجلد محلي باستخدام git init.
+2. أنشئ برنامج ترحيبي بسيط باللغة التي اخترتها (hello.py أو main.cpp أو Main.java).
+3. اكتب ملف README.md يحتوي على اسمك والجامعة.
+4. ارفع المشروع إلى مستودع عام على GitHub.com وقدم الرابط للمراجعة.`,
+    },
+  },
+  {
     id: 'topic-1',
     displayOrder: 1,
     titleEn: '1. Fundamentals & Input Processing',
@@ -54,6 +127,15 @@ export const TOPICS = [
     languages: ['python', 'cpp', 'java'],
     levels: ['basic', 'advanced'],
     lessons: ['lesson-1', 'lesson-2'],
+    session: {
+      type: 'recorded',
+      platform: 'Google Drive',
+      url: 'https://drive.google.com/file/d/1demo-hemma-fundamentals-lecture/view',
+      titleEn: 'Module 1 Recorded Lecture: Variables, Memory & Terminal I/O',
+      titleAr: 'تسجيل محاضرة الوحدة الأولى: المتغيرات والذاكرة ومدخلات الطرفية',
+      duration: '1h 15m',
+      instructor: 'Dr. Al-Amin',
+    },
     quiz: {
       id: 'quiz-1',
       titleEn: 'Module 1 Knowledge Check (Self-Assessment)',
@@ -140,6 +222,15 @@ export const TOPICS = [
     languages: ['python', 'cpp', 'java'],
     levels: ['basic', 'advanced'],
     lessons: ['lesson-3', 'lesson-4'],
+    session: {
+      type: 'live',
+      platform: 'Google Meet',
+      url: 'https://meet.google.com/xyz-hemma-live',
+      titleEn: 'Module 2 LIVE Workshop: Control Flow & Algorithmic Loops',
+      titleAr: 'بث مباشر للوحدة الثانية: الشروط والتكرار وحل المسائل البرمجية',
+      duration: 'Live Session in Progress',
+      instructor: 'Dr. Al-Amin',
+    },
     quiz: {
       id: 'quiz-2',
       titleEn: 'Module 2 Knowledge Check (Self-Assessment)',
@@ -196,6 +287,15 @@ export const TOPICS = [
     languages: ['python', 'cpp', 'java'],
     levels: ['basic', 'advanced'],
     lessons: ['lesson-5'],
+    session: {
+      type: 'recorded',
+      platform: 'YouTube',
+      url: 'https://youtube.com/watch?v=demo-hemma-functions',
+      titleEn: 'Module 3 Recorded Class: Modular Architecture & Scope',
+      titleAr: 'تسجيل محاضرة الوحدة الثالثة: الدوال والتصميم المعياري',
+      duration: '58m',
+      instructor: 'Dr. Al-Amin',
+    },
     quiz: {
       id: 'quiz-3',
       titleEn: 'Module 3 Knowledge Check (Self-Assessment)',
@@ -226,19 +326,187 @@ export const TOPICS = [
     },
   },
   {
-    id: 'topic-4',
+    id: 'topic-5',
     displayOrder: 4,
-    titleEn: '4. Applied AI, Data Science & Machine Learning (SAIR Community Track)',
-    titleAr: '٤. الذكاء الاصطناعي، علم البيانات وتعلم الآلة (مسار مجتمع SAIR)',
+    titleEn: '4. Object-Oriented Programming (OOP) & Architecture',
+    titleAr: '٤. البرمجة كائنية التوجه (OOP) وهندسة البرمجيات',
+    descriptionEn: 'Classes, objects, encapsulation, inheritance, polymorphism, and abstract interface contracts across Python, C++, and Java.',
+    descriptionAr: 'الأصناف، الكائنات، تغليف البيانات، الوراثة، تعدد الأشكال، وتصميم الواجهات المجردة عبر بايثون و C++ وجافا.',
+    languages: ['python', 'cpp', 'java'],
+    levels: ['basic', 'advanced'],
+    lessons: ['lesson-8', 'lesson-9'],
+    session: {
+      type: 'recorded',
+      platform: 'Zoom Archive',
+      url: 'https://zoom.us/rec/share/demo-hemma-oop',
+      titleEn: 'Module 4 Recorded Session: Object-Oriented Design & Encapsulation',
+      titleAr: 'تسجيل محاضرة الوحدة الرابعة: البرمجة كائنية التوجه والتغليف',
+      duration: '1h 25m',
+      instructor: 'Dr. Al-Amin',
+    },
+    quiz: {
+      id: 'quiz-5',
+      titleEn: 'Module 4 Knowledge Check: OOP, Classes & Interfaces',
+      titleAr: 'اختبار تقييم المفاهيم: البرمجة الكائنية والأصناف والواجهات',
+      questions: [
+        {
+          id: 'q5-1',
+          questionEn: 'What is the primary benefit of Encapsulation in Object-Oriented Design?',
+          questionAr: 'ما هي الفائدة الجوهرية لمبدأ تغليف البيانات (Encapsulation) في التصميم الكائني؟',
+          optionsEn: [
+            'Hiding internal object state and exposing operations through well-defined public methods/properties.',
+            'Executing program code without needing a CPU.',
+            'Automatically translating code into binary machine instructions.',
+            'Allowing any function to directly modify private variables without restriction.',
+          ],
+          optionsAr: [
+            'إخفاء الحالة الداخلية للكائن والتحكم في تعديل البيانات عبر طرائق وخصائص عامة ومحمية.',
+            'تشغيل البرنامج دون الحاجة إلى معالج مركزي.',
+            'ترجمة الشيفرة تلقائياً إلى لغة الآلة الثنائية.',
+            'السماح لأي دالة بتعديل المتغيرات الخاصة بحرية تامة دون أي قيود.',
+          ],
+          correctIndex: 0,
+          explanationEn: 'Encapsulation bundles data with the methods that operate on it and restricts direct external access to internal state, enforcing data validity.',
+          explanationAr: 'يقوم التغليف بدمج البيانات مع الدوال التي تتعامل معها ويمنع الوصول المباشر للحالة الداخلية من الخارج، مما يحمي صحة وتناسق البيانات.',
+        },
+        {
+          id: 'q5-2',
+          questionEn: 'In polymorphism, what allows a subclass method to be executed dynamically via a base class reference/pointer?',
+          questionAr: 'في تعدد الأشكال (Polymorphism)، ما الذي يسمح بتنفيذ دالة الفئة المشتقة ديناميكياً عبر مؤشر أو مرجع من الفئة الأساسية؟',
+          optionsEn: [
+            'Dynamic dispatch (virtual methods and vtables in C++/Java/Python).',
+            'Restarting the operating system.',
+            'Hardcoding memory addresses at compile time.',
+            'Eliminating all classes from memory.',
+          ],
+          optionsAr: [
+            'الإرسال الديناميكي (Dynamic Dispatch عبر الدوال الافتراضية وجداول vtable).',
+            'إعادة تشغيل نظام التشغيل.',
+            'تثبيت عناوين الذاكرة بشكل صلب أثناء الترجمة.',
+            'حذف كافة الأصناف من الذاكرة.',
+          ],
+          correctIndex: 0,
+          explanationEn: 'Dynamic dispatch inspects the actual runtime type of the object and invokes the overridden implementation at runtime.',
+          explanationAr: 'يقوم الإرسال الديناميكي (Dynamic Dispatch) بفحص النوع الفعلي للكائن أثناء التشغيل واستدعاء النسخة المعاد كتابتها (Overridden Method) المناسبة.',
+        },
+      ],
+    },
+    assignment: {
+      id: 'assign-5',
+      titleEn: 'Module 4 Project: Banking & Telephony Service System',
+      titleAr: 'مشروع الوحدة الرابعة: نظام الحسابات المصرفية وخدمات الاتصالات الكائني',
+      promptEn: `Develop an Object-Oriented system (Python, C++, or Java) for banking or telecom subscription management:
+1. Design a base class Account / Subscription with encapsulated private balance / quota fields.
+2. Implement derived classes (e.g. SavingsAccount with interest, or StudentTelecomPlan with data bundles).
+3. Utilize inheritance and method overriding to apply distinct transaction fees or bundle rules.
+4. Enforce input validation and raise/throw custom exceptions on overdraft or invalid operations.
+5. Push your clean object-oriented architecture to GitHub with architectural class diagram documentation.`,
+      promptAr: `أنشئ نظاماً برمجياً كائني التوجه (بايثون، C++، أو جافا) لإدارة الحسابات المصرفية أو اشتراكات الاتصالات:
+1. صمم فئة أساسية Account بتغليف محكم للرصيد والمبالغ الخاصة.
+2. أنشئ فئات مشتقة (مثل SavingsAccount بحساب الأرباح، أو باقة اتصالات طلابية StudentPlan).
+3. طبق مبدأ الوراثة وتعدد الأشكال (Overriding) لتطبيق قواعد وحوافز مخصصة لكل نوع.
+4. اضبط التحقق من صحة المعاملات وأطلق استثناءات مخصصة عند السحب الزائد أو العمليات غير الصالحة.
+5. ارفع المشروع إلى GitHub مع مخطط هيكلي يوضح الأصناف والعلاقات بينها.`,
+    },
+  },
+  {
+    id: 'topic-6',
+    displayOrder: 5,
+    titleEn: '5. Data Structures, File I/O & Persistent Storage',
+    titleAr: '٥. هياكل البيانات، التعامل مع الملفات والتخزين الدائم',
+    descriptionEn: 'Hash maps, sets, dynamic collections, file streams, JSON serialization, and persistent data storage.',
+    descriptionAr: 'جداول التجزئة، المجموعات، القوائم الديناميكية، تدفق الملفات، وتسلسل بيانات JSON والتخزين الدائم.',
+    languages: ['python', 'cpp', 'java'],
+    levels: ['basic', 'advanced'],
+    lessons: ['lesson-10'],
+    session: {
+      type: 'recorded',
+      platform: 'Google Drive',
+      url: 'https://drive.google.com/file/d/1demo-hemma-files-storage/view',
+      titleEn: 'Module 5 Recorded Session: File Handling & Serialization',
+      titleAr: 'تسجيل محاضرة الوحدة الخامسة: التعامل مع الملفات والحفظ الدائم',
+      duration: '50m',
+      instructor: 'Dr. Al-Amin',
+    },
+    quiz: {
+      id: 'quiz-6',
+      titleEn: 'Module 5 Knowledge Check: Collections, Files & Persistence',
+      titleAr: 'اختبار تقييم المفاهيم: هياكل البيانات وتدفق الملفات والتسلسل',
+      questions: [
+        {
+          id: 'q6-1',
+          questionEn: 'What is the average time complexity for key lookups in a Hash Map / Dictionary?',
+          questionAr: 'ما هو التعقيد الزمني المتوسط للبحث عن مفتاح في جدول التجزئة (Hash Map / Dictionary)؟',
+          optionsEn: ['O(1) constant time', 'O(N^2) quadratic time', 'O(N!) factorial time', 'O(log N!) time'],
+          optionsAr: ['O(1) زمن ثابت (Constant Time)', 'O(N^2) زمن تربيعي', 'O(N!) زمن مضروب', 'O(log N!)'],
+          correctIndex: 0,
+          explanationEn: 'Hash tables compute a hash of the key to index directly into a bucket array, providing O(1) average lookup performance.',
+          explanationAr: 'تحسب جداول التجزئة قيمة الـ Hash للمفتاح لتصل مباشرة لموقع التخزين، مما يمنحها زمناً ثابتاً O(1) في المتوسط.',
+        },
+        {
+          id: 'q6-2',
+          questionEn: 'Why should files always be accessed using context managers (with in Python, try-with-resources in Java, RAII in C++)?',
+          questionAr: 'لماذا يجب دائماً فتح الملفات عبر مديري السياق (with في بايثون، try-with-resources في جافا، و RAII في C++)؟',
+          optionsEn: [
+            'To guarantee that file handles and OS descriptors are automatically closed even if an exception occurs.',
+            'Because modern computers cannot open files without context managers.',
+            'To delete the file immediately after reading.',
+            'To double the font size of the text.',
+          ],
+          optionsAr: [
+            'لضمان إغلاق مقابض الملفات وتحرير موارد نظام التشغيل تلقائياً حتى عند حدوث أخطاء أو استثناءات.',
+            'لأن الحواسيب الحديثة لا يمكنها فتح الملفات بدون مدير سياق.',
+            'لحذف الملف مباشرة بعد قراءته.',
+            'لمضاعفة حجم خط النصوص البرمجية.',
+          ],
+          correctIndex: 0,
+          explanationEn: 'Context managers guarantee deterministic resource cleanup, preventing operating system file handle leaks.',
+          explanationAr: 'يضمن مدير السياق تحرير الموارد بشكل حتمي وإغلاق الملف حتى في حال حدوث استثناء، مانعاً تسريب مقابض الملفات في نظام التشغيل.',
+        },
+      ],
+    },
+    assignment: {
+      id: 'assign-6',
+      titleEn: 'Module 5 Project: Persistent Academic Records & Analytics Ledger',
+      titleAr: 'مشروع الوحدة الخامسة: سجل الأرشيف الأكاديمي والتحليل الإحصائي الدائم',
+      promptEn: `Create a persistent command-line ledger application (Python, C++, or Java):
+1. Store records of students, topics, and scores using appropriate collections (dictionaries/maps/hash sets).
+2. Save database state to disk using structured JSON or formatted CSV files.
+3. Reload existing data on startup and handle missing or corrupt file errors gracefully.
+4. Provide search, aggregation (average score, passing rate), and export features.
+5. Push to GitHub with sample data files and comprehensive test instructions.`,
+      promptAr: `أنشئ تطبيقاً برمجياً لحفظ وإدارة السجلات الأكاديمية مع التخزين الدائم على القرص:
+1. خزن بيانات الطلاب ودرجاتهم باستخدام هياكل البيانات المناسبة (قواميس/خرائط ومجموعات).
+2. احفظ حالة النظام على القرص في ملفات JSON منظمة أو ملفات CSV.
+3. استرجع البيانات المحفوظة تلقائياً عند تشغيل البرنامج مع معالجة أخطاء فقدان الملفات.
+4. وفر مزايا البحث، التجميع الإحصائي (المتوسطات ونسب النجاح)، وتصدير التقارير.
+5. ارفع المشروع إلى GitHub مع عينات ملفات البيانات ودليل تشغيل كامل.`,
+    },
+  },
+  {
+    id: 'topic-4',
+    displayOrder: 6,
+    titleEn: '6. Applied AI, Data Science & Machine Learning (SAIR Community Track)',
+    titleAr: '٦. الذكاء الاصطناعي، علم البيانات وتعلم الآلة (مسار مجتمع SAIR)',
     descriptionEn: 'NumPy vectorization, Pandas tabular data pipelines, and machine learning model training curated with Sudanese Artificial Intelligence Researchers (SAIR).',
     descriptionAr: 'المعالجة الشعاعية عبر NumPy، أنابيب معالجة البيانات بـ Pandas، وتدريب نماذج تعلم الآلة بالتعاون مع الباحثين السودانيين في الذكاء الاصطناعي (SAIR).',
-    languages: ['python', 'cpp', 'java'],
+    languages: ['python'],
+    trackOnly: 'python',
     levels: ['basic', 'advanced'],
     sairTrack: true,
     lessons: ['lesson-6', 'lesson-7'],
+    session: {
+      type: 'recorded',
+      platform: 'YouTube (SAIR)',
+      url: 'https://youtube.com/watch?v=demo-sair-ai-sudan',
+      titleEn: 'SAIR Masterclass: AI, NumPy Vectorization & ML in Sudan',
+      titleAr: 'محاضرة مجتمع SAIR: الذكاء الاصطناعي وتسريع NumPy ونماذج تعلم الآلة',
+      duration: '1h 45m',
+      instructor: 'SAIR Research Team',
+    },
     quiz: {
       id: 'quiz-4',
-      titleEn: 'Module 4 Knowledge Check: AI, NumPy & Pandas (SAIR Track)',
+      titleEn: 'Module 6 Knowledge Check: AI, NumPy & Pandas (SAIR Track)',
       titleAr: 'اختبار تقييم المفاهيم: الذكاء الاصطناعي ومكتبات البيانات (مسار SAIR)',
       questions: [
         {
@@ -296,8 +564,8 @@ export const TOPICS = [
     },
     assignment: {
       id: 'assign-4',
-      titleEn: 'Module 4 Project: SAIR Sudan Agri-Predictor & Disease Classification Model',
-      titleAr: 'مشروع الوحدة الرابعة: نظام التنبؤ الزراعي وتصنيف أمراض المحاصيل (مسار SAIR)',
+      titleEn: 'Module 6 Project: SAIR Sudan Agri-Predictor & Disease Classification Model',
+      titleAr: 'مشروع الوحدة السادسة: نظام التنبؤ الزراعي وتصنيف أمراض المحاصيل (مسار SAIR)',
       promptEn: `Build a Machine Learning / Data Science application addressing real-world agricultural or climate challenges in Sudan:
 1. Load and clean an agricultural/rainfall tabular dataset using Pandas (or matrix representation in C++/Java).
 2. Perform exploratory data analysis: compute statistical summaries (mean, variance, correlation) with NumPy.
@@ -312,149 +580,111 @@ export const TOPICS = [
 5. وثق هيكلية النموذج ومراحل معالجة البيانات والنتائج المستخلصة في ملف README تفصيلي على GitHub.`,
     },
   },
-  {
-    id: 'topic-5',
-    displayOrder: 5,
-    titleEn: '5. Object-Oriented Programming (OOP) & Architecture',
-    titleAr: '٥. البرمجة كائنية التوجه (OOP) وهندسة البرمجيات',
-    descriptionEn: 'Classes, objects, encapsulation, inheritance, polymorphism, and abstract interface contracts across Python, C++, and Java.',
-    descriptionAr: 'الأصناف، الكائنات، تغليف البيانات، الوراثة، تعدد الأشكال، وتصميم الواجهات المجردة عبر بايثون و C++ وجافا.',
-    languages: ['python', 'cpp', 'java'],
-    levels: ['basic', 'advanced'],
-    lessons: ['lesson-8', 'lesson-9'],
-    quiz: {
-      id: 'quiz-5',
-      titleEn: 'Module 5 Knowledge Check: OOP, Classes & Interfaces',
-      titleAr: 'اختبار تقييم المفاهيم: البرمجة الكائنية والأصناف والواجهات',
-      questions: [
-        {
-          id: 'q5-1',
-          questionEn: 'What is the primary benefit of Encapsulation in Object-Oriented Design?',
-          questionAr: 'ما هي الفائدة الجوهرية لمبدأ تغليف البيانات (Encapsulation) في التصميم الكائني؟',
-          optionsEn: [
-            'Hiding internal object state and exposing operations through well-defined public methods/properties.',
-            'Executing program code without needing a CPU.',
-            'Automatically translating code into binary machine instructions.',
-            'Allowing any function to directly modify private variables without restriction.',
-          ],
-          optionsAr: [
-            'إخفاء الحالة الداخلية للكائن والتحكم في تعديل البيانات عبر طرائق وخصائص عامة ومحمية.',
-            'تشغيل البرنامج دون الحاجة إلى معالج مركزي.',
-            'ترجمة الشيفرة تلقائياً إلى لغة الآلة الثنائية.',
-            'السماح لأي دالة بتعديل المتغيرات الخاصة بحرية تامة دون أي قيود.',
-          ],
-          correctIndex: 0,
-          explanationEn: 'Encapsulation bundles data with the methods that operate on it and restricts direct external access to internal state, enforcing data validity.',
-          explanationAr: 'يقوم التغليف بدمج البيانات مع الدوال التي تتعامل معها ويمنع الوصول المباشر للحالة الداخلية من الخارج، مما يحمي صحة وتناسق البيانات.',
-        },
-        {
-          id: 'q5-2',
-          questionEn: 'In polymorphism, what allows a subclass method to be executed dynamically via a base class reference/pointer?',
-          questionAr: 'في تعدد الأشكال (Polymorphism)، ما الذي يسمح بتنفيذ دالة الفئة المشتقة ديناميكياً عبر مؤشر أو مرجع من الفئة الأساسية؟',
-          optionsEn: [
-            'Dynamic dispatch (virtual methods and vtables in C++/Java/Python).',
-            'Restarting the operating system.',
-            'Hardcoding memory addresses at compile time.',
-            'Eliminating all classes from memory.',
-          ],
-          optionsAr: [
-            'الإرسال الديناميكي (Dynamic Dispatch عبر الدوال الافتراضية وجداول vtable).',
-            'إعادة تشغيل نظام التشغيل.',
-            'تثبيت عناوين الذاكرة بشكل صلب أثناء الترجمة.',
-            'حذف كافة الأصناف من الذاكرة.',
-          ],
-          correctIndex: 0,
-          explanationEn: 'Dynamic dispatch inspects the actual runtime type of the object and invokes the overridden implementation at runtime.',
-          explanationAr: 'يقوم الإرسال الديناميكي (Dynamic Dispatch) بفحص النوع الفعلي للكائن أثناء التشغيل واستدعاء النسخة المعاد كتابتها (Overridden Method) المناسبة.',
-        },
-      ],
-    },
-    assignment: {
-      id: 'assign-5',
-      titleEn: 'Module 5 Project: Banking & Telephony Service System',
-      titleAr: 'مشروع الوحدة الخامسة: نظام الحسابات المصرفية وخدمات الاتصالات الكائني',
-      promptEn: `Develop an Object-Oriented system (Python, C++, or Java) for banking or telecom subscription management:
-1. Design a base class Account / Subscription with encapsulated private balance / quota fields.
-2. Implement derived classes (e.g. SavingsAccount with interest, or StudentTelecomPlan with data bundles).
-3. Utilize inheritance and method overriding to apply distinct transaction fees or bundle rules.
-4. Enforce input validation and raise/throw custom exceptions on overdraft or invalid operations.
-5. Push your clean object-oriented architecture to GitHub with architectural class diagram documentation.`,
-      promptAr: `أنشئ نظاماً برمجياً كائني التوجه (بايثون، C++، أو جافا) لإدارة الحسابات المصرفية أو اشتراكات الاتصالات:
-1. صمم فئة أساسية Account بتغليف محكم للرصيد والمبالغ الخاصة.
-2. أنشئ فئات مشتقة (مثل SavingsAccount بحساب الأرباح، أو باقة اتصالات طلابية StudentPlan).
-3. طبق مبدأ الوراثة وتعدد الأشكال (Overriding) لتطبيق قواعد وحوافز مخصصة لكل نوع.
-4. اضبط التحقق من صحة المعاملات وأطلق استثناءات مخصصة عند السحب الزائد أو العمليات غير الصالحة.
-5. ارفع المشروع إلى GitHub مع مخطط هيكلي يوضح الأصناف والعلاقات بينها.`,
-    },
-  },
-  {
-    id: 'topic-6',
-    displayOrder: 6,
-    titleEn: '6. Data Structures, File I/O & Persistent Storage',
-    titleAr: '٦. هياكل البيانات، التعامل مع الملفات والتخزين الدائم',
-    descriptionEn: 'Hash maps, sets, dynamic collections, file streams, JSON serialization, and persistent data storage.',
-    descriptionAr: 'جداول التجزئة، المجموعات، القوائم الديناميكية، تدفق الملفات، وتسلسل بيانات JSON والتخزين الدائم.',
-    languages: ['python', 'cpp', 'java'],
-    levels: ['basic', 'advanced'],
-    lessons: ['lesson-10'],
-    quiz: {
-      id: 'quiz-6',
-      titleEn: 'Module 6 Knowledge Check: Collections, Files & Persistence',
-      titleAr: 'اختبار تقييم المفاهيم: هياكل البيانات وتدفق الملفات والتسلسل',
-      questions: [
-        {
-          id: 'q6-1',
-          questionEn: 'What is the average time complexity for key lookups in a Hash Map / Dictionary?',
-          questionAr: 'ما هو التعقيد الزمني المتوسط للبحث عن مفتاح في جدول التجزئة (Hash Map / Dictionary)؟',
-          optionsEn: ['O(1) constant time', 'O(N^2) quadratic time', 'O(N!) factorial time', 'O(log N!) time'],
-          optionsAr: ['O(1) زمن ثابت (Constant Time)', 'O(N^2) زمن تربيعي', 'O(N!) زمن مضروب', 'O(log N!)'],
-          correctIndex: 0,
-          explanationEn: 'Hash tables compute a hash of the key to index directly into a bucket array, providing O(1) average lookup performance.',
-          explanationAr: 'تحسب جداول التجزئة قيمة الـ Hash للمفتاح لتصل مباشرة لموقع التخزين، مما يمنحها زمناً ثابتاً O(1) في المتوسط.',
-        },
-        {
-          id: 'q6-2',
-          questionEn: 'Why should files always be accessed using context managers (with in Python, try-with-resources in Java, RAII in C++)?',
-          questionAr: 'لماذا يجب دائماً فتح الملفات عبر مديري السياق (with في بايثون، try-with-resources في جافا، و RAII في C++)؟',
-          optionsEn: [
-            'To guarantee that file handles and OS descriptors are automatically closed even if an exception occurs.',
-            'Because modern computers cannot open files without context managers.',
-            'To delete the file immediately after reading.',
-            'To double the font size of the text.',
-          ],
-          optionsAr: [
-            'لضمان إغلاق مقابض الملفات وتحرير موارد نظام التشغيل تلقائياً حتى عند حدوث أخطاء أو استثناءات.',
-            'لأن الحواسيب الحديثة لا يمكنها فتح الملفات بدون مدير سياق.',
-            'لحذف الملف مباشرة بعد قراءته.',
-            'لمضاعفة حجم خط النصوص البرمجية.',
-          ],
-          correctIndex: 0,
-          explanationEn: 'Context managers guarantee deterministic resource cleanup, preventing operating system file handle leaks.',
-          explanationAr: 'يضمن مدير السياق تحرير الموارد بشكل حتمي وإغلاق الملف حتى في حال حدوث استثناء، مانعاً تسريب مقابض الملفات في نظام التشغيل.',
-        },
-      ],
-    },
-    assignment: {
-      id: 'assign-6',
-      titleEn: 'Module 6 Project: Persistent Academic Records & Analytics Ledger',
-      titleAr: 'مشروع الوحدة السادسة: سجل الأرشيف الأكاديمي والتحليل الإحصائي الدائم',
-      promptEn: `Create a persistent command-line ledger application (Python, C++, or Java):
-1. Store records of students, topics, and scores using appropriate collections (dictionaries/maps/hash sets).
-2. Save database state to disk using structured JSON or formatted CSV files.
-3. Reload existing data on startup and handle missing or corrupt file errors gracefully.
-4. Provide search, aggregation (average score, passing rate), and export features.
-5. Push to GitHub with sample data files and comprehensive test instructions.`,
-      promptAr: `أنشئ تطبيقاً برمجياً لحفظ وإدارة السجلات الأكاديمية مع التخزين الدائم على القرص:
-1. خزن بيانات الطلاب ودرجاتهم باستخدام هياكل البيانات المناسبة (قواميس/خرائط ومجموعات).
-2. احفظ حالة النظام على القرص في ملفات JSON منظمة أو ملفات CSV.
-3. استرجع البيانات المحفوظة تلقائياً عند تشغيل البرنامج مع معالجة أخطاء فقدان الملفات.
-4. وفر مزايا البحث، التجميع الإحصائي (المتوسطات ونسب النجاح)، وتصدير التقارير.
-5. ارفع المشروع إلى GitHub مع عينات ملفات البيانات ودليل تشغيل كامل.`,
-    },
-  },
 ];
 
 export const LESSONS = [
+  {
+    id: 'lesson-0',
+    topicId: 'topic-0',
+    displayOrder: 1,
+    titleEn: 'Local Setup: IDE, Git & Creating Your Public GitHub Repo',
+    titleAr: 'الإعداد المحلي: تثبيت بيئة العمل و Git وإنشاء مستودع GitHub عام',
+    arabicStatus: 'approved',
+    isPublished: true,
+    version: 1,
+    notesEn: `Setting up your local environment: VS Code, Git, and creating a public GitHub repository for submitting capstone projects.`,
+    notesAr: `إعداد بيئة التطوير المحلية: محرر VS Code، أداة Git، وإنشاء مستودع عام على GitHub لتسليم مشاريع التخرج.`,
+    codeSnippet: `# 1. Configure your identity in Git terminal:
+git config --global user.name "Your Name"
+git config --global user.email "your.email@university.edu.sd"
+
+# 2. Initialize repository and add code:
+git init
+git add .
+git commit -m "feat: Initial commit for Hemma project"
+
+# 3. Push to public repository on GitHub:
+git remote add origin https://github.com/your-username/my-hemma-project.git
+git branch -M main
+git push -u origin main`,
+    languages: {
+      python: {
+        name: 'Python',
+        basic: {
+          notesEn: `Step 1: Install Visual Studio Code from code.visualstudio.com.
+Step 2: Install Python 3.11+ from python.org or via package manager.
+Step 3: Open terminal in VS Code (Ctrl+\` or Cmd+\`) and verify: python3 --version.
+Step 4: Initialize Git repository and create your first hello.py file.`,
+          notesAr: `الخطوة ١: ثبّت محرر Visual Studio Code من الموقع الرسمي.
+الخطوة ٢: ثبّت بايثون 3.11+ من موقع python.org.
+الخطوة ٣: افتح الطرفية في VS Code وتأكد من التثبيت: python3 --version.
+الخطوة ٤: أنشئ ملف hello.py وابدأ بتطبيق أوامر Git.`,
+          codeSnippet: `# Python verification:
+import sys
+print(f"Python runtime active: {sys.version.split()[0]}")
+print("Git repository ready for local development!")`,
+          expectedOutput: `Python runtime active: 3.12.1\nGit repository ready for local development!`,
+        },
+        advanced: {
+          notesEn: `Advanced Setup: Setting up virtual environments (.venv) and .gitignore for Python projects:
+python3 -m venv .venv
+source .venv/bin/activate  # On Linux/macOS
+.venv\\Scripts\\activate     # On Windows`,
+          notesAr: `الإعداد المتقدم: إنشاء بيئة افتراضية (.venv) وملف .gitignore لتجنب رفع الملفات المؤقتة.`,
+          codeSnippet: `# Recommended .gitignore for Python:
+# __pycache__/
+# .venv/
+# *.pyc`,
+          expectedOutput: `Virtual environment configured cleanly.`,
+        },
+      },
+      cpp: {
+        name: 'C++',
+        basic: {
+          notesEn: `Install GCC/Clang and the C/C++ Extension Pack in VS Code:
+Verify compiler: g++ --version
+Compile: g++ -std=c++20 main.cpp -o app`,
+          notesAr: `تثبيت مترجم GCC/Clang وإضافة C++ في VS Code، والتحقق عبر g++ --version.`,
+          codeSnippet: `// Verify C++ Compiler
+#include <iostream>
+
+int main() {
+    std::cout << "C++ Compiler ready! Git initialized." << std::endl;
+    return 0;
+}`,
+          expectedOutput: `C++ Compiler ready! Git initialized.`,
+        },
+        advanced: {
+          notesEn: `Modern CMake build configuration and compile flags (-Wall -Wextra -O2).`,
+          notesAr: `إعداد نظام البناء CMake وتفعيل تنبيهات المترجم.`,
+          codeSnippet: `// CMake / Makefile ready`,
+          expectedOutput: `Build configuration valid.`,
+        },
+      },
+      java: {
+        name: 'Java',
+        basic: {
+          notesEn: `Install OpenJDK 21 LTS and the Java Extension Pack:
+Verify compiler: javac --version
+Run: java Main.java`,
+          notesAr: `تثبيت OpenJDK 21 LTS وحزمة جافا في VS Code والتحقق عبر javac --version.`,
+          codeSnippet: `// Verify Java Runtime
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("Java JDK 21 ready! Local environment initialized.");
+    }
+}`,
+          expectedOutput: `Java JDK 21 ready! Local environment initialized.`,
+        },
+        advanced: {
+          notesEn: `Configuring Maven or Gradle for reproducible builds across operating systems.`,
+          notesAr: `إعداد أدوات البناء Maven أو Gradle للأنظمة المؤسسية.`,
+          codeSnippet: `// Gradle / Maven verification`,
+          expectedOutput: `Build tool ready.`,
+        },
+      },
+    },
+  },
   {
     id: 'lesson-1',
     topicId: 'topic-1',
@@ -1317,446 +1547,6 @@ public class FunctionalPipelines {
     },
   },
   {
-    id: 'lesson-6',
-    topicId: 'topic-4',
-    displayOrder: 1,
-    titleEn: 'NumPy Vectorization & High-Performance Data Processing',
-    titleAr: 'المعالجة الشعاعية والبيانات عالية الأداء عبر NumPy (مسار SAIR)',
-    arabicStatus: 'approved',
-    isPublished: true,
-    version: 1,
-    recordingLink: 'https://meet.google.com/xyz-sair-ai-track-1',
-    notesEn: `In this lesson curated with the Sudanese Artificial Intelligence Researchers (SAIR) community, you learn vector operations, tensor manipulation, and high-performance numerical computing.`,
-    notesAr: `في هذا الدرس المعد بالتعاون مع مجتمع الباحثين السودانيين في الذكاء الاصطناعي (SAIR)، ستتعلم العمليات الشعاعية، معالجة الموترات التنسورية، والحساب العددي عالي الكفاءة.`,
-    codeSnippet: `import numpy as np
-
-# Vectorized operations vs slow Python loops
-rainfall_mm = np.array([12.5, 34.0, 0.0, 8.2, 45.1, 2.0, 18.9])
-print(f"Mean Rainfall: {np.mean(rainfall_mm):.2f} mm")
-print(f"Standard Deviation: {np.std(rainfall_mm):.2f}")`,
-    languages: {
-      python: {
-        name: 'Python',
-        basic: {
-          notesEn: `NumPy (Numerical Python) is the foundation of the AI and scientific computing stack.
-- np.array creates homogeneous n-dimensional arrays.
-- Array broadcasting allows arithmetic operations on arrays of different compatible shapes without manual copying.
-- Fundamental functions: np.mean(), np.std(), np.sum(), np.dot(), np.reshape().`,
-          notesAr: `تعتبر مكتبة NumPy حجر الأساس لحزمة الذكاء الاصطناعي والحوسبة العلمية في بايثون.
-- تنشئ np.array مصفوفات متجانسة ومتعددة الأبعاد في الذاكرة.
-- تتيح ميزة البث (Broadcasting) إجراء العمليات الحسابية بين مصفوفات ذات أبعاد متوافقة تلقائياً دون نسخ الذاكرة.
-- الدوال الأساسية: np.mean(), np.std(), np.sum(), np.dot(), np.reshape().`,
-          codeSnippet: `# Python (NumPy Basic): Array Vectorization
-import numpy as np
-
-# Agricultural rainfall recordings across 7 Sudanese meteorological stations
-stations_rainfall = np.array([12.5, 34.0, 0.0, 8.2, 45.1, 2.0, 18.9])
-
-# Vectorized arithmetic (applied to every element simultaneously)
-rainfall_inches = stations_rainfall * 0.0393701
-
-print("Rainfall in inches:", np.round(rainfall_inches, 2))
-print(f"Max Station Reading: {np.max(stations_rainfall)} mm")
-print(f"Drought Days (Rain == 0): {np.sum(stations_rainfall == 0)}")`,
-        },
-        advanced: {
-          notesEn: `Advanced NumPy (SAIR AI Foundation): Matrix Factorization & Tensor Operations:
-- Multidimensional tensor reshaping and dot products for neural network weight projections.
-- Masked arrays and boolean indexing for filtering large-scale sensor anomalies.
-- Linear algebra routines (np.linalg) for computing eigenvalues and covariance matrices.`,
-          notesAr: `مستوى NumPy المتقدم (تأسيس مسار أبحاث SAIR): ضرب المصفوفات والموترات التنسورية:
-- تعديل أبعاد المصفوفات (Reshape) والضرب الماتريكسي (Dot Product) لإسقاط أوزان الشبكات العصبية.
-- الفهرسة المنطقية (Boolean Masking) لتصفية البيانات الشاذة في حساسات الطقس والتربة.
-- دوال الجبر الخطي (np.linalg) لحساب مصفوفات التباين والترابط الرياضي.`,
-          codeSnippet: `# Python (NumPy Advanced): Neural Weight Projection & Covariance
-import numpy as np
-
-# Simulated agricultural feature matrix: [Batch Size = 3, Features = 4]
-# Features: [Soil Moisture %, Temp C, Nitrogen Level, Sunlight Hours]
-X = np.array([
-    [32.0, 38.5, 140.0, 9.2],
-    [18.5, 42.1, 95.0, 11.0],
-    [45.0, 29.8, 180.0, 7.5]
-])
-
-# Random projection weights for ML embedding layer: [Features = 4, Latent Units = 2]
-np.random.seed(42)
-W = np.random.randn(4, 2)
-bias = np.array([0.1, -0.2])
-
-# Forward layer computation: Y = X * W + b
-embeddings = np.dot(X, W) + bias
-
-print("Latent Feature Projections:\\n", embeddings)
-print("Covariance Matrix Shape:", np.cov(X.T).shape)`,
-        },
-      },
-      cpp: {
-        name: 'C++',
-        basic: {
-          notesEn: `High-Performance Numeric Computing in C++:
-- Utilizing contiguous memory buffers with std::vector<double>.
-- Memory layout considerations (Cache Lines and spatial locality).`,
-          notesAr: `الحوسبة العددية عالية الأداء في لغة C++:
-- استخدام المخازن المؤقتة المتجاورة في الذاكرة عبر std::vector<double>.
-- اعتبارات تنظيم الذاكرة (Cache Lines) والتقارب المكاني للبيانات لرفع سرعة المعالجة.`,
-          codeSnippet: `// C++ Basic: Vectorized Numerical Accumulation
-#include <iostream>
-#include <vector>
-#include <numeric>
-#include <cmath>
-
-int main() {
-    std::vector<double> rainfall = {12.5, 34.0, 0.0, 8.2, 45.1, 2.0, 18.9};
-
-    double sum = std::accumulate(rainfall.begin(), rainfall.end(), 0.0);
-    double mean = sum / rainfall.size();
-
-    double sq_sum = 0.0;
-    for (double val : rainfall) {
-        sq_sum += (val - mean) * (val - mean);
-    }
-    double std_dev = std::sqrt(sq_sum / rainfall.size());
-
-    std::cout << "Mean Rainfall: " << mean << " mm\\n";
-    std::cout << "Std Deviation: " << std_dev << " mm\\n";
-    return 0;
-}`,
-        },
-        advanced: {
-          notesEn: `Advanced C++: SIMD Vectorization & Cache-Optimized Matrix Multiplication:
-- Writing loop structures that allow compiler auto-vectorization (AVX2 / AVX-512).
-- Flat 1D index mapping for 2D matrix multiplication to eliminate pointer indirection.`,
-          notesAr: `مستوى C++ المتقدم: تعليمات SIMD وتحسين ضرب المصفوفات للذاكرة المخبئية:
-- كتابة حلقات تكرار قابلة للتجميع الشعاعي التلقائي (AVX2 / AVX-512) بواسطة المترجم.
-- تمثيل المصفوفات ثنائية الأبعاد كمصفوفة أحادية مسطحة (Flat 1D) لتفادي قفزات المؤشرات في الذاكرة.`,
-          codeSnippet: `// C++ Advanced: Flat Matrix Multiplication (Cache Friendly)
-#include <iostream>
-#include <vector>
-
-void matmul(const double* A, const double* B, double* C, int N, int K, int M) {
-    for (int i = 0; i < N; ++i) {
-        for (int k = 0; k < K; ++k) {
-            for (int j = 0; j < M; ++j) {
-                C[i * M + j] += A[i * K + k] * B[k * M + j];
-            }
-        }
-    }
-}
-
-int main() {
-    // 2x2 Matrix Multiplication Demo
-    std::vector<double> A = {1.0, 2.0, 3.0, 4.0};
-    std::vector<double> B = {2.0, 0.0, 1.0, 2.0};
-    std::vector<double> C(4, 0.0);
-
-    matmul(A.data(), B.data(), C.data(), 2, 2, 2);
-    std::cout << "Result C[0][0]: " << C[0] << " | C[1][1]: " << C[3] << std::endl;
-    return 0;
-}`,
-        },
-      },
-      java: {
-        name: 'Java',
-        basic: {
-          notesEn: `Numerical Processing in Java:
-- Working with primitive double[] arrays for maximum cache locality without boxing overhead.
-- java.lang.Math utility methods for statistical formulas.`,
-          notesAr: `المعالجة العددية في لغة جافا:
-- التعامل مع مصفوفات الأعداد الأولية double[] للحفاظ على التقارب المكاني في الذاكرة وتجنب تكلفة التغليف (Autoboxing).
-- استخدام حزمة java.lang.Math لتطبيق المعادلات الإحصائية.`,
-          codeSnippet: `// Java Basic: Primitive Array Statistics
-public class NumericalStats {
-    public static void main(String[] args) {
-        double[] readings = {12.5, 34.0, 0.0, 8.2, 45.1, 2.0, 18.9};
-
-        double sum = 0.0;
-        for (double val : readings) sum += val;
-        double mean = sum / readings.length;
-
-        double variance = 0.0;
-        for (double val : readings) variance += Math.pow(val - mean, 2);
-        double stdDev = Math.sqrt(variance / readings.length);
-
-        System.out.printf("Mean: %.2f mm | StdDev: %.2f%n", mean, stdDev);
-    }
-}`,
-        },
-        advanced: {
-          notesEn: `Advanced Java: Vector API (Project Panama) & Matrix Compute:
-- Vector API (incubating in modern JDKs) provides direct hardware SIMD intrinsics.
-- Multi-threaded batch data transformations using ForkJoinPool.`,
-          notesAr: `مستوى جافا المتقدم: واجهة Vector API ومعالجة المصفوفات متعددة الخيوط:
-- استغلال واجهة Vector API الحديثة للوصول المباشر إلى تعليمات المعالج الشعاعية (Hardware SIMD).
-- تحويل دفعات البيانات عبر خيوط المعالجة المتعددة باستخدام ForkJoinPool.`,
-          codeSnippet: `// Java Advanced: Multi-Threaded Dot Product
-import java.util.stream.IntStream;
-
-public class ParallelDotProduct {
-    public static double compute(double[] a, double[] b) {
-        if (a.length != b.length) throw new IllegalArgumentException("Vector length mismatch");
-        return IntStream.range(0, a.length)
-                        .parallel()
-                        .mapToDouble(i -> a[i] * b[i])
-                        .sum();
-    }
-
-    public static void main(String[] args) {
-        double[] weights = {0.8, -0.4, 1.2, 0.5};
-        double[] inputs  = {1.5,  2.0, 0.5, 3.0};
-
-        System.out.println("Dot Product: " + compute(weights, inputs));
-    }
-}`,
-        },
-      },
-    },
-  },
-  {
-    id: 'lesson-7',
-    topicId: 'topic-4',
-    displayOrder: 2,
-    titleEn: 'Pandas & Machine Learning Foundations (SAIR Research Track)',
-    titleAr: 'تحليل البيانات وتعلم الآلة التأسيسي (مسار بحوث SAIR)',
-    arabicStatus: 'approved',
-    isPublished: true,
-    version: 1,
-    recordingLink: 'https://meet.google.com/xyz-sair-ai-track-2',
-    notesEn: `Learn tabular data engineering with Pandas and train classification models for practical real-world problem solving.`,
-    notesAr: `تعلم هندسة البيانات الجدولية باستخدام مكتبة Pandas وتدريب نماذج التصنيف الآلي لحل المشكلات الواقعية.`,
-    codeSnippet: `import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-
-# Load dataset and prepare ML pipeline
-df = pd.DataFrame({
-    'moisture': [35, 12, 42, 18, 55, 10],
-    'temp': [28, 43, 31, 39, 27, 45],
-    'healthy_crop': [1, 0, 1, 0, 1, 0]
-})
-print("Dataset Summary:\\n", df.describe())`,
-    languages: {
-      python: {
-        name: 'Python',
-        basic: {
-          notesEn: `Pandas is the leading library for data wrangling and tabular dataset exploration:
-- pd.DataFrame and pd.Series represent tables and columns.
-- Methods: .head(), .info(), .describe(), .groupby(), .fillna(), .dropna().
-- Filtering rows with boolean indexing: df[df['temp'] > 40].`,
-          notesAr: `تعتبر Pandas المكتبة الرائدة عالمياً لإدارة وتحليل البيانات الجدولية:
-- يمثل DataFrame الجداول، بينما يمثل Series الأعمدة الفردية.
-- دوال الفحص الأساسية: .head(), .info(), .describe(), .groupby(), .fillna(), .dropna().
-- تصفية الصفوف بالشروط المنطقية: df[df['temp'] > 40].`,
-          codeSnippet: `# Python (Pandas Basic): Agricultural Dataset Cleaning
-import pandas as pd
-
-data = {
-    'Region': ['Gezira', 'Gadarif', 'Nile River', 'Kassala', 'Blue Nile'],
-    'Crop': ['Sorghum', 'Sesame', 'Wheat', 'Onions', 'Cotton'],
-    'Yield_Tons': [420.5, 310.2, 580.0, None, 490.8],
-    'Rainfall_mm': [380, 520, 110, 240, 680]
-}
-
-df = pd.DataFrame(data)
-
-# Impute missing values with column median
-median_yield = df['Yield_Tons'].median()
-df['Yield_Tons'] = df['Yield_Tons'].fillna(median_yield)
-
-print("Cleaned Dataset:\\n", df)
-print(f"\\nAverage Crop Yield: {df['Yield_Tons'].mean():.2f} tons")`,
-        },
-        advanced: {
-          notesEn: `Advanced Machine Learning (SAIR Research Pipeline):
-- Feature engineering and standard scaling (StandardScaler).
-- Train/Test split to avoid data leakage and prevent overfitting.
-- Training a Logistic Regression / Random Forest model with Scikit-learn.
-- Evaluating model metrics: Accuracy, Precision, Recall, Confusion Matrix, and F1-Score.`,
-          notesAr: `مستوى تعلم الآلة المتقدم (مسار بحوث مجتمع SAIR للذكاء الاصطناعي):
-- هندسة الميزات والمعايرة القياسية (StandardScaler).
-- تقسيم البيانات لمجموعتي تدريب واختبار (Train/Test Split) لمنع تسريب البيانات وضمان التعميم.
-- تدريب نموذج تصنيف (Logistic Regression أو Random Forest) عبر مكتبة Scikit-Learn.
-- قياس دقة النموذج: Accuracy, Precision, Recall, مصفوفة الالتباس (Confusion Matrix), ومعامل F1-Score.`,
-          codeSnippet: `# Python (Scikit-Learn Advanced): End-to-End Crop Health Classifier
-import numpy as np
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, accuracy_score
-
-# 1. Synthesize agricultural health telemetry
-np.random.seed(42)
-N = 200
-moisture = np.random.uniform(10, 60, N)
-temp = np.random.uniform(20, 48, N)
-# Healthy crop (1) requires moisture > 25 and temp < 42
-labels = ((moisture > 25) & (temp < 42)).astype(int)
-
-df = pd.DataFrame({'moisture': moisture, 'temperature': temp, 'label': labels})
-
-# 2. Train / Test Split (80% train, 20% test)
-X = df[['moisture', 'temperature']]
-y = df['label']
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# 3. Feature Scaling & Model Training
-scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
-
-model = LogisticRegression()
-model.fit(X_train_scaled, y_train)
-
-# 4. Evaluation
-preds = model.predict(X_test_scaled)
-print(f"SAIR Model Accuracy: {accuracy_score(y_test, preds) * 100:.1f}%")
-print("\\nClassification Metrics:\\n", classification_report(y_test, preds))`,
-        },
-      },
-      cpp: {
-        name: 'C++',
-        basic: {
-          notesEn: `Tabular Record Structures in C++:
-- Using struct or class to represent rows of heterogeneous attributes.
-- Reading and parsing CSV data into vectors of records.`,
-          notesAr: `هياكل السجلات الجدولية في C++:
-- استخدام struct أو class لتمثيل صفوف البيانات غير المتجانسة.
-- قراءة وتجزئة ملفات CSV وتخزينها في قوائم ديناميكية من السجلات.`,
-          codeSnippet: `// C++ Basic: Tabular Record Data Representation
-#include <iostream>
-#include <vector>
-#include <string>
-
-struct CropRecord {
-    std::string region;
-    double yield_tons;
-    int rainfall_mm;
-};
-
-int main() {
-    std::vector<CropRecord> dataset = {
-        {"Gezira", 420.5, 380},
-        {"Gadarif", 310.2, 520},
-        {"Nile River", 580.0, 110}
-    };
-
-    double total_yield = 0.0;
-    for (const auto& rec : dataset) {
-        total_yield += rec.yield_tons;
-        std::cout << "Region: " << rec.region << " | Yield: " << rec.yield_tons << " t\\n";
-    }
-
-    std::cout << "Total Production: " << total_yield << " tons\\n";
-    return 0;
-}`,
-        },
-        advanced: {
-          notesEn: `Advanced C++: Building a Decision Stump / Logistic Classifier from Scratch:
-- Implementing numerical gradient descent in C++ without third-party frameworks.
-- Direct sigmoid activation computation and binary cross-entropy loss tracking.`,
-          notesAr: `مستوى C++ المتقدم: بناء خوارزمية الانحدار اللوجستي من الصفر:
-- برمجة خوارزمية النزول التدريجي (Gradient Descent) بلغة C++ مباشرة دون أطر عمل خارجية.
-- حساب دالة التنشيط السيجمويدية (Sigmoid) ومتابعة دالة التكلفة (Cross-Entropy Loss).`,
-          codeSnippet: `// C++ Advanced: Lightweight Logistic Regression Classifier
-#include <iostream>
-#include <vector>
-#include <cmath>
-
-double sigmoid(double z) {
-    return 1.0 / (1.0 + std::exp(-z));
-}
-
-int main() {
-    // Feature: normalized soil moisture -> Target: 1 (healthy), 0 (wilted)
-    std::vector<double> x = {0.1, 0.2, 0.7, 0.8, 0.9};
-    std::vector<int> y = {0, 0, 1, 1, 1};
-
-    double weight = 0.0;
-    double bias = 0.0;
-    double learning_rate = 0.1;
-
-    for (int epoch = 0; epoch < 500; ++epoch) {
-        double dw = 0.0, db = 0.0;
-        for (size_t i = 0; i < x.size(); ++i) {
-            double pred = sigmoid(weight * x[i] + bias);
-            double err = pred - y[i];
-            dw += err * x[i];
-            db += err;
-        }
-        weight -= learning_rate * (dw / x.size());
-        bias -= learning_rate * (db / x.size());
-    }
-
-    std::cout << "Trained Weight: " << weight << " | Bias: " << bias << std::endl;
-    std::cout << "Prediction for 0.75 moisture: " << sigmoid(weight * 0.75 + bias) << std::endl;
-    return 0;
-}`,
-        },
-      },
-      java: {
-        name: 'Java',
-        basic: {
-          notesEn: `Data Modeling in Java:
-- Creating Java records (Java 16+) for immutable, clean tabular row representations.
-- Aggregating metrics with Java Stream collectors.`,
-          notesAr: `نمذجة البيانات في لغة جافا:
-- استخدام سجلات جافا الحديثة (Java Records) لتمثيل صفوف البيانات الجدولية بشكل نظيف وآمن.
-- تجميع وحساب المتوسطات عبر جامعات التدفق (Stream Collectors).`,
-          codeSnippet: `// Java Basic: Tabular Java Records
-import java.util.List;
-
-public class CropDataAnalysis {
-    public record CropEntry(String region, double yieldTons, int rainfallMm) {}
-
-    public static void main(String[] args) {
-        List<CropEntry> records = List.of(
-            new CropEntry("Gezira", 420.5, 380),
-            new CropEntry("Gadarif", 310.2, 520),
-            new CropEntry("Nile River", 580.0, 110)
-        );
-
-        double totalYield = records.stream()
-                                   .mapToDouble(CropEntry::yieldTons)
-                                   .sum();
-
-        System.out.printf("Total Agricultural Yield: %,.2f tons%n", totalYield);
-    }
-}`,
-        },
-        advanced: {
-          notesEn: `Advanced Java: Machine Learning Classification Pipeline with Tribuo/Weka Concepts:
-- Normalization pipelines and decision evaluation.
-- Confusion matrix and F1 metric calculation in clean object-oriented architecture.`,
-          notesAr: `مستوى جافا المتقدم: خط أنابيب تصنيف تعلم الآلة وفق المفاهيم الكائنية:
-- بناء معالجات القياس والتحويل العددي (Normalization).
-- حساب مصفوفة الالتباس ومعامل F1-Score وفق هيكلية برمجية نظيفة وقابلة للتوسع.`,
-          codeSnippet: `// Java Advanced: Confusion Matrix and Precision/Recall Evaluator
-public class ModelEvaluator {
-    public static void main(String[] args) {
-        int[] actual    = {1, 0, 1, 1, 0, 1, 0, 0, 1, 1};
-        int[] predicted = {1, 0, 1, 0, 0, 1, 0, 1, 1, 1};
-
-        int tp = 0, fp = 0, fn = 0, tn = 0;
-        for (int i = 0; i < actual.length; i++) {
-            if (actual[i] == 1 && predicted[i] == 1) tp++;
-            else if (actual[i] == 0 && predicted[i] == 1) fp++;
-            else if (actual[i] == 1 && predicted[i] == 0) fn++;
-            else tn++;
-        }
-
-        double precision = (double) tp / (tp + fp);
-        double recall = (double) tp / (tp + fn);
-        double f1 = 2 * (precision * recall) / (precision + recall);
-
-        System.out.printf("Precision: %.2f | Recall: %.2f | F1-Score: %.2f%n", precision, recall, f1);
-    }
-}`,
-        },
-      },
-    },
-  },
-  {
     id: 'lesson-8',
     topicId: 'topic-5',
     displayOrder: 1,
@@ -2454,6 +2244,446 @@ public class AdvancedPersistence {
         } catch (IOException e) {
             System.err.println("File stream error: " + e.getMessage());
         }
+    }
+}`,
+        },
+      },
+    },
+  },
+  {
+    id: 'lesson-6',
+    topicId: 'topic-4',
+    displayOrder: 1,
+    titleEn: 'NumPy Vectorization & High-Performance Data Processing',
+    titleAr: 'المعالجة الشعاعية والبيانات عالية الأداء عبر NumPy (مسار SAIR)',
+    arabicStatus: 'approved',
+    isPublished: true,
+    version: 1,
+    recordingLink: 'https://meet.google.com/xyz-sair-ai-track-1',
+    notesEn: `In this lesson curated with the Sudanese Artificial Intelligence Researchers (SAIR) community, you learn vector operations, tensor manipulation, and high-performance numerical computing.`,
+    notesAr: `في هذا الدرس المعد بالتعاون مع مجتمع الباحثين السودانيين في الذكاء الاصطناعي (SAIR)، ستتعلم العمليات الشعاعية، معالجة الموترات التنسورية، والحساب العددي عالي الكفاءة.`,
+    codeSnippet: `import numpy as np
+
+# Vectorized operations vs slow Python loops
+rainfall_mm = np.array([12.5, 34.0, 0.0, 8.2, 45.1, 2.0, 18.9])
+print(f"Mean Rainfall: {np.mean(rainfall_mm):.2f} mm")
+print(f"Standard Deviation: {np.std(rainfall_mm):.2f}")`,
+    languages: {
+      python: {
+        name: 'Python',
+        basic: {
+          notesEn: `NumPy (Numerical Python) is the foundation of the AI and scientific computing stack.
+- np.array creates homogeneous n-dimensional arrays.
+- Array broadcasting allows arithmetic operations on arrays of different compatible shapes without manual copying.
+- Fundamental functions: np.mean(), np.std(), np.sum(), np.dot(), np.reshape().`,
+          notesAr: `تعتبر مكتبة NumPy حجر الأساس لحزمة الذكاء الاصطناعي والحوسبة العلمية في بايثون.
+- تنشئ np.array مصفوفات متجانسة ومتعددة الأبعاد في الذاكرة.
+- تتيح ميزة البث (Broadcasting) إجراء العمليات الحسابية بين مصفوفات ذات أبعاد متوافقة تلقائياً دون نسخ الذاكرة.
+- الدوال الأساسية: np.mean(), np.std(), np.sum(), np.dot(), np.reshape().`,
+          codeSnippet: `# Python (NumPy Basic): Array Vectorization
+import numpy as np
+
+# Agricultural rainfall recordings across 7 Sudanese meteorological stations
+stations_rainfall = np.array([12.5, 34.0, 0.0, 8.2, 45.1, 2.0, 18.9])
+
+# Vectorized arithmetic (applied to every element simultaneously)
+rainfall_inches = stations_rainfall * 0.0393701
+
+print("Rainfall in inches:", np.round(rainfall_inches, 2))
+print(f"Max Station Reading: {np.max(stations_rainfall)} mm")
+print(f"Drought Days (Rain == 0): {np.sum(stations_rainfall == 0)}")`,
+        },
+        advanced: {
+          notesEn: `Advanced NumPy (SAIR AI Foundation): Matrix Factorization & Tensor Operations:
+- Multidimensional tensor reshaping and dot products for neural network weight projections.
+- Masked arrays and boolean indexing for filtering large-scale sensor anomalies.
+- Linear algebra routines (np.linalg) for computing eigenvalues and covariance matrices.`,
+          notesAr: `مستوى NumPy المتقدم (تأسيس مسار أبحاث SAIR): ضرب المصفوفات والموترات التنسورية:
+- تعديل أبعاد المصفوفات (Reshape) والضرب الماتريكسي (Dot Product) لإسقاط أوزان الشبكات العصبية.
+- الفهرسة المنطقية (Boolean Masking) لتصفية البيانات الشاذة في حساسات الطقس والتربة.
+- دوال الجبر الخطي (np.linalg) لحساب مصفوفات التباين والترابط الرياضي.`,
+          codeSnippet: `# Python (NumPy Advanced): Neural Weight Projection & Covariance
+import numpy as np
+
+# Simulated agricultural feature matrix: [Batch Size = 3, Features = 4]
+# Features: [Soil Moisture %, Temp C, Nitrogen Level, Sunlight Hours]
+X = np.array([
+    [32.0, 38.5, 140.0, 9.2],
+    [18.5, 42.1, 95.0, 11.0],
+    [45.0, 29.8, 180.0, 7.5]
+])
+
+# Random projection weights for ML embedding layer: [Features = 4, Latent Units = 2]
+np.random.seed(42)
+W = np.random.randn(4, 2)
+bias = np.array([0.1, -0.2])
+
+# Forward layer computation: Y = X * W + b
+embeddings = np.dot(X, W) + bias
+
+print("Latent Feature Projections:\\n", embeddings)
+print("Covariance Matrix Shape:", np.cov(X.T).shape)`,
+        },
+      },
+      cpp: {
+        name: 'C++',
+        basic: {
+          notesEn: `High-Performance Numeric Computing in C++:
+- Utilizing contiguous memory buffers with std::vector<double>.
+- Memory layout considerations (Cache Lines and spatial locality).`,
+          notesAr: `الحوسبة العددية عالية الأداء في لغة C++:
+- استخدام المخازن المؤقتة المتجاورة في الذاكرة عبر std::vector<double>.
+- اعتبارات تنظيم الذاكرة (Cache Lines) والتقارب المكاني للبيانات لرفع سرعة المعالجة.`,
+          codeSnippet: `// C++ Basic: Vectorized Numerical Accumulation
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <cmath>
+
+int main() {
+    std::vector<double> rainfall = {12.5, 34.0, 0.0, 8.2, 45.1, 2.0, 18.9};
+
+    double sum = std::accumulate(rainfall.begin(), rainfall.end(), 0.0);
+    double mean = sum / rainfall.size();
+
+    double sq_sum = 0.0;
+    for (double val : rainfall) {
+        sq_sum += (val - mean) * (val - mean);
+    }
+    double std_dev = std::sqrt(sq_sum / rainfall.size());
+
+    std::cout << "Mean Rainfall: " << mean << " mm\\n";
+    std::cout << "Std Deviation: " << std_dev << " mm\\n";
+    return 0;
+}`,
+        },
+        advanced: {
+          notesEn: `Advanced C++: SIMD Vectorization & Cache-Optimized Matrix Multiplication:
+- Writing loop structures that allow compiler auto-vectorization (AVX2 / AVX-512).
+- Flat 1D index mapping for 2D matrix multiplication to eliminate pointer indirection.`,
+          notesAr: `مستوى C++ المتقدم: تعليمات SIMD وتحسين ضرب المصفوفات للذاكرة المخبئية:
+- كتابة حلقات تكرار قابلة للتجميع الشعاعي التلقائي (AVX2 / AVX-512) بواسطة المترجم.
+- تمثيل المصفوفات ثنائية الأبعاد كمصفوفة أحادية مسطحة (Flat 1D) لتفادي قفزات المؤشرات في الذاكرة.`,
+          codeSnippet: `// C++ Advanced: Flat Matrix Multiplication (Cache Friendly)
+#include <iostream>
+#include <vector>
+
+void matmul(const double* A, const double* B, double* C, int N, int K, int M) {
+    for (int i = 0; i < N; ++i) {
+        for (int k = 0; k < K; ++k) {
+            for (int j = 0; j < M; ++j) {
+                C[i * M + j] += A[i * K + k] * B[k * M + j];
+            }
+        }
+    }
+}
+
+int main() {
+    // 2x2 Matrix Multiplication Demo
+    std::vector<double> A = {1.0, 2.0, 3.0, 4.0};
+    std::vector<double> B = {2.0, 0.0, 1.0, 2.0};
+    std::vector<double> C(4, 0.0);
+
+    matmul(A.data(), B.data(), C.data(), 2, 2, 2);
+    std::cout << "Result C[0][0]: " << C[0] << " | C[1][1]: " << C[3] << std::endl;
+    return 0;
+}`,
+        },
+      },
+      java: {
+        name: 'Java',
+        basic: {
+          notesEn: `Numerical Processing in Java:
+- Working with primitive double[] arrays for maximum cache locality without boxing overhead.
+- java.lang.Math utility methods for statistical formulas.`,
+          notesAr: `المعالجة العددية في لغة جافا:
+- التعامل مع مصفوفات الأعداد الأولية double[] للحفاظ على التقارب المكاني في الذاكرة وتجنب تكلفة التغليف (Autoboxing).
+- استخدام حزمة java.lang.Math لتطبيق المعادلات الإحصائية.`,
+          codeSnippet: `// Java Basic: Primitive Array Statistics
+public class NumericalStats {
+    public static void main(String[] args) {
+        double[] readings = {12.5, 34.0, 0.0, 8.2, 45.1, 2.0, 18.9};
+
+        double sum = 0.0;
+        for (double val : readings) sum += val;
+        double mean = sum / readings.length;
+
+        double variance = 0.0;
+        for (double val : readings) variance += Math.pow(val - mean, 2);
+        double stdDev = Math.sqrt(variance / readings.length);
+
+        System.out.printf("Mean: %.2f mm | StdDev: %.2f%n", mean, stdDev);
+    }
+}`,
+        },
+        advanced: {
+          notesEn: `Advanced Java: Vector API (Project Panama) & Matrix Compute:
+- Vector API (incubating in modern JDKs) provides direct hardware SIMD intrinsics.
+- Multi-threaded batch data transformations using ForkJoinPool.`,
+          notesAr: `مستوى جافا المتقدم: واجهة Vector API ومعالجة المصفوفات متعددة الخيوط:
+- استغلال واجهة Vector API الحديثة للوصول المباشر إلى تعليمات المعالج الشعاعية (Hardware SIMD).
+- تحويل دفعات البيانات عبر خيوط المعالجة المتعددة باستخدام ForkJoinPool.`,
+          codeSnippet: `// Java Advanced: Multi-Threaded Dot Product
+import java.util.stream.IntStream;
+
+public class ParallelDotProduct {
+    public static double compute(double[] a, double[] b) {
+        if (a.length != b.length) throw new IllegalArgumentException("Vector length mismatch");
+        return IntStream.range(0, a.length)
+                        .parallel()
+                        .mapToDouble(i -> a[i] * b[i])
+                        .sum();
+    }
+
+    public static void main(String[] args) {
+        double[] weights = {0.8, -0.4, 1.2, 0.5};
+        double[] inputs  = {1.5,  2.0, 0.5, 3.0};
+
+        System.out.println("Dot Product: " + compute(weights, inputs));
+    }
+}`,
+        },
+      },
+    },
+  },
+  {
+    id: 'lesson-7',
+    topicId: 'topic-4',
+    displayOrder: 2,
+    titleEn: 'Pandas & Machine Learning Foundations (SAIR Research Track)',
+    titleAr: 'تحليل البيانات وتعلم الآلة التأسيسي (مسار بحوث SAIR)',
+    arabicStatus: 'approved',
+    isPublished: true,
+    version: 1,
+    recordingLink: 'https://meet.google.com/xyz-sair-ai-track-2',
+    notesEn: `Learn tabular data engineering with Pandas and train classification models for practical real-world problem solving.`,
+    notesAr: `تعلم هندسة البيانات الجدولية باستخدام مكتبة Pandas وتدريب نماذج التصنيف الآلي لحل المشكلات الواقعية.`,
+    codeSnippet: `import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+
+# Load dataset and prepare ML pipeline
+df = pd.DataFrame({
+    'moisture': [35, 12, 42, 18, 55, 10],
+    'temp': [28, 43, 31, 39, 27, 45],
+    'healthy_crop': [1, 0, 1, 0, 1, 0]
+})
+print("Dataset Summary:\\n", df.describe())`,
+    languages: {
+      python: {
+        name: 'Python',
+        basic: {
+          notesEn: `Pandas is the leading library for data wrangling and tabular dataset exploration:
+- pd.DataFrame and pd.Series represent tables and columns.
+- Methods: .head(), .info(), .describe(), .groupby(), .fillna(), .dropna().
+- Filtering rows with boolean indexing: df[df['temp'] > 40].`,
+          notesAr: `تعتبر Pandas المكتبة الرائدة عالمياً لإدارة وتحليل البيانات الجدولية:
+- يمثل DataFrame الجداول، بينما يمثل Series الأعمدة الفردية.
+- دوال الفحص الأساسية: .head(), .info(), .describe(), .groupby(), .fillna(), .dropna().
+- تصفية الصفوف بالشروط المنطقية: df[df['temp'] > 40].`,
+          codeSnippet: `# Python (Pandas Basic): Agricultural Dataset Cleaning
+import pandas as pd
+
+data = {
+    'Region': ['Gezira', 'Gadarif', 'Nile River', 'Kassala', 'Blue Nile'],
+    'Crop': ['Sorghum', 'Sesame', 'Wheat', 'Onions', 'Cotton'],
+    'Yield_Tons': [420.5, 310.2, 580.0, None, 490.8],
+    'Rainfall_mm': [380, 520, 110, 240, 680]
+}
+
+df = pd.DataFrame(data)
+
+# Impute missing values with column median
+median_yield = df['Yield_Tons'].median()
+df['Yield_Tons'] = df['Yield_Tons'].fillna(median_yield)
+
+print("Cleaned Dataset:\\n", df)
+print(f"\\nAverage Crop Yield: {df['Yield_Tons'].mean():.2f} tons")`,
+        },
+        advanced: {
+          notesEn: `Advanced Machine Learning (SAIR Research Pipeline):
+- Feature engineering and standard scaling (StandardScaler).
+- Train/Test split to avoid data leakage and prevent overfitting.
+- Training a Logistic Regression / Random Forest model with Scikit-learn.
+- Evaluating model metrics: Accuracy, Precision, Recall, Confusion Matrix, and F1-Score.`,
+          notesAr: `مستوى تعلم الآلة المتقدم (مسار بحوث مجتمع SAIR للذكاء الاصطناعي):
+- هندسة الميزات والمعايرة القياسية (StandardScaler).
+- تقسيم البيانات لمجموعتي تدريب واختبار (Train/Test Split) لمنع تسريب البيانات وضمان التعميم.
+- تدريب نموذج تصنيف (Logistic Regression أو Random Forest) عبر مكتبة Scikit-Learn.
+- قياس دقة النموذج: Accuracy, Precision, Recall, مصفوفة الالتباس (Confusion Matrix), ومعامل F1-Score.`,
+          codeSnippet: `# Python (Scikit-Learn Advanced): End-to-End Crop Health Classifier
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, accuracy_score
+
+# 1. Synthesize agricultural health telemetry
+np.random.seed(42)
+N = 200
+moisture = np.random.uniform(10, 60, N)
+temp = np.random.uniform(20, 48, N)
+# Healthy crop (1) requires moisture > 25 and temp < 42
+labels = ((moisture > 25) & (temp < 42)).astype(int)
+
+df = pd.DataFrame({'moisture': moisture, 'temperature': temp, 'label': labels})
+
+# 2. Train / Test Split (80% train, 20% test)
+X = df[['moisture', 'temperature']]
+y = df['label']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 3. Feature Scaling & Model Training
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+model = LogisticRegression()
+model.fit(X_train_scaled, y_train)
+
+# 4. Evaluation
+preds = model.predict(X_test_scaled)
+print(f"SAIR Model Accuracy: {accuracy_score(y_test, preds) * 100:.1f}%")
+print("\\nClassification Metrics:\\n", classification_report(y_test, preds))`,
+        },
+      },
+      cpp: {
+        name: 'C++',
+        basic: {
+          notesEn: `Tabular Record Structures in C++:
+- Using struct or class to represent rows of heterogeneous attributes.
+- Reading and parsing CSV data into vectors of records.`,
+          notesAr: `هياكل السجلات الجدولية في C++:
+- استخدام struct أو class لتمثيل صفوف البيانات غير المتجانسة.
+- قراءة وتجزئة ملفات CSV وتخزينها في قوائم ديناميكية من السجلات.`,
+          codeSnippet: `// C++ Basic: Tabular Record Data Representation
+#include <iostream>
+#include <vector>
+#include <string>
+
+struct CropRecord {
+    std::string region;
+    double yield_tons;
+    int rainfall_mm;
+};
+
+int main() {
+    std::vector<CropRecord> dataset = {
+        {"Gezira", 420.5, 380},
+        {"Gadarif", 310.2, 520},
+        {"Nile River", 580.0, 110}
+    };
+
+    double total_yield = 0.0;
+    for (const auto& rec : dataset) {
+        total_yield += rec.yield_tons;
+        std::cout << "Region: " << rec.region << " | Yield: " << rec.yield_tons << " t\\n";
+    }
+
+    std::cout << "Total Production: " << total_yield << " tons\\n";
+    return 0;
+}`,
+        },
+        advanced: {
+          notesEn: `Advanced C++: Building a Decision Stump / Logistic Classifier from Scratch:
+- Implementing numerical gradient descent in C++ without third-party frameworks.
+- Direct sigmoid activation computation and binary cross-entropy loss tracking.`,
+          notesAr: `مستوى C++ المتقدم: بناء خوارزمية الانحدار اللوجستي من الصفر:
+- برمجة خوارزمية النزول التدريجي (Gradient Descent) بلغة C++ مباشرة دون أطر عمل خارجية.
+- حساب دالة التنشيط السيجمويدية (Sigmoid) ومتابعة دالة التكلفة (Cross-Entropy Loss).`,
+          codeSnippet: `// C++ Advanced: Lightweight Logistic Regression Classifier
+#include <iostream>
+#include <vector>
+#include <cmath>
+
+double sigmoid(double z) {
+    return 1.0 / (1.0 + std::exp(-z));
+}
+
+int main() {
+    // Feature: normalized soil moisture -> Target: 1 (healthy), 0 (wilted)
+    std::vector<double> x = {0.1, 0.2, 0.7, 0.8, 0.9};
+    std::vector<int> y = {0, 0, 1, 1, 1};
+
+    double weight = 0.0;
+    double bias = 0.0;
+    double learning_rate = 0.1;
+
+    for (int epoch = 0; epoch < 500; ++epoch) {
+        double dw = 0.0, db = 0.0;
+        for (size_t i = 0; i < x.size(); ++i) {
+            double pred = sigmoid(weight * x[i] + bias);
+            double err = pred - y[i];
+            dw += err * x[i];
+            db += err;
+        }
+        weight -= learning_rate * (dw / x.size());
+        bias -= learning_rate * (db / x.size());
+    }
+
+    std::cout << "Trained Weight: " << weight << " | Bias: " << bias << std::endl;
+    std::cout << "Prediction for 0.75 moisture: " << sigmoid(weight * 0.75 + bias) << std::endl;
+    return 0;
+}`,
+        },
+      },
+      java: {
+        name: 'Java',
+        basic: {
+          notesEn: `Data Modeling in Java:
+- Creating Java records (Java 16+) for immutable, clean tabular row representations.
+- Aggregating metrics with Java Stream collectors.`,
+          notesAr: `نمذجة البيانات في لغة جافا:
+- استخدام سجلات جافا الحديثة (Java Records) لتمثيل صفوف البيانات الجدولية بشكل نظيف وآمن.
+- تجميع وحساب المتوسطات عبر جامعات التدفق (Stream Collectors).`,
+          codeSnippet: `// Java Basic: Tabular Java Records
+import java.util.List;
+
+public class CropDataAnalysis {
+    public record CropEntry(String region, double yieldTons, int rainfallMm) {}
+
+    public static void main(String[] args) {
+        List<CropEntry> records = List.of(
+            new CropEntry("Gezira", 420.5, 380),
+            new CropEntry("Gadarif", 310.2, 520),
+            new CropEntry("Nile River", 580.0, 110)
+        );
+
+        double totalYield = records.stream()
+                                   .mapToDouble(CropEntry::yieldTons)
+                                   .sum();
+
+        System.out.printf("Total Agricultural Yield: %,.2f tons%n", totalYield);
+    }
+}`,
+        },
+        advanced: {
+          notesEn: `Advanced Java: Machine Learning Classification Pipeline with Tribuo/Weka Concepts:
+- Normalization pipelines and decision evaluation.
+- Confusion matrix and F1 metric calculation in clean object-oriented architecture.`,
+          notesAr: `مستوى جافا المتقدم: خط أنابيب تصنيف تعلم الآلة وفق المفاهيم الكائنية:
+- بناء معالجات القياس والتحويل العددي (Normalization).
+- حساب مصفوفة الالتباس ومعامل F1-Score وفق هيكلية برمجية نظيفة وقابلة للتوسع.`,
+          codeSnippet: `// Java Advanced: Confusion Matrix and Precision/Recall Evaluator
+public class ModelEvaluator {
+    public static void main(String[] args) {
+        int[] actual    = {1, 0, 1, 1, 0, 1, 0, 0, 1, 1};
+        int[] predicted = {1, 0, 1, 0, 0, 1, 0, 1, 1, 1};
+
+        int tp = 0, fp = 0, fn = 0, tn = 0;
+        for (int i = 0; i < actual.length; i++) {
+            if (actual[i] == 1 && predicted[i] == 1) tp++;
+            else if (actual[i] == 0 && predicted[i] == 1) fp++;
+            else if (actual[i] == 1 && predicted[i] == 0) fn++;
+            else tn++;
+        }
+
+        double precision = (double) tp / (tp + fp);
+        double recall = (double) tp / (tp + fn);
+        double f1 = 2 * (precision * recall) / (precision + recall);
+
+        System.out.printf("Precision: %.2f | Recall: %.2f | F1-Score: %.2f%n", precision, recall, f1);
     }
 }`,
         },

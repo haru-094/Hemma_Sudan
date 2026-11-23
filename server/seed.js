@@ -199,7 +199,9 @@ async function seedDatabase() {
   } catch (err) {
     console.error('Database migration/seed error:', err.message);
   } finally {
-    await db.pool.end();
+    if (require.main === module) {
+      await db.pool.end();
+    }
   }
 }
 

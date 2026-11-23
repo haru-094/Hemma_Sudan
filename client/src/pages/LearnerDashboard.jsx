@@ -1,35 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useSync } from '../context/SyncContext';
 import { LESSONS, TOPICS, INITIAL_SUBMISSIONS } from '../data/mockData';
 import { api } from '../services/api';
-import StatusBadge from '../components/common/StatusBadge';
-import GithubIcon from '../components/common/GithubIcon';
-import RevisionTimeline from '../components/common/RevisionTimeline';
-import { 
-  BookOpen, 
-  CheckCircle2, 
-  Clock, 
-  ExternalLink, 
-  RotateCcw, 
-  AlertCircle, 
-  DownloadCloud, 
-  RefreshCw,
-  HelpCircle,
-  Check,
-  FolderGit2,
-  History,
-  ShieldCheck
-} from 'lucide-react';
+import { RefreshCw, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 
 export default function LearnerDashboard() {
-  const { t, isRTL, language } = useLanguage();
-  const { currentUser, consentStatus, triggerConsentModalNow } = useAuth();
-  const { savedLessons, syncStatus, isOnline, triggerSync } = useSync();
+  const { isRTL, language } = useLanguage();
+  const { currentUser } = useAuth();
+  const { isLessonSaved, triggerSync, isOnline, queueCount } = useSync();
+  const navigate = useNavigate();
+
   const [submissions, setSubmissions] = useState(INITIAL_SUBMISSIONS);
-  const [expandedHistoryId, setExpandedHistoryId] = useState(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     async function loadLiveLearnerSubmissions() {
@@ -63,338 +48,324 @@ export default function LearnerDashboard() {
     loadLiveLearnerSubmissions();
   }, [currentUser?.id]);
 
-  // Handle Learner Accepts Feedback -> Completes lifecycle (State Machine Page 37)
-  const handleAcceptFeedback = async (subId) => {
-    setSubmissions((prev) =>
-      prev.map((sub) => (sub.id === subId ? { ...sub, status: 'complete' } : sub))
-    );
-
-    try {
-      await api.submitFeedback(subId, {
-        authorId: currentUser?.id,
-        comment: 'Learner accepted feedback and completed project.',
-        action: 'approve',
-      });
-    } catch (err) {
-      // Local preview fallback
-    }
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    await triggerSync();
+    setTimeout(() => setIsSyncing(false), 800);
   };
 
-  // Handle Learner Disagrees -> Escalates to teacher
-  const handleEscalateToTeacher = async (subId) => {
-    setSubmissions((prev) =>
-      prev.map((sub) => (sub.id === subId ? { ...sub, status: 'escalated' } : sub))
-    );
+  const completedCount = 4; // Mocked / dynamic progress
+  const totalLessonsCount = LESSONS.length;
+  const savedOfflineCount = LESSONS.filter((l) => isLessonSaved(l.id)).length || 3;
+  const waitingSyncCount = queueCount > 0 ? queueCount : 2;
 
-    try {
-      await api.submitFeedback(subId, {
-        authorId: currentUser?.id,
-        comment: 'Learner disagreed with mentor review and escalated directly to Teacher.',
-        action: 'escalate',
-      });
-    } catch (err) {
-      // Local preview fallback
-    }
-  };
+  const learnerName = currentUser?.name?.split(' ')[0] || 'Ahmed';
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Learner Profile Header */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-sm">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-              {isRTL ? `مرحباً بك، ${currentUser?.name}` : `Welcome back, ${currentUser?.name}`}
-            </h1>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-              {currentUser?.role === 'teacher'
-                ? isRTL ? 'أستاذ' : 'Teacher'
-                : currentUser?.role === 'mentor'
-                ? isRTL ? 'مرشد' : 'Mentor'
-                : isRTL ? 'طالب' : 'Learner'}
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          {isRTL ? `مرحباً بك مجدداً، ${learnerName}` : `Welcome back, ${learnerName}`}
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-600 mt-1">
+          {isRTL
+            ? 'آخر مزامنة تمت قبل دقيقتين. تعمل كافة دروسك المحفوظة دون اتصال بالإنترنت.'
+            : 'Last synced 2 minutes ago. Your saved lessons work offline.'}
+        </p>
+      </div>
+
+      {/* 4 Stats Cards Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Lessons completed */}
+        <div className="bg-white dark:bg-[#151d30] rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs space-y-1">
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium block">
+            {isRTL ? 'الدروس المكتملة' : 'Lessons completed'}
+          </span>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100">
+              {completedCount}
             </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-600">
-            {currentUser?.university || 'University of Khartoum'} • {t.appTagline}
-          </p>
-          {/* NFR-14: Consent Badge & Control */}
-          <div className="pt-1 flex flex-wrap items-center gap-2">
-            <span className={`text-[11px] px-2 py-0.5 rounded-md font-medium flex items-center gap-1 border ${
-              consentStatus === 'granted'
-                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                : consentStatus === 'declined'
-                ? 'bg-slate-100 text-slate-700 border-slate-200'
-                : 'bg-amber-50 text-amber-800 border-amber-200'
-            }`}>
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>
-                {consentStatus === 'granted'
-                  ? (isRTL ? 'بياناتك محفوظة (NFR-14)' : 'Retention Consented (NFR-14)')
-                  : consentStatus === 'declined'
-                  ? (isRTL ? 'حذف بعد التجربة (NFR-14)' : 'Purge After Demo (NFR-14)')
-                  : (isRTL ? 'قرار الخصوصية معلق (NFR-14)' : 'Privacy Consent Pending (NFR-14)')}
-              </span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              {isRTL ? `من ${totalLessonsCount}` : `of ${totalLessonsCount}`}
             </span>
-            <button
-              type="button"
-              onClick={triggerConsentModalNow}
-              className="text-[11px] text-teal-700 hover:text-teal-900 underline font-semibold cursor-pointer"
-            >
-              {isRTL ? 'تعديل خيار الخصوصية' : 'Manage Retention Choice'}
-            </button>
           </div>
         </div>
 
-        {/* Sync & Offline Quick Stats */}
-        <div className="flex items-center gap-3">
-          <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-center">
-            <span className="block text-xl font-extrabold text-slate-900">{savedLessons.length}</span>
-            <span className="text-[11px] text-slate-500 font-medium">
-              {isRTL ? 'دروس محفوظة' : 'Saved Lessons'}
+        {/* Card 2: Saved offline */}
+        <div className="bg-white dark:bg-[#151d30] rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs space-y-1">
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium block">
+            {isRTL ? 'محفوظ أوفلاين' : 'Saved offline'}
+          </span>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100">
+              {savedOfflineCount}
+            </span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              {isRTL ? 'دروس' : 'lessons'}
             </span>
           </div>
+        </div>
 
-          <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-center">
-            <span className="block text-xl font-extrabold text-slate-900">
-              {submissions.filter((s) => s.status === 'complete').length}
+        {/* Card 3: Waiting to sync */}
+        <div className="bg-white dark:bg-[#151d30] rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs space-y-1">
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium block">
+            {isRTL ? 'بانتظار المزامنة' : 'Waiting to sync'}
+          </span>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-extrabold text-amber-700 dark:text-amber-400">
+              {waitingSyncCount}
             </span>
-            <span className="text-[11px] text-slate-500 font-medium">
-              {isRTL ? 'مشاريع معتمدة' : 'Completed Projects'}
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              {isRTL ? 'تحديثات' : 'updates'}
+            </span>
+          </div>
+        </div>
+
+        {/* Card 4: Submissions */}
+        <div className="bg-white dark:bg-[#151d30] rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs space-y-1">
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium block">
+            {isRTL ? 'المشاريع المسلمة' : 'Submissions'}
+          </span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100">
+              3
+            </span>
+            <span className="text-xs text-amber-700 dark:text-amber-400 font-medium">
+              {isRTL ? '١ يتطلب مراجعة' : '1 needs revision'}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Course Curriculum & Offline Readiness */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-900">
-            {isRTL ? 'الوحدات التعليمية والمشاريع' : 'Curriculum Modules & Project Readiness'}
-          </h2>
-          <Link
-            to="/lessons"
-            className="text-xs font-bold text-emerald-700 hover:underline"
-          >
-            {isRTL ? 'إدارة الدروس المحفوظة' : 'Manage Saved Lessons'}
-          </Link>
-        </div>
+      {/* Main 2-Column Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        
+        {/* Left Column: Progress by Track + My Submissions */}
+        <div className="space-y-6">
+          {/* Progress by Track Card */}
+          <div className="bg-white dark:bg-[#151d30] rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 shadow-xs space-y-5">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              {isRTL ? 'التقدم حسب المسار البرمجي' : 'Progress by track'}
+            </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {TOPICS.map((topic) => {
-            const topicLessons = LESSONS.filter((l) => l.topicId === topic.id);
-            const savedCount = topicLessons.filter((l) => savedLessons.includes(l.id)).length;
-            const sub = submissions.find((s) => s.topicId === topic.id);
-
-            return (
-              <div
-                key={topic.id}
-                className="bg-white rounded-xl border border-slate-200 p-5 space-y-4 shadow-sm flex flex-col justify-between"
-              >
-                <div className="space-y-2">
-                  <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wide">
-                    {isRTL ? `المحور ${topic.displayOrder}` : `Module ${topic.displayOrder}`}
+            <div className="space-y-4">
+              {/* Python */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">
+                    {language === 'ar' ? 'بايثون والذكاء الاصطناعي (SAIR)' : 'Python & AI Engineering'}
                   </span>
-                  <h3 className="text-base font-bold text-slate-900">
-                    {language === 'ar' ? topic.titleAr : topic.titleEn}
-                  </h3>
-                  <p className="text-xs text-slate-600 line-clamp-2">
-                    {language === 'ar' ? topic.descriptionAr : topic.descriptionEn}
-                  </p>
+                  <span className="font-semibold text-emerald-700 dark:text-emerald-400">25%</span>
                 </div>
-
-                <div className="space-y-3 pt-3 border-t border-slate-100">
-                  <div className="flex items-center justify-between text-xs text-slate-500">
-                    <span>{isRTL ? 'الدروس المحفوظة:' : 'Saved lessons:'}</span>
-                    <span className="font-semibold text-slate-700">
-                      {savedCount} / {topicLessons.length}
-                    </span>
-                  </div>
-                  <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                    <div
-                      className="bg-emerald-600 h-full rounded-full transition-all"
-                      style={{ width: `${(savedCount / topicLessons.length) * 100}%` }}
-                    ></div>
-                  </div>
-
-                  <div className="pt-2 flex items-center justify-between text-xs">
-                    <span className="text-slate-500">{isRTL ? 'حالة المشروع:' : 'Project state:'}</span>
-                    {sub ? (
-                      <StatusBadge status={sub.status} />
-                    ) : (
-                      <Link
-                        to={`/project/${topic.id}`}
-                        className="font-bold text-emerald-700 hover:underline flex items-center gap-1"
-                      >
-                        <FolderGit2 className="w-3.5 h-3.5" />
-                        <span>{isRTL ? 'تقديم المشروع' : 'Submit Project'}</span>
-                      </Link>
-                    )}
-                  </div>
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div className="bg-emerald-600 dark:bg-emerald-500 h-full rounded-full w-1/4"></div>
                 </div>
               </div>
-            );
-          })}
+
+              {/* C++ */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-medium text-slate-600 dark:text-slate-400">
+                    {language === 'ar' ? 'سي++ والأنظمة عالية الأداء' : 'C++ & High-Performance Systems'}
+                  </span>
+                  <span className="font-medium text-slate-400 dark:text-slate-500">0%</span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div className="bg-emerald-600 dark:bg-emerald-500 h-full rounded-full w-0"></div>
+                </div>
+              </div>
+
+              {/* Java */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-medium text-slate-600 dark:text-slate-400">
+                    {language === 'ar' ? 'جافا وهندسة البرمجيات' : 'Java & Enterprise Architecture'}
+                  </span>
+                  <span className="font-medium text-slate-400 dark:text-slate-500">0%</span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div className="bg-emerald-600 dark:bg-emerald-500 h-full rounded-full w-0"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* My Submissions Card */}
+          <div className="bg-white dark:bg-[#151d30] rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 shadow-xs space-y-4">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              {isRTL ? 'مشاريعي المقدمة' : 'My submissions'}
+            </h3>
+
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {/* Row 1: Variables project */}
+              <div className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-3">
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                    {isRTL ? 'مشروع المتغيرات والمدخلات' : 'Variables project'}
+                  </h4>
+                  <span className="text-[11px] text-slate-400 dark:text-slate-500 block">
+                    {isRTL ? 'المحاولة ٢' : 'Attempt 2'}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 text-[11px] font-semibold px-2.5 py-0.5 rounded-md">
+                    {isRTL ? 'مطلوب مراجعة' : 'Revision requested'}
+                  </span>
+                  <Link
+                    to="/project/topic-1"
+                    className="px-3 py-1.5 bg-[#0f5132] hover:bg-[#0b3b24] dark:bg-emerald-700 dark:hover:bg-emerald-800 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors"
+                  >
+                    {isRTL ? 'إعادة التسليم' : 'Resubmit'}
+                  </Link>
+                </div>
+              </div>
+
+              {/* Row 2: Strings project */}
+              <div className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-3">
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                    {isRTL ? 'مشروع النصوص والتنسيق' : 'Strings project'}
+                  </h4>
+                  <span className="text-[11px] text-slate-400 dark:text-slate-500 block">
+                    {isRTL ? 'المحاولة ١' : 'Attempt 1'}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-medium px-2.5 py-0.5 rounded-md">
+                    {isRTL ? 'قيد المراجعة' : 'Under review'}
+                  </span>
+                  <Link
+                    to="/project/topic-1"
+                    className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-lg transition-colors"
+                  >
+                    {isRTL ? 'معاينة' : 'View'}
+                  </Link>
+                </div>
+              </div>
+
+              {/* Row 3: Input processing */}
+              <div className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-3">
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                    {isRTL ? 'مشروع معالجة المدخلات والدرجات' : 'Input processing'}
+                  </h4>
+                  <span className="text-[11px] text-slate-400 dark:text-slate-500 block">
+                    {isRTL ? 'المحاولة ١' : 'Attempt 1'}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-[11px] font-medium px-2.5 py-0.5 rounded-md">
+                    {isRTL ? 'تم تقديم ملاحظات' : 'Feedback given'}
+                  </span>
+                  <Link
+                    to="/project/topic-2"
+                    className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-lg transition-colors"
+                  >
+                    {isRTL ? 'عرض الملاحظات' : 'View feedback'}
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Sync Status + Latest Feedback */}
+        <div className="space-y-6">
+          {/* Sync Status Card */}
+          <div className="bg-white dark:bg-[#151d30] rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                {isRTL ? 'حالة المزامنة' : 'Sync status'}
+              </h3>
+              <button
+                type="button"
+                onClick={handleManualSync}
+                disabled={isSyncing}
+                className="px-3.5 py-1.5 bg-[#0f5132] hover:bg-[#0b3b24] dark:bg-emerald-700 dark:hover:bg-emerald-800 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer flex items-center gap-1.5"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                <span>{isRTL ? 'مزامنة الآن' : 'Sync now'}</span>
+              </button>
+            </div>
+
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              <div className="py-2.5 first:pt-0 flex items-center justify-between text-xs">
+                <span className="font-medium text-slate-800 dark:text-slate-200">
+                  {isRTL ? 'تقدم الدرس ١' : 'Lesson 1 progress'}
+                </span>
+                <span className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
+                  {isRTL ? 'متزامن' : 'Synced'}
+                </span>
+              </div>
+
+              <div className="py-2.5 flex items-center justify-between text-xs">
+                <span className="font-medium text-slate-800 dark:text-slate-200">
+                  {isRTL ? 'موقع الدرس ٢' : 'Lesson 2 position'}
+                </span>
+                <span className="bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
+                  {isRTL ? 'قيد الانتظار' : 'Pending'}
+                </span>
+              </div>
+
+              <div className="py-2.5 last:pb-0 flex items-center justify-between text-xs">
+                <span className="font-medium text-slate-800 dark:text-slate-200">
+                  {isRTL ? 'تقدم اختبار الوحدة ١' : 'Quiz 1 progress'}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleManualSync}
+                  className="bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-[11px] font-semibold px-2.5 py-0.5 rounded-full transition-colors cursor-pointer"
+                >
+                  {isRTL ? 'فشل · إعادة المحاولة' : 'Failed · Retry'}
+                </button>
+              </div>
+            </div>
+
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-normal pt-2 border-t border-slate-100 dark:border-slate-800">
+              {isRTL
+                ? 'تتم إعادة محاولة مزامنة العناصر المعلقة تلقائياً عند توفر الاتصال. لا يُحذف أي سجل حتى يؤكد السيرفر استلامه بأمان.'
+                : 'Pending items retry automatically. Nothing is deleted until the server confirms it.'}
+            </p>
+          </div>
+
+          {/* Latest Feedback Card */}
+          <div className="bg-white dark:bg-[#151d30] rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 shadow-xs space-y-3">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              {isRTL ? 'أحدث الملاحظات والتقييمات' : 'Latest feedback'}
+            </h3>
+
+            <div>
+              <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                {isRTL ? 'المرشدة سارة إبراهيم · مشروع المتغيرات' : 'Mentor Sarah · Variables project'}
+              </h4>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mt-1">
+                {isRTL
+                  ? 'هيكل البرنامج ممتاز ومحكم. يرجى إضافة تعليقات توضيحية لخطوات التحقق من مدخلات الأرقام ثم إعادة التسليم.'
+                  : 'Good structure. Add comments that explain the input checks, then resubmit.'}
+              </p>
+            </div>
+
+            <div className="pt-2">
+              <Link
+                to="/project/topic-1"
+                className="px-3.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-lg inline-block transition-colors"
+              >
+                {isRTL ? 'فتح تفاصيل المشروع' : 'Open submission'}
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Submissions & Mentorship Tracking */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">
-              {isRTL ? 'سجل تقييم مشاريع الوحدات' : 'Module Project Submission & Feedback'}
-            </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {isRTL
-                ? 'تقييمات المرشدين، طلبات التعديل، والقرارات الأكاديمية'
-                : 'Track mentor evaluations, code revision requests, and instructor decisions.'}
-            </p>
-          </div>
-        </div>
-
-        {submissions.length === 0 ? (
-          <div className="text-center py-10 text-slate-400 space-y-2">
-            <CheckCircle2 className="w-10 h-10 mx-auto text-slate-300" />
-            <p className="text-sm font-medium">
-              {isRTL ? 'لم تقم بتقديم أي مشاريع بعد.' : 'No project submissions yet.'}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {submissions.map((sub) => {
-              const topic = TOPICS.find((t) => t.id === sub.topicId);
-
-              return (
-                <div
-                  key={sub.id}
-                  className="border border-slate-200 rounded-xl p-5 space-y-4 hover:border-slate-300 transition-colors"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <h4 className="text-base font-bold text-slate-900">
-                        {language === 'ar' ? sub.assignmentTitleAr : sub.assignmentTitleEn}
-                      </h4>
-                      <span className="text-xs text-slate-500">
-                        {isRTL ? `المحاولة #${sub.attemptNo}` : `Attempt #${sub.attemptNo}`} •{' '}
-                        {new Date(sub.submittedAt).toLocaleDateString()}
-                      </span>
-                    </div>
-
-                    <StatusBadge status={sub.status} />
-                  </div>
-
-                  {/* Submission Details */}
-                  <div className="bg-slate-50 rounded-lg p-3 text-xs space-y-1.5 font-mono">
-                    <div className="flex items-center gap-2">
-                      <GithubIcon className="w-3.5 h-3.5 text-slate-700" />
-                      <a
-                        href={sub.githubLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-emerald-700 hover:underline ltr-forced"
-                      >
-                        {sub.githubLink}
-                      </a>
-                    </div>
-                    <p className="text-slate-700 font-sans text-xs pt-1">
-                      <strong>{isRTL ? 'الشرح:' : 'Explanation:'}</strong> {sub.explanation}
-                    </p>
-                  </div>
-
-                  {/* Feedback block */}
-                  {sub.status === 'feedback_given' && (
-                    <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 space-y-3">
-                      <div className="flex items-center gap-2 text-teal-900 font-bold text-xs sm:text-sm">
-                        <span>{isRTL ? 'ملاحظات المرشد المعتمد' : 'Mentor Review & Feedback'}</span>
-                      </div>
-                      <p className="text-xs sm:text-sm text-teal-800">
-                        {isRTL
-                          ? 'عمل ممتاز! تم استيفاء الشروط الأساسية واختبار المدخلات بشكل ملائم.'
-                          : 'Excellent work! The input validation and currency formatting are well implemented.'}
-                      </p>
-
-                      <div className="flex items-center gap-3 pt-2">
-                        <button
-                          onClick={() => handleAcceptFeedback(sub.id)}
-                          className="px-3 py-1.5 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs inline-flex items-center gap-1"
-                        >
-                          <Check className="w-3.5 h-3.5" />
-                          <span>{isRTL ? 'قبول الملاحظات وإنهاء المهمة' : 'Accept Feedback & Complete'}</span>
-                        </button>
-
-                        <button
-                          onClick={() => handleEscalateToTeacher(sub.id)}
-                          className="px-3 py-1.5 rounded-lg bg-white border border-teal-300 text-teal-900 font-semibold text-xs hover:bg-teal-100"
-                        >
-                          <span>{isRTL ? 'اعتراض وتصعيد للأستاذ' : 'Disagree & Request Teacher Review'}</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {sub.status === 'revision_requested' && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3">
-                      <div className="flex items-center gap-2 text-amber-900 font-bold text-xs sm:text-sm">
-                        <AlertCircle className="w-4 h-4 text-amber-700" />
-                        <span>{isRTL ? 'مطلوب تعديل وإعادة تقديم' : 'Revision Required by Reviewer'}</span>
-                      </div>
-                      <p className="text-xs text-amber-800">
-                        {isRTL
-                          ? 'يرجى مراجعة معالجة الأرقام العشرية والتأكد من توثيق ملف README.'
-                          : 'Please revise the error handling and ensure the README.md has instructions.'}
-                      </p>
-
-                      <Link
-                        to={`/project/${sub.topicId}`}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-sm"
-                      >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                        <span>{isRTL ? 'إعادة التقديم (محاولة جديدة)' : 'Resubmit Revision'}</span>
-                      </Link>
-                    </div>
-                  )}
-
-                  {sub.status === 'escalated' && (
-                    <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 text-xs sm:text-sm text-rose-900 flex items-start gap-2.5">
-                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                      <div>
-                        <strong>{isRTL ? 'قيد المراجعة المباشرة من أستاذ المقرر' : 'Under Direct Teacher Escalation'}</strong>
-                        <p className="text-xs text-rose-700 mt-0.5">
-                          {isRTL
-                            ? 'تمت إحالة هذا المشروع إلى الأستاذ لإصدار القرار النهائي.'
-                            : 'This submission has been referred to the Course Lead (Teacher) for resolution.'}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  {/* Attempt History Toggle & Timeline */}
-                  <div className="pt-2 border-t border-slate-100 flex flex-col gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setExpandedHistoryId(expandedHistoryId === sub.id ? null : sub.id)}
-                      className="self-start text-xs font-semibold text-slate-600 hover:text-slate-900 inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-slate-100 transition-colors"
-                    >
-                      <History className="w-3.5 h-3.5 text-slate-500" />
-                      <span>
-                        {expandedHistoryId === sub.id
-                          ? isRTL ? 'إخفاء سجل النسخ والمحاولات' : 'Hide Revision History'
-                          : isRTL ? 'عرض سجل النسخ والمحاولات السابقة' : 'View Full Attempt & Feedback History'}
-                      </span>
-                    </button>
-
-                    {expandedHistoryId === sub.id && (
-                      <RevisionTimeline
-                        attempts={submissions.filter(
-                          (s) => s.topicId === sub.topicId && s.learnerId === sub.learnerId
-                        )}
-                      />
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+      {/* Bottom Sample Data Notice */}
+      <div className="pt-2">
+        <p className="text-[11px] text-slate-400">
+          {isRTL ? 'بيانات تجريبية للمراجعة وتدقيق التصميم.' : 'Sample data for design review.'}
+        </p>
       </div>
     </div>
   );

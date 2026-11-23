@@ -303,13 +303,13 @@ export default function ReviewsDashboard() {
         </div>
 
         {isMentor && (
-          <div className="bg-white border border-slate-200 rounded-xl p-3 text-xs flex items-center gap-2 shadow-sm">
-            <UserCheck className="w-4 h-4 text-emerald-600" />
+          <div className="bg-white dark:bg-[#151d30] border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs flex items-center gap-2 shadow-sm">
+            <UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <div>
-              <span className="font-semibold text-slate-700">
+              <span className="font-semibold text-slate-700 dark:text-slate-300">
                 {isRTL ? 'المواضيع المعتمدة لك:' : 'Your Approved Topics:'}
               </span>{' '}
-              <span className="text-emerald-700 font-bold">
+              <span className="text-emerald-700 dark:text-emerald-400 font-bold">
                 {currentUser?.approvedTopics?.join(', ') || (isRTL ? 'لا توجد مواضيع معتمدة حالياً' : 'None')}
               </span>
             </div>
@@ -318,7 +318,7 @@ export default function ReviewsDashboard() {
       </div>
 
       {/* Filter Tabs (Phase 1A / FR-11.2) */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-4">
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-4">
         {FILTER_TABS.map((tab) => {
           const count = getTabCount(tab.id);
           const isActive = activeFilter === tab.id;
@@ -326,16 +326,16 @@ export default function ReviewsDashboard() {
             <button
               key={tab.id}
               onClick={() => setActiveFilter(tab.id)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-2 ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-2 cursor-pointer ${
                 isActive
                   ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                  : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/60'
               }`}
             >
               <span>{language === 'ar' ? tab.labelAr : tab.labelEn}</span>
               <span
                 className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                  isActive ? 'bg-emerald-700/80 text-white' : 'bg-slate-100 text-slate-700'
+                  isActive ? 'bg-emerald-700/80 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
                 }`}
               >
                 {count}
@@ -348,12 +348,12 @@ export default function ReviewsDashboard() {
       {/* Submissions Queue */}
       <div className="space-y-6">
         {filteredSubmissions.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center space-y-3 shadow-xs">
-            <FolderGit2 className="w-10 h-10 text-slate-300 mx-auto" />
-            <h4 className="text-sm font-bold text-slate-800">
+          <div className="bg-white dark:bg-[#151d30] border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center space-y-3 shadow-xs">
+            <FolderGit2 className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
+            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
               {isRTL ? 'لا توجد تسليمات في هذا التبويب حالياً' : 'No submissions found in this category'}
             </h4>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
               {isRTL
                 ? 'يمكنك تغيير التبويب المختار لعرض التسليمات الأخرى أو متابعة لوحة التحكم.'
                 : 'Try selecting another filter tab to view submissions across other review stages.'}
@@ -368,25 +368,25 @@ export default function ReviewsDashboard() {
             return (
               <div
                 key={sub.id}
-                className={`bg-white rounded-2xl border p-6 space-y-5 transition-shadow shadow-sm ${
-                  authorized ? 'border-slate-200 hover:border-slate-300' : 'border-slate-200 bg-slate-50/70 opacity-80'
+                className={`bg-white dark:bg-[#151d30] rounded-2xl border p-6 space-y-5 transition-shadow shadow-sm ${
+                  authorized ? 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700' : 'border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 opacity-80'
                 }`}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                      <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                         {language === 'ar' ? topic?.titleAr : topic?.titleEn}
                       </span>
-                      <h3 className="text-base font-bold text-slate-900">
+                      <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
                         {language === 'ar'
                           ? sub.assignmentTitleAr || topic?.assignment?.titleAr
                           : sub.assignmentTitleEn || topic?.assignment?.titleEn}
                       </h3>
                     </div>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       {isRTL ? 'الطالب:' : 'Learner:'}{' '}
-                      <strong className="text-slate-700">{sub.learnerName}</strong> •{' '}
+                      <strong className="text-slate-700 dark:text-slate-200">{sub.learnerName}</strong> •{' '}
                       {isRTL ? `المحاولة #${sub.attemptNo}` : `Attempt #${sub.attemptNo}`}
                     </p>
                   </div>
@@ -395,16 +395,16 @@ export default function ReviewsDashboard() {
                 </div>
 
                 {/* Code link and explanation */}
-                <div className="bg-slate-50 rounded-xl p-4 space-y-2 text-xs">
-                  <div className="flex items-center justify-between">
+                <div className="bg-slate-50 dark:bg-slate-900/60 border border-transparent dark:border-slate-800 rounded-xl p-4 space-y-2 text-xs">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-2 font-mono text-xs">
-                      <GithubIcon className="w-4 h-4 text-slate-800" />
-                      <span className="font-semibold text-slate-700">{isRTL ? 'المستودع:' : 'Repository:'}</span>
+                      <GithubIcon className="w-4 h-4 text-slate-800 dark:text-slate-200" />
+                      <span className="font-semibold text-slate-700 dark:text-slate-300">{isRTL ? 'المستودع:' : 'Repository:'}</span>
                       <a
                         href={sub.githubLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-emerald-700 hover:underline ltr-forced"
+                        className="text-emerald-700 dark:text-emerald-400 hover:underline ltr-forced"
                       >
                         {sub.githubLink}
                       </a>
@@ -413,34 +413,34 @@ export default function ReviewsDashboard() {
                       href={sub.githubLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900"
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
                     >
                       <span>{isRTL ? 'فتح GitHub' : 'Open in GitHub'}</span>
                       <ExternalLink className="w-3 h-3" />
                     </a>
                   </div>
 
-                  <div className="pt-1 text-slate-700">
-                    <strong className="block text-slate-900 mb-0.5">{isRTL ? 'شرح الطالب:' : "Learner's Explanation:"}</strong>
+                  <div className="pt-1 text-slate-700 dark:text-slate-300">
+                    <strong className="block text-slate-900 dark:text-slate-100 mb-0.5">{isRTL ? 'شرح الطالب:' : "Learner's Explanation:"}</strong>
                     <p className="leading-relaxed">{sub.explanation}</p>
                   </div>
                 </div>
 
                 {/* Assigned Reviewer bar (FR-9.1) */}
-                <div className="bg-slate-50/70 rounded-xl p-3 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                <div className="bg-slate-50/70 dark:bg-slate-900/40 rounded-xl p-3 border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
                   <div className="flex items-center gap-2">
-                    <UserCheck className="w-4 h-4 text-slate-500 shrink-0" />
-                    <span className="text-slate-600 font-medium">
+                    <UserCheck className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
+                    <span className="text-slate-600 dark:text-slate-400 font-medium">
                       {isRTL ? 'المراجع المكلف:' : 'Assigned Reviewer:'}
                     </span>
                     {sub.assignedMentorId ? (
-                      <span className="font-bold text-emerald-800 bg-emerald-100/70 px-2.5 py-0.5 rounded-md">
+                      <span className="font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100/70 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 px-2.5 py-0.5 rounded-md">
                         {language === 'ar'
                           ? AVAILABLE_REVIEWERS.find((r) => r.id === sub.assignedMentorId)?.nameAr || sub.assignedMentorName || sub.assignedMentorId
                           : AVAILABLE_REVIEWERS.find((r) => r.id === sub.assignedMentorId)?.nameEn || sub.assignedMentorName || sub.assignedMentorId}
                       </span>
                     ) : (
-                      <span className="text-amber-800 bg-amber-100/70 px-2.5 py-0.5 rounded-md font-semibold">
+                      <span className="text-amber-800 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 px-2.5 py-0.5 rounded-md font-semibold">
                         {isRTL ? 'غير مُعين (بانتظار تكليف الأستاذ)' : 'Unassigned (Awaiting Assignment)'}
                       </span>
                     )}
@@ -449,13 +449,13 @@ export default function ReviewsDashboard() {
                   {/* Teacher Assign Dropdown (FR-9.1) */}
                   {isTeacher && (
                     <div className="flex items-center gap-2">
-                      <span className="text-slate-500 text-[11px] font-semibold">
+                      <span className="text-slate-500 dark:text-slate-400 text-[11px] font-semibold">
                         {isRTL ? 'تكليف مراجع:' : 'Assign To:'}
                       </span>
                       <select
                         value={sub.assignedMentorId || ''}
                         onChange={(e) => handleAssignReviewer(sub.id, e.target.value)}
-                        className="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-xs"
+                        className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-xs"
                       >
                         <option value="">{isRTL ? '-- اختر مراجعاً --' : '-- Select Reviewer --'}</option>
                         {AVAILABLE_REVIEWERS.map((r) => (
@@ -470,15 +470,15 @@ export default function ReviewsDashboard() {
 
                 {/* Teacher Resolve Escalation Panel (FR-10.1 / State Machine) */}
                 {isTeacher && sub.status === 'escalated' && (
-                  <div className="bg-purple-50/80 border border-purple-200 rounded-xl p-4 space-y-3">
+                  <div className="bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/80 rounded-xl p-4 space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <AlertTriangle className="w-4 h-4 text-purple-700 shrink-0" />
-                        <h5 className="font-bold text-xs text-purple-950">
+                        <AlertTriangle className="w-4 h-4 text-purple-700 dark:text-purple-400 shrink-0" />
+                        <h5 className="font-bold text-xs text-purple-950 dark:text-purple-200">
                           {isRTL ? 'إجراءات أستاذ المقرر لفض الحالة المُصعَّدة:' : 'Course Lead Escalation Resolution:'}
                         </h5>
                       </div>
-                      <span className="text-[11px] font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded">
+                      <span className="text-[11px] font-bold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/60 px-2 py-0.5 rounded border border-purple-200 dark:border-purple-800/60">
                         {isRTL ? 'صلاحية الأستاذ فقط' : 'Teacher Authority Only'}
                       </span>
                     </div>
@@ -494,7 +494,7 @@ export default function ReviewsDashboard() {
                               : 'Escalation resolved and project approved by course lead.'
                           )
                         }
-                        className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm"
+                        className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
                       >
                         <CheckSquare className="w-3.5 h-3.5" />
                         <span>{isRTL ? 'اعتماد المشروع كـ مكتمل' : 'Approve & Mark Complete'}</span>
@@ -511,7 +511,7 @@ export default function ReviewsDashboard() {
                               : 'Course lead requested revision with updated requirements.'
                           )
                         }
-                        className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm"
+                        className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
                       >
                         <RotateCcw className="w-3.5 h-3.5" />
                         <span>{isRTL ? 'طلب تعديل ومراجعة من الطالب' : 'Request Revision'}</span>
@@ -522,8 +522,8 @@ export default function ReviewsDashboard() {
 
                 {/* Authorization check message */}
                 {!authorized && (
-                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs flex items-center gap-2">
-                    <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+                  <div className="p-3 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/60 rounded-xl text-amber-800 dark:text-amber-300 text-xs flex items-center gap-2">
+                    <ShieldAlert className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                     <span>
                       {isRTL
                         ? 'لا تملك صلاحية مراجعة هذا الواجب. (يتطلب اعتماد الأستاذ للموضوع أو عدم مراجعة واجباتك الخاصة).'
@@ -537,7 +537,7 @@ export default function ReviewsDashboard() {
                   <div className="pt-2 flex flex-wrap items-center gap-3">
                     <button
                       onClick={() => setActiveReviewId(sub.id)}
-                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm"
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
                     >
                       <MessageSquare className="w-4 h-4" />
                       <span>{isRTL ? 'كتابة تقييم وملاحظات' : 'Start Review'}</span>
@@ -546,7 +546,7 @@ export default function ReviewsDashboard() {
                     {sub.status !== 'escalated' && (
                       <button
                         onClick={() => handleEscalate(sub.id)}
-                        className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold text-xs inline-flex items-center gap-1.5"
+                        className="px-4 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 font-semibold text-xs inline-flex items-center gap-1.5 cursor-pointer"
                       >
                         <AlertTriangle className="w-4 h-4" />
                         <span>{isRTL ? 'تصعيد للأستاذ' : 'Escalate to Teacher'}</span>
@@ -556,9 +556,9 @@ export default function ReviewsDashboard() {
                     <button
                       type="button"
                       onClick={() => setExpandedHistoryId(expandedHistoryId === sub.id ? null : sub.id)}
-                      className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs inline-flex items-center gap-1.5 transition-colors"
+                      className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
-                      <History className="w-3.5 h-3.5 text-slate-500" />
+                      <History className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                       <span>
                         {expandedHistoryId === sub.id
                           ? isRTL ? 'إخفاء سجل المحاولات' : 'Hide History'
@@ -581,8 +581,8 @@ export default function ReviewsDashboard() {
 
                 {/* Interactive Review Box */}
                 {isReviewing && (
-                  <div className="border border-emerald-200 bg-emerald-50/40 rounded-xl p-5 space-y-4">
-                    <h4 className="text-sm font-bold text-slate-900">
+                  <div className="border border-emerald-200 dark:border-emerald-800/80 bg-emerald-50/40 dark:bg-emerald-950/30 rounded-xl p-5 space-y-4">
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
                       {isRTL ? 'كتابة ملاحظات المراجعة والتقييم' : 'Review & Evaluation Feedback'}
                     </h4>
 
@@ -595,14 +595,14 @@ export default function ReviewsDashboard() {
                           ? 'اكتب ملاحظاتك التوجيهية، ما تميز به الكود، وما يحتاج إلى تحسين أو تصحيح...'
                           : 'Write actionable feedback for the learner...'
                       }
-                      className="w-full p-3 rounded-xl border border-slate-300 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white"
+                      className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white dark:bg-slate-850 text-slate-900 dark:text-slate-100"
                     ></textarea>
 
                     <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleGiveFeedback(sub.id)}
-                          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm"
+                          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
                         >
                           <Send className="w-3.5 h-3.5" />
                           <span>{isRTL ? 'إرسال الملاحظات (مقبول)' : 'Submit Feedback'}</span>
@@ -610,7 +610,7 @@ export default function ReviewsDashboard() {
 
                         <button
                           onClick={() => handleRequestRevision(sub.id)}
-                          className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm"
+                          className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
                         >
                           <RotateCcw className="w-3.5 h-3.5" />
                           <span>{isRTL ? 'طلب مراجعة وتعديل' : 'Request Revision'}</span>
@@ -621,7 +621,7 @@ export default function ReviewsDashboard() {
                         {sub.status !== 'escalated' && (
                           <button
                             onClick={() => handleEscalate(sub.id)}
-                            className="px-3 py-2 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 font-semibold text-xs inline-flex items-center gap-1"
+                            className="px-3 py-2 rounded-xl bg-rose-100 dark:bg-rose-950/60 hover:bg-rose-200 dark:hover:bg-rose-900/60 text-rose-800 dark:text-rose-300 font-semibold text-xs inline-flex items-center gap-1 cursor-pointer"
                           >
                             <AlertTriangle className="w-3.5 h-3.5" />
                             <span>{isRTL ? 'تصعيد للأستاذ' : 'Escalate'}</span>
@@ -630,7 +630,7 @@ export default function ReviewsDashboard() {
 
                         <button
                           onClick={() => setActiveReviewId(null)}
-                          className="px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-200 font-semibold text-xs"
+                          className="px-3 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 font-semibold text-xs cursor-pointer"
                         >
                           {t.common.cancel}
                         </button>

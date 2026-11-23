@@ -1,4 +1,9 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+const rawApiBase = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+// Resilient normalization: handles with or without protocol, with or without trailing '/api' or slashes
+const normalizedBase = rawApiBase.startsWith('http') ? rawApiBase : `https://${rawApiBase}`;
+const API_BASE = normalizedBase.replace(/\/+$/, '').endsWith('/api')
+  ? normalizedBase.replace(/\/+$/, '')
+  : `${normalizedBase.replace(/\/+$/, '')}/api`;
 
 async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
