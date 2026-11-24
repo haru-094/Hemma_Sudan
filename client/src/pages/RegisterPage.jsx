@@ -31,7 +31,7 @@ export default function RegisterPage() {
 
   const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -45,9 +45,10 @@ export default function RegisterPage() {
     }
 
     try {
-      registerLearner({
+      await registerLearner({
         name,
         email,
+        password,
         university,
         ageConfirmed,
       });

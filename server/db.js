@@ -20,8 +20,8 @@ const memoryDb = {
   users: [
     { id: 'usr-mentor-1', name: 'Sarah Ibrahim', email: 'sarah.mentor@hemma.sd', password_hash: '$2b$10$VwQxypFaO.9YJO6.RyY3O.zdGnLGPhJUzmatntE4qNeJAJhesJkPW', role: 'mentor', university: 'University of Khartoum', language: 'en' },
     { id: 'usr-mentor-2', name: 'Omar Farouk', email: 'omar.mentor@hemma.sd', password_hash: '$2b$10$VwQxypFaO.9YJO6.RyY3O.zdGnLGPhJUzmatntE4qNeJAJhesJkPW', role: 'mentor', university: 'Sudan University of Science and Technology', language: 'ar' },
-    { id: 'usr-mentor-3', name: 'Mona Elhassan', email: 'mona.mentor@hemma.sd', password_hash: '$2b$10$VwQxypFaO.9YJO6.RyY3O.zdGnLGPhJUzmatntE4qNeJAJhesJkPW', role: 'mentor', university: 'Al-Neelain University', language: 'en' },
-    { id: 'usr-learner-1', name: 'Ahmed Osman', email: 'ahmed.student@hemma.sd', password_hash: '$2b$10$VwQxypFaO.9YJO6.RyY3O.zdGnLGPhJUzmatntE4qNeJAJhesJkPW', role: 'learner', university: 'University of Khartoum', age_confirmed: true, language: 'en' }
+    { id: 'usr-learner-1', name: 'Ahmed Osman', email: 'ahmed.student@hemma.sd', password_hash: '$2b$10$VwQxypFaO.9YJO6.RyY3O.zdGnLGPhJUzmatntE4qNeJAJhesJkPW', role: 'learner', university: 'University of Khartoum', age_confirmed: true, language: 'en' },
+    { id: 'usr-learner-2', name: 'Mona Elhassan', email: 'mona.learner@hemma.sd', password_hash: '$2b$10$VwQxypFaO.9YJO6.RyY3O.zdGnLGPhJUzmatntE4qNeJAJhesJkPW', role: 'learner', university: 'Al-Neelain University', age_confirmed: true, language: 'en' }
   ],
   topics: [
     { id: 'topic-0', title_en: '0. Developer Setup: VS Code, Git & GitHub', title_ar: '٠. تهيئة بيئة المطور: محرر VS Code، أداة Git، ومستودعات GitHub', description_en: 'Setting up your local code editor (VS Code), compiler/interpreter, Git version control, and public GitHub repository workflow.', description_ar: 'تهيئة محرر الأكواد (VS Code)، بيئة بايثون و C++ وجافا، نظام التحكم بالنسخ Git، والعمل مع مستودعات GitHub العامة.', display_order: 0 },
@@ -35,7 +35,7 @@ const memoryDb = {
   lessons: [
     { id: 'lesson-0', topic_id: 'topic-0', title_en: 'Local Setup: IDE, Git & Creating Your Public GitHub Repo', title_ar: 'الإعداد المحلي: تثبيت بيئة العمل و Git وإنشاء مستودع GitHub عام', notes_en: 'Setting up your local environment: VS Code, Git, and creating a public GitHub repository.', notes_ar: 'إعداد بيئة التطوير المحلية: محرر VS Code، أداة Git، وإنشاء مستودع عام على GitHub.', code_snippet: 'git init\ngit add .\ngit commit -m "feat: Initial commit"\ngit push -u origin main', display_order: 1, arabic_status: 'approved', is_published: true, version: 1 },
     { id: 'lesson-1', topic_id: 'topic-1', title_en: 'Variables, Arithmetic & User Input', title_ar: 'المتغيرات، العمليات الحسابية، ومدخلات المستخدم', notes_en: 'In this lesson, you will learn how to declare variables and interact with user input.', notes_ar: 'في هذا الدرس، ستتعلم كيفية تعريف المتغيرات والتعامل مع مدخلات المستخدم.', code_snippet: 'user_name = input("Enter your name: ")\nstudy_hours = int(input("Hours? "))\nprint(f"Welcome, {user_name}!")', display_order: 1, arabic_status: 'approved', is_published: true, version: 1 },
-    { id: 'lesson-2', topic_id: 'topic-1', title_en: 'Strings, Formatting & Type Conversion', title_ar: 'النصوص، التنسيق، والتحويل بين الأنواع', notes_en: 'Strings are fundamental for representing textual information.', notes_ar: 'تعتبر النصوص ركيزة أساسية لتمثيل البيانات النصية.', code_snippet: 'city = "Khartoum"\ntemp = 38.5\nprint(f"Current temperature in {city} is {temp}°C.")', display_order: 2, arabic_status: 'approved', is_published: true, version: 1 },
+    { id: 'lesson-2', topic_id: 'topic-1', title_en: 'Strings, Formatting & Type Conversion', title_ar: 'النصوص، التنسيق، والتحويل بين الأنواع', notes_en: 'Strings are fundamental for representing textual information.', notes_ar: 'تعتبر النصوص ركيزة أساسية لتمثيل البيانات النصية.', code_snippet: 'city = "Khartoum"\ntemp = 38.5\nprint(f"Current temperature in {city} is {temp}°C.")', display_order: 2, arabic_status: 'draft', is_published: true, version: 1 },
     { id: 'lesson-3', topic_id: 'topic-2', title_en: 'Conditional Statements (if, elif, else)', title_ar: 'الجمل الشرطية (if, elif, else)', notes_en: 'Conditionals evaluate boolean conditions to route code execution.', notes_ar: 'تقوم الجمل الشرطية بفحص الشروط المنطقية لتوجيه مسار التنفيذ.', code_snippet: 'score = int(input("Enter exam score: "))\nif score >= 60:\n    print("Pass")', display_order: 1, arabic_status: 'approved', is_published: true, version: 1 },
     { id: 'lesson-4', topic_id: 'topic-2', title_en: 'Loops and Iterations (while & for)', title_ar: 'حلقات التكرار (while و for)', notes_en: 'Loops automate repetitive tasks.', notes_ar: 'تستخدم الحلقات لتكرار العمليات التلقائية.', code_snippet: 'total = 0\nfor i in range(1, 6):\n    total += i\nprint(total)', display_order: 2, arabic_status: 'approved', is_published: true, version: 1 },
     { id: 'lesson-5', topic_id: 'topic-3', title_en: 'Defining Reusable Functions & Scope', title_ar: 'تعريف الدوال القابلة لإعادة الاستخدام والنطاق', notes_en: 'Functions encapsulate reusable logic with parameters and return values.', notes_ar: 'تغلف الدوال الشيفرات القابلة لإعادة الاستخدام مع المعاملات والقيم المرجعة.', code_snippet: 'def calculate_vat(amount: float, rate: float = 0.17) -> float:\n    return amount * rate\nprint(calculate_vat(1000.0))', display_order: 1, arabic_status: 'approved', is_published: true, version: 1 },
@@ -52,31 +52,10 @@ const memoryDb = {
     { teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-1', topic_id: 'topic-1' },
     { teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-1', topic_id: 'topic-2' },
     { teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-2', topic_id: 'topic-2' },
-    { teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-2', topic_id: 'topic-3' },
-    { teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-3', topic_id: 'topic-1' }
+    { teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-2', topic_id: 'topic-3' }
   ],
-  submissions: [
-    {
-      id: 'sub-101',
-      topic_id: 'topic-1',
-      learner_id: 'usr-learner-1',
-      github_link: 'https://github.com/ahmed-osman/hemma-currency-converter',
-      explanation: 'Built interactive console currency converter supporting SDG, USD, and SAR conversions with validation.',
-      attempt_no: 1,
-      status: 'feedback_given',
-      submitted_at: new Date(Date.now() - 86400000).toISOString()
-    }
-  ],
-  feedbacks: [
-    {
-      id: 'fb-201',
-      submission_id: 'sub-101',
-      author_id: 'usr-mentor-1',
-      comment: 'Excellent work! The input validation and currency formatting are well implemented.',
-      kind: 'comment',
-      created_at: new Date(Date.now() - 43200000).toISOString()
-    }
-  ],
+  submissions: [],
+  feedbacks: [],
   audit_logs: [
     {
       id: 'log-1',
@@ -441,26 +420,25 @@ const db = {
 };
 
 async function seedTeacherAccount() {
-  const email = process.env.TEACHER_EMAIL;
-  const password = process.env.TEACHER_PASSWORD;
+  const email = process.env.TEACHER_EMAIL || 'teacher@hemma.sd';
+  const password = process.env.TEACHER_PASSWORD || 'TeacherSecurePass2026!';
   const name = process.env.TEACHER_NAME || 'Dr. Tariq Ahmed';
 
-  // If missing, log a clear warning and do not crash
-  if (!email || !password) {
-    console.warn('[Teacher Seed] TEACHER_EMAIL or TEACHER_PASSWORD is not set. Teacher account not created automatically.');
-    return false;
-  }
-
   try {
-    const res = await db.query("SELECT id FROM users WHERE role = 'teacher' LIMIT 1");
-    if (res.rows && res.rows.length > 0) {
-      return false; // Teacher already exists
-    }
-
-    // Always store a bcrypt hash, never plain password
     const bcrypt = require('bcryptjs');
     const passwordHash = bcrypt.hashSync(password, 10);
     const teacherId = 'usr-teacher-1';
+
+    const res = await db.query("SELECT id, password_hash FROM users WHERE role = 'teacher' LIMIT 1");
+    if (res.rows && res.rows.length > 0) {
+      const existingTeacher = res.rows[0];
+      // If the teacher has an outdated mock_hash or missing hash, upgrade to bcrypt hash
+      if (!existingTeacher.password_hash || existingTeacher.password_hash.startsWith('mock_hash') || existingTeacher.password_hash === 'mock_hash') {
+        await db.query("UPDATE users SET password_hash = $1 WHERE id = $2", [passwordHash, existingTeacher.id]);
+        console.log(`[Teacher Seed] Upgraded existing teacher account to bcrypt hash.`);
+      }
+      return false; // Teacher already exists
+    }
 
     await db.query(
       `INSERT INTO users (id, name, email, password_hash, role, language, course_title)

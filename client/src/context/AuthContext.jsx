@@ -29,12 +29,13 @@ export const DEMO_USERS = [
     language: 'ar',
   },
   {
-    id: 'usr-mentor-3',
+    id: 'usr-learner-2',
     name: 'Mona Elhassan',
-    email: 'mona.mentor@hemma.sd',
-    role: 'mentor',
+    email: 'mona.learner@hemma.sd',
+    role: 'learner',
     university: 'Al-Neelain University',
-    approvedTopics: ['topic-1'],
+    approvedTopics: [],
+    ageConfirmed: true,
     language: 'en',
   },
   {
@@ -243,30 +244,62 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const registerLearner = ({ name, email, university, ageConfirmed }) => {
+  const registerLearner = async ({ name, email, password, university, ageConfirmed }) => {
     if (!ageConfirmed) {
       throw new Error('You must confirm that you are 18 years of age or older.');
     }
-    const existing = usersList.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
-    if (existing) {
-      throw new Error('An account is already registered with this email address.');
+
+    try {
+      // Register with the backend API to persist in the database with hashed password
+      const res = await api.register({
+        name,
+        email,
+        password,
+        university,
+        ageConfirmed,
+      });
+
+      if (res && res.user) {
+        const newLearner = {
+          ...res.user,
+          token: res.token,
+        };
+        setUsersList((prev) => {
+          const exists = prev.some((u) => u.email.toLowerCase() === newLearner.email.toLowerCase());
+          return exists ? prev : [...prev, newLearner];
+        });
+        setCurrentUser(newLearner);
+        resetSessionExpiry();
+        handleUserSessionInit(newLearner);
+        return newLearner;
+      }
+    } catch (apiErr) {
+      if (apiErr.data && apiErr.data.message) {
+        throw new Error(apiErr.data.message);
+      }
+      if (apiErr.message && !apiErr.message.includes('fetch')) {
+        throw apiErr;
+      }
+      // Offline fallback: cache locally
+      const existing = usersList.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
+      if (existing) {
+        throw new Error('An account is already registered with this email address.');
+      }
+      const newLearner = {
+        id: `usr-learner-${Date.now()}`,
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        role: 'learner',
+        university: university.trim(),
+        ageConfirmed: true,
+        language: 'en',
+      };
+      setUsersList((prev) => [...prev, newLearner]);
+      setCurrentUser(newLearner);
+      resetSessionExpiry();
+      handleUserSessionInit(newLearner);
+      return newLearner;
     }
-
-    const newLearner = {
-      id: `usr-learner-${Date.now()}`,
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      role: 'learner',
-      university: university.trim(),
-      ageConfirmed: true,
-      language: 'en',
-    };
-
-    setUsersList((prev) => [...prev, newLearner]);
-    setCurrentUser(newLearner);
-    resetSessionExpiry();
-    handleUserSessionInit(newLearner);
-    return newLearner;
   };
 
   // Update Data Retention Consent

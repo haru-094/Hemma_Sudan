@@ -12,3 +12,11 @@ services:
         value: production
       - key: JWT_SECRET
         generateValue: true
+      - key: TEACHER_EMAIL
+        value: teacher@hemma.sd
+      - key: TEACHER_PASSWORD
+        value: TeacherSecurePass2026!
+      - key: TEACHER_NAME
+        value: Dr. Tariq Ahmed
+      - key: DEMO_MODE
+        value: "true"

@@ -23,12 +23,13 @@ const SEED_USERS = [
     language: 'ar',
   },
   {
-    id: 'usr-mentor-3',
+    id: 'usr-learner-2',
     name: 'Mona Elhassan',
-    email: 'mona.mentor@hemma.sd',
+    email: 'mona.learner@hemma.sd',
     passwordHash: '$2b$10$VwQxypFaO.9YJO6.RyY3O.zdGnLGPhJUzmatntE4qNeJAJhesJkPW',
-    role: 'mentor',
+    role: 'learner',
     university: 'Al-Neelain University',
+    ageConfirmed: true,
     language: 'en',
   },
   {
@@ -131,7 +132,7 @@ const SEED_LESSONS = [
     notesEn: 'Strings are sequences of characters. Format with f-strings for clean output.',
     notesAr: 'النصوص في بايثون عبارة عن تسلسل من الأحرف. يمكن التنسيق باستخدام f-strings.',
     codeSnippet: 'city = "Khartoum"\ntemp = 38.5\nprint(f"Temperature in {city}: {temp}°C")',
-    arabicStatus: 'approved',
+    arabicStatus: 'draft',
     recordingLink: 'https://meet.google.com/xyz-hemma-demo-2',
   },
   {
@@ -177,7 +178,6 @@ const SEED_MENTOR_APPROVALS = [
   { id: 'appr-2', mentorId: 'usr-mentor-1', topicId: 'topic-2' },
   { id: 'appr-3', mentorId: 'usr-mentor-2', topicId: 'topic-2' },
   { id: 'appr-4', mentorId: 'usr-mentor-2', topicId: 'topic-3' },
-  { id: 'appr-5', mentorId: 'usr-mentor-3', topicId: 'topic-1' },
 ];
 
 async function seedDatabase() {
