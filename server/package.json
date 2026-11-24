@@ -10,7 +10,7 @@
     "demo:reset": "node reset-demo.js",
     "test": "node test-api.js",
     "test:e2e": "node test-e2e-scenarios.js",
-    "test:load": "node test/load-test-nfr12.js"
+    "test:load": "node test/load-test.js"
   },
   "keywords": [],
   "author": "",

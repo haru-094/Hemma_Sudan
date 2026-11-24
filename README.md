@@ -2,32 +2,48 @@
 > **Offline-Resilient Programming Learning & Mentorship Platform**  
 > *A lightweight Progressive Web Application (PWA) designed to provide uninterrupted programming education and peer code mentorship even during prolonged internet blackouts and power disruptions.*
 
+
+1. Live App: https://hemma-sudan.vercel.app/
+2. Demo video: https://youtu.be/bzkCZBeCBNE
+
 ---
 
 ## 📌 Table of Contents
 1. [Project Overview & Problem Solved](#-project-overview--problem-solved)
 2. [Key Features](#-key-features)
 3. [Prerequisites](#-prerequisites)
-4. [Installation & Setup](#-installation--setup)
-5. [Creating the Teacher Account & Role Lockdown](#-creating-the-teacher-account--role-lockdown)
-6. [Demo Accounts & DEMO_MODE](#-demo-accounts--demo_mode)
-7. [How to Use the Application](#-how-to-use-the-application)
-8. [Project Directory & File Structure](#-project-directory--file-structure)
+4. [Step-by-Step Local Setup Guide](#-step-by-step-local-setup-guide)
+   - [1. Clone the Repository](#1-clone-the-repository)
+   - [2. Configure & Run Backend Server](#2-configure--run-backend-server)
+   - [3. Configure & Run Frontend Client](#3-configure--run-frontend-client)
+   - [4. Verify Local Installation](#4-verify-local-installation)
+5. [Database Engine (Dual-Mode: PostgreSQL & In-Memory Fallback)](#-database-engine-dual-mode)
+6. [Cloud Deployment Guide](#-cloud-deployment-guide)
+   - [Deploying Backend on Render](#deploying-backend-on-render)
+   - [Deploying Frontend on Vercel](#deploying-frontend-on-vercel)
+7. [Authentication, User Roles & Demo Accounts](#-authentication-user-roles--demo-accounts)
+   - [Test Accounts & Credentials Table](#test-accounts--credentials-table)
+   - [Teacher Account Seeding & Role Lockdown](#teacher-account-seeding--role-lockdown)
+   - [Demo Mode vs Production Mode](#demo-mode-vs-production-mode)
+   - [Resetting Demo State](#resetting-demo-state)
+8. [Automated Verification & Testing](#-automated-verification--testing)
+9. [Feature Walkthrough & How to Use](#-feature-walkthrough--how-to-use)
+10. [Project Directory & File Structure](#-project-directory--file-structure)
 
 ---
 
 ## 🌍 Project Overview & Problem Solved
 
 ### The Problem
-In areas affected by conflict or severe infrastructure instability like Sudan, university and college students frequently endure **weeks or months of complete telecommunications blackouts** and intermittent power supply. Modern learning management systems (e.g., Canvas, Moodle, Coursera) depend on steady, continuous high-bandwidth internet connections; they freeze, fail to save progress, and lock students out when connectivity drops.
+In areas affected by conflict or severe infrastructure instability like Sudan, university and college students frequently endure **weeks or months of complete telecommunications blackouts** and intermittent power supply. Modern learning management systems (e.g., Canvas, Moodle, Coursera) depend on continuous, high-bandwidth internet connections; they freeze, fail to save progress, and lock students out when connectivity drops.
 
 ### The Solution
 **Hemma Sudan** is an offline-first Progressive Web Application (PWA) built specifically to survive intermittent and zero-connectivity environments:
 - **Cached Learning:** Students download lessons, code examples, and practice exercises onto their device during any brief window of connectivity.
-- **Offline Practice & Quizzes:** Students continue reading lessons, writing Python code, and completing interactive quizzes fully offline. All answers and progress are safely stored locally in the browser's IndexedDB.
-- **Zero-Loss Background Sync:** When internet access returns, the platform automatically syncs all queued progress to the backend server with duplicate protection.
-- **Peer Code Review & Mentorship:** Students submit GitHub project repositories for asynchronous review by teaching assistants and mentors, with built-in revision requests and direct escalation to course leads.
-- **Bilingual Interface:** Fully supports Arabic (RTL) and English (LTR), while strictly keeping code blocks, terminal commands, and repository URLs Left-to-Right (LTR) so formatting is never broken.
+- **Offline Practice & Quizzes:** Students continue reading lessons, writing code, and completing interactive quizzes fully offline. All answers and progress are safely stored locally in the browser's IndexedDB.
+- **Zero-Loss Background Sync:** When internet access returns, the platform automatically syncs all queued progress to the backend server with duplicate protection and exponential backoff retry.
+- **Peer Code Review & Mentorship:** Students submit public GitHub project repositories for asynchronous review by accredited mentors, with built-in revision requests and direct escalation to course instructors.
+- **Bilingual Interface:** Fully supports Arabic (RTL) and English (LTR), while strictly keeping code blocks, terminal commands, and repository URLs Left-to-Right (LTR) so syntax is never broken.
 
 ---
 
@@ -46,7 +62,7 @@ In areas affected by conflict or severe infrastructure instability like Sudan, u
   Validates that student project submission links point to valid, publicly accessible GitHub repositories before accepting submissions.
 
 - **💬 Mentor Revision Remarks & History:**  
-  When a mentor requests revisions on a project, a prominent revision callout displays the mentor's feedback and actionable remarks directly above the resubmission form, alongside a collapsible history of previous attempts.
+  When a mentor requests revisions on a project, an amber revision callout displays the mentor's feedback directly above the resubmission form, alongside a collapsible history of previous attempts.
 
 - **🚨 Direct Escalation to Course Lead:**  
   If a submission is delayed or if a student disagrees with feedback, the student can escalate their project directly to the course teacher for formal review.
@@ -54,10 +70,10 @@ In areas affected by conflict or severe infrastructure instability like Sudan, u
 - **📊 Role-Based Dashboards & Review Queue:**  
   - **Learners:** Track module completion, view saved offline lessons, and submit capstone projects.
   - **Mentors:** Filter reviews across 5 dedicated tabs (*All*, *Pending Review*, *Revision Requested*, *Escalated*, *Completed*) with real-time counters.
-  - **Teachers:** Manage lessons, approve Arabic translation drafts, assign reviewers, resolve escalations, and perform account maintenance.
+  - **Teachers:** Manage lessons, approve Arabic translation drafts, accredit mentors, resolve escalations, and reset live demo state.
 
 - **🌐 English & Arabic with Code Isolation:**  
-  One-click language toggle smoothly switches the layout between Arabic (Right-to-Left) and English (Left-to-Right). All code snippets, variable names, and repository URLs are strictly isolated in LTR format to prevent indentation corruption.
+  One-click language toggle smoothly switches layout between Arabic (Right-to-Left) and English (Left-to-Right). All code snippets, variable names, and repository URLs are strictly isolated in LTR format.
 
 - **🌙 Native Low-Power Dark Mode:**  
   High-contrast, purpose-built dark theme designed to conserve OLED battery life and reduce eye fatigue during late-night offline study sessions.
@@ -65,7 +81,7 @@ In areas affected by conflict or severe infrastructure instability like Sudan, u
 - **📖 In-App Bilingual Help & Troubleshooting Guide (`/help`):**  
   Built-in guides for learners, offline PWA storage troubleshooting, mentor evaluation guidelines, and teacher administrative tooling.
 
-- **🛠️ Module 0 Developer Tooling Setup (SRS 2.7):**  
+- **🛠️ Module 0 Developer Tooling Setup:**  
   Step-by-step developer environment setup covering VS Code, Git configuration, and creating public GitHub repositories across Python, C++, and Java.
 
 - **📋 Interactive Capstone Rubric & Starter Repositories:**  
@@ -74,8 +90,8 @@ In areas affected by conflict or severe infrastructure instability like Sudan, u
 - **🔒 Offline Project Submission Guard:**  
   Project submissions are explicitly gated offline with prominent "needs internet" status badges, ensuring only live submissions can be made.
 
-- **⚡ Verified Concurrency & Latency:**  
-  Benchmarked for 20+ concurrent learner sessions with server response latencies consistently under 10ms (well under the 2000ms threshold).
+- **⚡ High Concurrency & Low Latency:**  
+  Benchmarked for 20+ concurrent learner sessions with server response latencies consistently under 10ms.
 
 - **🔒 Data Privacy & Demo Retention Consent:**  
   Prompts returning students for consent to retain their data across sessions, and gives instructors the ability to purge temporary demonstration data with administrative audit logging.
@@ -84,135 +100,354 @@ In areas affected by conflict or severe infrastructure instability like Sudan, u
 
 ## 💻 Prerequisites
 
-To run this project locally, ensure you have the following installed:
+Ensure you have the following installed on your computer before starting:
 
-- **Node.js**: `v18.0.0` or higher ([Download Node.js](https://nodejs.org/))
-- **npm**: `v9.0.0` or higher (comes bundled with Node.js)
-- **Web Browser**: Any modern browser (Google Chrome, Mozilla Firefox, Microsoft Edge, or Safari) with IndexedDB support.
-- *(Optional)* **PostgreSQL**: `v14` or higher — *Note: PostgreSQL is completely optional. If a PostgreSQL instance is not detected, the backend automatically activates a built-in in-memory database store so the app runs out of the box without any database setup!*
+| Tool | Minimum Version | Installation Link / Command |
+|---|---|---|
+| **Git** | `v2.20+` | `git --version` ([Download Git](https://git-scm.com/)) |
+| **Node.js** | `v18.0.0+` (v20 or v22 LTS recommended) | `node --version` ([Download Node.js](https://nodejs.org/)) |
+| **npm** | `v9.0.0+` | `npm --version` (bundled with Node.js) |
+| **Web Browser** | Any modern browser | Google Chrome, Mozilla Firefox, Microsoft Edge, or Safari |
+| *(Optional)* **PostgreSQL** | `v14+` | Optional: system uses automatic in-memory fallback if absent |
 
 ---
 
-## 🚀 Installation & Setup
+## 🚀 Step-by-Step Local Setup Guide
+
+Follow these instructions to get both the backend API and frontend client running on your local machine.
 
 ### 1. Clone the Repository
+
+Open your terminal or command prompt:
+
 ```bash
 git clone https://github.com/haru-094/Hemma_Sudan.git
 cd Hemma_Sudan
 ```
 
-### 2. Set Up the Backend Server
-Open a terminal and run:
-```bash
-cd server
-npm install
-cp .env.example .env
-npm start
-```
-The backend server will start on **`http://localhost:5001`**.  
-*(If PostgreSQL is not running, it will automatically log that in-memory fallback mode is active and continue running normally).*
+---
 
-### 3. Set Up the Frontend Client
-Open a **second terminal tab** and run:
-```bash
-cd client
-npm install
-cp .env.example .env
-npm run dev
-```
-The frontend application will start on **`http://localhost:5173`**.
+### 2. Configure & Run Backend Server
 
-Open your browser and navigate to **`http://localhost:5173`**.
+The backend runs on **Node.js** and **Express 5**.
+
+1. Navigate into the `server` directory:
+   ```bash
+   cd server
+   ```
+
+2. Install backend dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Create your environment configuration file by copying the template:
+   ```bash
+   cp .env.example .env
+   ```
+
+4. *(Optional)* Inspect or customize `server/.env`:
+   ```ini
+   PORT=5001
+   NODE_ENV=development
+   DATABASE_URL=postgresql://postgres:postgres@localhost:5432/hemma_sudan
+   LIBRETRANSLATE_URL=http://localhost:5000
+
+   # Teacher Account Seeding (seeded automatically on startup if not present)
+   TEACHER_EMAIL=teacher@hemma.sd
+   TEACHER_PASSWORD=TeacherSecurePass2026!
+   TEACHER_NAME=Dr. Tariq Ahmed
+
+   # Demo Mode Toggle (true enables 1-click login shortcuts and relaxed passwords for evaluation)
+   DEMO_MODE=true
+   ```
+   > ℹ️ **Database Note:** You do **not** need to install or start PostgreSQL. If PostgreSQL is not found at `DATABASE_URL`, the server will seamlessly boot into in-memory fallback mode!
+
+5. Start the backend server:
+   ```bash
+   npm start
+   ```
+   *Or for development with automatic restart: `npm run dev`*
+
+   You should see output similar to:
+   ```text
+   [DB] In-memory database initialized with demo data
+   [Auth] Seeded default teacher account: teacher@hemma.sd
+   [Hemma Sudan] API server running on port 5001
+   ```
+
+6. Verify that the backend is responding by opening a new terminal tab and testing:
+   ```bash
+   curl http://localhost:5001/health
+   ```
+   Expected response: `{"status":"ok","timestamp":"...","uptime":...}`
 
 ---
 
-## 🔐 Creating the Teacher Account & Role Lockdown
+### 3. Configure & Run Frontend Client
 
-In accordance with system specifications:
-- **Teacher accounts cannot be self-registered**: The public registration page (`/register`) is strictly locked down and will **always** create accounts with the `learner` role, completely ignoring any client-supplied role values. Passwords are securely hashed with `bcryptjs`.
-- **Teacher Account Seeding via Environment Variables**: Teacher accounts are seeded automatically on server startup if no teacher exists in the database.
-- **Environment Variables**:
-  - `TEACHER_EMAIL`: The official login email for the course instructor (e.g. `teacher@hemma.sd`).
-  - `TEACHER_PASSWORD`: The secure password for the instructor (e.g. `TeacherSecurePass2026!`). The server hashes this with `bcryptjs` before persisting to PostgreSQL or the in-memory store; plain-text passwords are never saved.
-  - `TEACHER_NAME`: The instructor's display name (e.g. `Dr. Tariq Ahmed`).
-  - `DEMO_MODE`: Set to `false` for production deployments, or `true` for grading/evaluation demos.
-- **Setting Environment Variables on Render / Cloud Platforms**:
-  When deploying on [Render](https://render.com), configure the following in your Web Service's **Environment** tab:
-  1. Add `TEACHER_EMAIL`, `TEACHER_PASSWORD`, and `TEACHER_NAME`.
-  2. Set `DEMO_MODE=false`.
-  3. Deploy the service. On startup, the backend will verify if a teacher exists and automatically seed the teacher account with the hashed password.
-- **Mentor Accreditation**:
-  Mentors are learners promoted by the teacher through topic accreditation on the Teacher Hub (`/teacher`). Mentors cannot register directly.
+The frontend is a **React 19 + Vite** Single Page Application styled with **Tailwind CSS v4**.
+
+1. In a **new terminal window or tab**, navigate into the `client` directory:
+   ```bash
+   cd Hemma_Sudan/client
+   ```
+
+2. Install frontend dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Create your frontend environment configuration file:
+   ```bash
+   cp .env.example .env
+   ```
+
+4. Verify that `client/.env` points to your backend:
+   ```ini
+   VITE_API_URL=http://localhost:5001/api
+   ```
+
+5. Start the frontend development server:
+   ```bash
+   npm run dev
+   ```
+
+   You should see:
+   ```text
+     VITE v8.3.4  ready in 180 ms
+
+     ➜  Local:   http://localhost:5173/
+     ➜  Network: use --host to expose
+   ```
 
 ---
 
-## 👥 Demo Accounts & DEMO_MODE
+### 4. Verify Local Installation
 
-> ⚠️ **DEMO_MODE Note:**  
-> The one-click demo login buttons and "any password" bypass **only apply when `DEMO_MODE=true`** in `server/.env`.  
-> When deployed to production with **`DEMO_MODE=false`**:
-> - The client automatically hides the one-click demo accounts section and session simulation buttons via `GET /api/config`.
-> - Strict `bcryptjs` password comparison is enforced for all logins; demo accounts cannot be logged into without valid credentials.
-> - The seeded teacher account logs in with `TEACHER_EMAIL` and `TEACHER_PASSWORD`.
+1. Open your browser and navigate to **`http://localhost:5173`**.
+2. Click **Sign In** in the top navigation bar.
+3. If `DEMO_MODE=true`, you will see **One-Click Demo Accounts** ready for immediate testing.
+4. Click any demo account (e.g., **Ahmed Osman**) or log in using credentials from the table below.
 
-When `DEMO_MODE=true` (default for local development and grading), the platform includes pre-configured demo shortcuts:
+---
 
-| Role | Name | Email | Password | Access & Capabilities |
+## 🗄️ Database Engine (Dual-Mode)
+
+Hemma Sudan features a resilient **dual-engine database adapter** located in `server/db.js`:
+
+1. **PostgreSQL Mode:**  
+   If a valid `DATABASE_URL` is configured and a PostgreSQL instance is reachable, the backend executes SQL queries against PostgreSQL using the connection pool. On first run, it initializes tables from `server/schema.sql` and seeds baseline curriculum and users.
+
+2. **In-Memory Fallback Mode:**  
+   If PostgreSQL is offline, unconfigured, or connection times out, the backend **automatically switches to the in-memory store** (`memoryDb`) without crashing. All CRUD operations (users, topics, lessons, quizzes, submissions, reviews, translation drafts) execute seamlessly in memory.
+
+To seed or re-seed PostgreSQL manually when running a local database:
+```bash
+npm --prefix server run seed
+```
+
+---
+
+## ☁️ Cloud Deployment Guide
+
+### Deploying Backend on Render
+
+1. Create a new account or log into [Render](https://render.com).
+2. Click **New +** → **Web Service**.
+3. Connect your GitHub repository (`Hemma_Sudan`).
+4. Configure the Web Service settings:
+   - **Name:** `hemma-sudan-api` (or your preferred name)
+   - **Root Directory:** `server`
+   - **Environment:** `Node`
+   - **Build Command:** `npm install`
+   - **Start Command:** `npm start`
+5. In the **Environment Variables** section, add:
+   | Key | Value | Notes |
+   |---|---|---|
+   | `NODE_ENV` | `production` | Production environment flag |
+   | `PORT` | `5001` | Express listening port |
+   | `DEMO_MODE` | `true` | Set `true` for evaluation demos; `false` for strict production |
+   | `TEACHER_EMAIL` | `teacher@hemma.sd` | Official teacher email |
+   | `TEACHER_PASSWORD` | `TeacherSecurePass2026!` | Official teacher password |
+   | `TEACHER_NAME` | `Dr. Tariq Ahmed` | Teacher display name |
+   | *(Optional)* `DATABASE_URL` | *postgres connection string* | If attaching Render PostgreSQL; otherwise runs in-memory |
+6. Click **Deploy Web Service**.
+7. Note your public backend URL (e.g. `https://hemma-sudan-api.onrender.com`). Verify it with:
+   ```bash
+   curl https://hemma-sudan-api.onrender.com/health
+   ```
+   > ⏱️ **Cold Start Note:** On Render's free tier, services spin down after 15 minutes of inactivity. The first request after sleep may take ~45–60 seconds to wake up.
+
+---
+
+### Deploying Frontend on Vercel
+
+1. Create an account or log into [Vercel](https://vercel.com).
+2. Click **Add New...** → **Project**.
+3. Import your GitHub repository (`Hemma_Sudan`).
+4. Configure the Project:
+   - **Framework Preset:** `Vite`
+   - **Root Directory:** Click *Edit* and select **`client`**
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `dist`
+   - **Install Command:** `npm install`
+5. In the **Environment Variables** section, add:
+   - `VITE_API_URL` = `https://hemma-sudan-api.onrender.com/api`  
+     *(Replace with your actual Render service URL, ensuring it ends with `/api`)*
+6. Click **Deploy**.
+7. Client single-page routing is pre-configured via `client/vercel.json`:
+   ```json
+   {
+     "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+   }
+   ```
+   This prevents `404 Not Found` errors when refreshing routes such as `/lessons`, `/reviews`, or `/teacher`.
+
+---
+
+## 👥 Authentication, User Roles & Demo Accounts
+
+### Test Accounts & Credentials Table
+
+| Role | Name | Email | Password | Assigned Scope / Permissions |
 |---|---|---|---|---|
-| **Learner** | Ahmed Osman | `ahmed.student@hemma.sd` | *any* (or `DemoPass2026!`) | Browse lessons, take offline quizzes, submit GitHub capstones, request teacher review |
-| **Mentor** | Sarah Ibrahim | `sarah.mentor@hemma.sd` | *any* (or `DemoPass2026!`) | Review submissions for Topics 1 & 2, request revisions, approve projects |
-| **Mentor** | Omar Farouk | `omar.mentor@hemma.sd` | *any* (or `DemoPass2026!`) | Review submissions for Topics 2 & 3 (prefers Arabic UI) |
-| **Mentor** | Mona Elhassan | `mona.mentor@hemma.sd` | *any* (or `DemoPass2026!`) | Review submissions for Topic 1 |
-| **Course Lead (Teacher)** | Dr. Tariq Ahmed | `teacher@hemma.sd` | `TEACHER_PASSWORD` (or *any* in demo) | Author lessons, approve translations, assign mentors, resolve escalations, purge demo data |
-
-> 💡 **One-Click Login (when DEMO_MODE=true):** On the `/login` page, you can click any name under **"One-Click Demo Accounts"** to log in instantly. You can also switch users at any time using the user menu in the top-right corner of the navbar.
+| **Course Lead (Teacher)** | Dr. Tariq Ahmed | `teacher@hemma.sd` | `TeacherSecurePass2026!` | Author curriculum, approve Arabic translations, accredit mentors, resolve escalations, reset live demo |
+| **Accredited Mentor** | Sarah Ibrahim | `sarah.mentor@hemma.sd` | `DemoPass2026!` | Review student GitHub projects for Topic 1 & Topic 2, request revisions, approve submissions |
+| **Accredited Mentor** | Omar Farouk | `omar.mentor@hemma.sd` | `DemoPass2026!` | Review student GitHub projects for Topic 2 & Topic 3 (Arabic interface preference) |
+| **Learner** | Ahmed Osman | `ahmed.student@hemma.sd` | `DemoPass2026!` | Take lessons & offline quizzes, sync progress, submit GitHub capstones, request teacher review |
+| **Learner (Ready to Accredit)** | Mona Elhassan | `mona.mentor@hemma.sd` | `DemoPass2026!` | Starts as a learner; ready to demonstrate live mentor accreditation from the Teacher Hub |
 
 ---
 
-## 🎯 How to Use the Application
+### Teacher Account Seeding & Role Lockdown
 
-### 1. Offline Learning & Interactive Quizzes
-1. Log in as **Ahmed Osman (Learner)** and navigate to **Lessons** (`/lessons`).
-2. Open any lesson (e.g., *Variables, Expressions & Print Output*).
-3. **Simulate Offline Mode:** Open your browser's Developer Tools (`F12` or `Cmd+Option+I` on Mac) → go to the **Network** tab → change the throttling dropdown from **"No throttling"** to **"Offline"** (or simply turn off your Wi-Fi).
-4. An amber banner appears confirming you are offline.
-5. Scroll down to the **Interactive Knowledge Check**, select your answers, and click **Submit Quiz Answers**.
-6. The quiz scores your answers locally, displays feedback, and queues your completion in IndexedDB (`⏳ Pending` sync pill in the navbar).
-7. Re-enable network connectivity in DevTools. The sync pill updates to **`✓ Synced`** automatically.
+Security and role assignment follow strict boundaries:
+- **No Self-Registration for Teachers or Mentors:** The public registration page (`/register`) strictly sets role to `learner`. Any client attempt to inject elevated roles is completely ignored by the backend API.
+- **Seeded via Server Environment:** The teacher account is created automatically on server startup using `TEACHER_EMAIL`, `TEACHER_PASSWORD`, and `TEACHER_NAME`. Plain text passwords are never stored; passwords are salted and hashed with `bcryptjs`.
+- **Mentor Accreditation:** Learners become mentors exclusively when the course teacher explicitly grants them topic accreditation via the **Mentor Accreditation** panel on the Teacher Hub (`/teacher`).
 
-### 2. Capstone Project Submission & Mentor Revision
-1. Go to **Capstones** (`/project/topic-1`).
-2. Enter your GitHub repository link and an explanation of your solution.
-3. Click **Submit for Mentor Review**. The system verifies that the repository exists and is publicly reachable.
-4. Switch user to **Sarah Ibrahim (Mentor)** using the top-right menu and navigate to **Review Queue** (`/reviews`).
-5. Use the filter tabs (*All*, *Pending Review*, *Revision Requested*, etc.) to find the submission.
-6. Click **Review**, enter revision remarks (e.g., *"Please add error handling for invalid input"*), select **Request Revision**, and submit.
-7. Switch back to **Ahmed Osman (Learner)** and return to `/project/topic-1`.
-8. An amber **Mentor Revision Remarks Callout** appears right above the submission form with Sarah's feedback.
+---
 
-### 3. Direct Escalation to Teacher
-1. While viewing your project on `/project/topic-1`, click **Disagree & Request Teacher Review**.
-2. Enter your reason and confirm. The submission status transitions to **Escalated**.
-3. Switch user to **Dr. Tariq Ahmed (Teacher)** and navigate to `/reviews` or `/teacher`.
-4. Open the **Escalated** filter tab. The teacher can explicitly assign a mentor or click **Approve & Mark Complete** to resolve it directly.
+### Demo Mode vs Production Mode
 
-### 4. Simulating Offline Session Expiry
-1. Go to the **Login page** (`/login`).
-2. Click **⚡ Simulate Session Expiry While Offline**.
-3. A purple banner notifies the student that their session expired while offline, but all progress is preserved in local storage.
-4. Click **Ahmed Osman** to sign back in. The session refreshes and pending progress syncs immediately with zero data loss.
+The platform behavior is controlled by `DEMO_MODE` in server environment variables:
 
-### 5. Automated System Verification (E2E & Load Suites)
-To automatically test all core flows (offline quiz sync, duplicate protection, reachability checks, mentor revisions, escalations, session expiry, and demo data purge) in a single run:
+| Feature | `DEMO_MODE=true` (Default / Demo) | `DEMO_MODE=false` (Production) |
+|---|---|---|
+| **One-Click Demo Login** | Visible on `/login` for rapid testing | Completely hidden |
+| **Session Simulation Buttons** | Enabled (simulate offline expiry, simulate slow network) | Disabled / Hidden |
+| **Password Validation** | Exact passwords or demo shortcuts accepted | Strict `bcryptjs` password validation required |
+| **Teacher Account Login** | `TeacherSecurePass2026!` | `TeacherSecurePass2026!` |
+| **New Learner Registration** | Saved and hashed with bcrypt | Saved and hashed with bcrypt |
+
+---
+
+### Resetting Demo State
+
+When conducting live demonstrations or recordings, you can reset all project submissions, progress records, mentor assignments, and lesson statuses back to the clean baseline at any time:
+
+- **From the Browser UI:**  
+  Log in as **Dr. Tariq Ahmed (Teacher)** → Navigate to **Teacher Hub** (`/teacher`) → Click the purple **⚡ Reset Live Demo** button.
+- **From the Command Line:**  
+  Run in terminal:
+  ```bash
+  npm --prefix server run demo:reset
+  ```
+- **Via HTTP REST API:**  
+  Send a POST request:
+  ```bash
+  curl -X POST https://your-server-url/api/demo/reset
+  ```
+
+---
+
+## 🧪 Automated Verification & Testing
+
+The repository includes a comprehensive automated test suite covering unit API tests, end-to-end scenario simulations, and concurrency load benchmarks.
+
+### 1. Backend Route Smoke Test
+Tests API routes for health, authentication, topics, and lesson retrieval:
+```bash
+npm --prefix server run test
+```
+
+### 2. Comprehensive End-to-End Simulation Test (26 Steps)
+Runs through the complete multi-user lifecycle:
+- Seed validation and teacher account verification
+- Learner lesson completion and offline progress queuing
+- Idempotent background synchronization and duplicate protection
+- Public GitHub repository reachability check
+- Mentor review submission, revision remarks, and timeline history
+- Student escalation to course teacher
+- Teacher escalation resolution and mentor accreditation
+- Offline session expiry simulation and post-login sync recovery
+- Data retention consent audit and demo state reset
+
 ```bash
 npm --prefix server run test:e2e
 ```
+Expected result: `26 passing steps, 0 failures (100% PASS)`.
 
-To run the automated (20 concurrent virtual learners) and (<2000ms response time) load benchmark:
+### 3. Concurrency Load Benchmark
+Simulates 20 concurrent virtual learners taking lessons, solving quizzes, and synchronizing progress simultaneously:
 ```bash
 npm --prefix server run test:load
 ```
-All 22 verification steps will run in the terminal and output green checkmarks (`✅ PASS`).
+Expected result: `All 20 virtual user sessions completed successfully with average response times < 10ms`.
+
+### 4. Client Code Quality & Build Verification
+Validates ESLint rules and creates an optimized production bundle:
+```bash
+npm --prefix client run lint
+npm --prefix client run build
+```
+
+---
+
+## 🎯 Feature Walkthrough & How to Use
+
+Follow these steps to demonstrate the core features of Hemma Sudan:
+
+### Phase 1: Offline Learning & Knowledge Check
+1. Sign in as **Ahmed Osman (Learner)**.
+2. Go to **Lessons** (`/lessons`) and open **Variables, Expressions & Print Output**.
+3. Toggle browser offline mode:
+   - In Chrome/Firefox/Edge DevTools (`F12` / `Inspect`), open the **Network** tab and select **Offline** from the throttling dropdown. Or simply disconnect your Wi-Fi.
+4. Notice the amber **Offline Mode** banner indicating the app is working locally.
+5. Scroll down to the **Interactive Knowledge Check**, answer the questions, and click **Submit Quiz Answers**.
+6. The quiz evaluates your score locally, provides immediate feedback, and displays the **`⏳ 1 Pending`** sync pill in the top navbar.
+7. Restore network connection (switch back to **No throttling** or turn Wi-Fi on).
+8. The sync indicator automatically updates to **`✓ Synced`** as the score is persisted to the backend.
+
+### Phase 2: Capstone Project Submission & Mentor Review
+1. While logged in as **Ahmed**, navigate to **Capstones** (`/project/topic-1`).
+2. Enter a public GitHub repository URL (e.g. `https://github.com/octocat/Hello-World`) and project remarks.
+3. Click **Submit for Mentor Review**. The system verifies that the GitHub repository is public and active before accepting.
+4. Log out or switch user to **Sarah Ibrahim (Mentor)** via the user menu in the navbar.
+5. Go to **Review Queue** (`/reviews`).
+6. Notice the filter tabs (*All*, *Pending Review*, *Revision Requested*, *Escalated*, *Completed*) with real-time counters.
+7. Click **Review** on Ahmed's submission, enter constructive revision remarks (e.g., *"Please add docstrings to all functions"*), select **Request Revision**, and click **Submit Review**.
+
+### Phase 3: Revision Remarks & Teacher Escalation
+1. Switch back to **Ahmed Osman (Learner)** and return to `/project/topic-1`.
+2. Notice the amber **Mentor Revision Remarks Callout** displayed prominently right above the submission form with Sarah's comments.
+3. Click **Disagree & Request Teacher Review**. Enter your justification and confirm.
+4. The project status updates to **Escalated**.
+5. Switch user to **Dr. Tariq Ahmed (Teacher)** and navigate to `/reviews` or `/teacher`.
+6. Open the **Escalated** filter tab to see the submission.
+7. As teacher, click **Review** and click **Approve & Mark Complete** to resolve the escalation directly.
+
+### Phase 4: Curriculum Management & Translation Approval
+1. While logged in as **Dr. Tariq Ahmed (Teacher)** on **Teacher Hub** (`/teacher`):
+2. In the **Lesson Management** panel, locate Lesson 2 (*Conditionals, Branching & Decision Structures*), which is marked as **Draft Translation**.
+3. Click **Approve Arabic Translation**. The badge changes to **Published**, making the translated content immediately live for Arabic-speaking learners.
+4. In the **Mentor Accreditation** panel, promote **Mona Elhassan** by assigning her accreditation for **Topic 1**.
+
+### Phase 5: Bilingual Support & Dark Mode
+1. Click the language toggle button (**عربي / English**) in the navigation bar.
+2. The entire layout transitions to Right-to-Left (RTL) Arabic, while code blocks, terminal snippets, and repository URLs strictly remain Left-to-Right (LTR).
+3. Click the theme toggle icon in the navbar to switch between **Dark Mode** (OLED battery conservation) and **Light Mode**.
 
 ---
 
@@ -220,39 +455,41 @@ All 22 verification steps will run in the terminal and output green checkmarks (
 
 ```
 Hemma_Sudan/
-├── README.md                          # Main documentation and guide
+├── README.md                          # Main documentation and installation guide
+├── render.yaml                        # Infrastructure-as-code specification for Render
 │
-├── client/                            # Frontend PWA (React 19 + Tailwind CSS v4 + Vite)
+├── client/                            # Frontend PWA (React 19 + Vite + Tailwind CSS v4)
 │   ├── .env.example                   # Environment configuration template
-│   ├── index.html                     # Main HTML template with responsive viewport & fonts
+│   ├── index.html                     # HTML entry point with responsive meta tags & fonts
 │   ├── package.json                   # Client dependencies and npm scripts
-│   ├── vite.config.js                 # Vite bundler configuration with Tailwind plugin
+│   ├── vercel.json                    # Single-page application route rewrites for Vercel
+│   ├── vite.config.js                 # Vite bundler configuration
 │   │
-│   ├── public/                        # Static assets, icons, and manifest
-│   │   ├── favicon.ico                # Browser tab icon
-│   │   └── manifest.json              # PWA installation manifest
+│   ├── public/                        # Static assets, icons, and PWA manifest
+│   │   ├── favicon.ico                # Application tab icon
+│   │   └── manifest.json              # Progressive Web App installation manifest
 │   │
 │   └── src/                           # Frontend source code
 │       ├── App.jsx                    # Root component with routing and global providers
 │       ├── main.jsx                   # React DOM application mount point
-│       ├── index.css                  # Global styles, Tailwind directives, and font utilities
+│       ├── index.css                  # Global styling, Tailwind directives & font utilities
 │       │
 │       ├── context/                   # Global React state management
-│       │   ├── AuthContext.jsx        # User login, session expiry tracking & retention consent
+│       │   ├── AuthContext.jsx        # Authentication, session expiry & data retention consent
 │       │   ├── SyncContext.jsx        # Offline queue, exponential retry backoff & sync status
 │       │   ├── ThemeContext.jsx       # Native light/dark mode preference state
 │       │   └── LanguageContext.jsx    # Arabic/English localization and RTL/LTR direction toggle
 │       │
 │       ├── pages/                     # Main user views and screens
-│       │   ├── LandingPage.jsx        # Public welcome page with platform overview & modules
-│       │   ├── LoginPage.jsx          # Login form, session expiry warning & 1-click demo accounts
+│       │   ├── LandingPage.jsx        # Public welcome page with platform overview & curriculum
+│       │   ├── LoginPage.jsx          # Login form, session expiry warning & demo shortcuts
 │       │   ├── RegisterPage.jsx       # Learner registration with age confirmation check
 │       │   ├── LessonsPage.jsx        # Curriculum module listing with offline-saved badges
 │       │   ├── LessonDetailPage.jsx   # Lesson content, code snippets & offline interactive quiz
 │       │   ├── TopicProjectPage.jsx   # Project submission, reachability check & revision callout
-│       │   ├── LearnerDashboard.jsx   # Student overview, saved lessons, completed capstones & consent
+│       │   ├── LearnerDashboard.jsx   # Student overview, saved lessons & completed capstones
 │       │   ├── ReviewsDashboard.jsx   # Mentor review queue with 5 filter tabs & assignment controls
-│       │   ├── TeacherAdminPage.jsx   # Course lead hub for authoring, escalations & demo data purge
+│       │   ├── TeacherAdminPage.jsx   # Course lead hub for curriculum, escalations & demo reset
 │       │   └── HelpPage.jsx           # Bilingual in-app documentation & offline troubleshooting
 │       │
 │       ├── components/                # Reusable UI components
@@ -261,7 +498,7 @@ Hemma_Sudan/
 │       │   │   ├── GithubIcon.jsx     # SVG GitHub brand icon
 │       │   │   ├── RevisionTimeline.jsx # Visual timeline tracking submission attempts & feedback
 │       │   │   ├── StatusBadge.jsx    # Colored badges for submission and sync statuses
-│       │   │   └── UnsupportedBrowser.jsx # Legacy browser warning dialog (Chrome <115, Safari <16)
+│       │   │   └── UnsupportedBrowser.jsx # Legacy browser warning dialog
 │       │   ├── layout/
 │       │   │   ├── Navbar.jsx         # Navigation bar with user switcher, language toggle & sync pill
 │       │   │   ├── Footer.jsx         # Site footer with platform information
@@ -283,13 +520,22 @@ Hemma_Sudan/
     ├── db.js                          # Database adapter with automated in-memory fallback store
     ├── schema.sql                     # Relational database schema definition (PostgreSQL)
     ├── seed.js                        # Database seeder for demo users and curriculum
+    ├── reset-demo.js                  # CLI script to reset demo database state back to clean baseline
     ├── test-api.js                    # Basic HTTP route smoke test
-    ├── test-e2e-scenarios.js          # Complete 22-step automated end-to-end scenario test suite
+    ├── test-e2e-scenarios.js          # Complete 26-step automated end-to-end scenario test suite
     │
-    └── routes/                        # Express API route controllers
-        ├── auth.js                    # User login, registration, and retention consent endpoints
-        ├── curriculum.js              # Topics, lessons, and machine translation draft generation
-        ├── submissions.js             # Project submission, GitHub reachability check & review feedback
-        ├── sync.js                    # Idempotent progress synchronization & conflict resolution
-        └── teacher.js                 # Mentor permissions, manual account resets & demo data purge
+    ├── routes/                        # Express API route controllers
+    │   ├── auth.js                    # User login, registration, and retention consent endpoints
+    │   ├── curriculum.js              # Topics, lessons, and translation draft generation
+    │   ├── submissions.js             # Project submission, GitHub verification & review feedback
+    │   ├── sync.js                    # Idempotent progress synchronization & conflict resolution
+    │   └── teacher.js                 # Mentor accreditation, manual resets & demo state purge
+    │
+    └── test/                          # Additional test suites
+        └── load-test.js              # 20 concurrent virtual users load benchmark
 ```
+
+---
+
+## 📄 License
+This project is developed for educational and humanitarian purposes under the MIT License.
