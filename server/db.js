@@ -49,17 +49,17 @@ const memoryDb = {
     { id: 'lesson-1-2', topic_id: 'topic-1', title_en: 'Console Input & Type Conversions', title_ar: 'مدخلات الطرفية وتحويل أنواع البيانات', notes_en: 'Interactive programs using input().', notes_ar: 'البرامج التفاعلية باستخدام input().', code_snippet: 'name = input("Enter name: ")\nprint(f"Marhaban, {name}!")', recording_link: 'https://youtu.be/mock-lesson-2', display_order: 2, arabic_status: 'approved', is_published: true, version: 1 }
   ],
   mentor_approvals: [
-    { teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-1', topic_id: 'topic-1' },
-    { teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-1', topic_id: 'topic-2' },
-    { teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-2', topic_id: 'topic-2' },
-    { teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-2', topic_id: 'topic-3' }
+    { id: 'appr-1', teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-1', topic_id: 'topic-1', granted_at: new Date(Date.now() - 172800000).toISOString(), revoked_at: null },
+    { id: 'appr-2', teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-1', topic_id: 'topic-2', granted_at: new Date(Date.now() - 172800000).toISOString(), revoked_at: null },
+    { id: 'appr-3', teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-2', topic_id: 'topic-2', granted_at: new Date(Date.now() - 172800000).toISOString(), revoked_at: null },
+    { id: 'appr-4', teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-2', topic_id: 'topic-3', granted_at: new Date(Date.now() - 172800000).toISOString(), revoked_at: null }
   ],
   submissions: [],
   feedbacks: [],
   audit_logs: [
     {
       id: 'log-1',
-      actor_id: 'usr-teacher-1',
+      performed_by: 'usr-teacher-1',
       action: 'APPROVE_MENTOR_TOPIC',
       target_user_id: 'usr-mentor-1',
       details: 'Approved for Topic 1 and Topic 2',
@@ -87,6 +87,10 @@ function runMemoryQuery(text, params = []) {
       const u = memoryDb.users.find((user) => user.id === params[0]);
       return { rows: u ? [u] : [] };
     }
+    if (normalized.includes("role in ('mentor', 'learner')")) {
+      const filtered = memoryDb.users.filter((user) => user.role === 'mentor' || user.role === 'learner');
+      return { rows: filtered };
+    }
     if (normalized.includes("role = 'teacher'")) {
       const teachers = memoryDb.users.filter((user) => user.role === 'teacher');
       return { rows: teachers };
@@ -113,6 +117,11 @@ function runMemoryQuery(text, params = []) {
       const matching = memoryDb.lessons.filter((l) => !params || params.length === 0 || l.topic_id === params[0]);
       const maxOrder = matching.reduce((max, l) => Math.max(max, l.display_order || 0), 0);
       return { rows: [{ next_order: maxOrder + 1 }] };
+    }
+    if (normalized.includes('where id = any')) {
+      const ids = Array.isArray(params[0]) ? params[0] : [params[0]];
+      const matched = memoryDb.lessons.filter((l) => ids.includes(l.id));
+      return { rows: matched };
     }
     if (normalized.includes('where l.id = $1') || normalized.includes('where id = $1')) {
       const l = memoryDb.lessons.find((less) => less.id === params[0]);
@@ -150,20 +159,49 @@ function runMemoryQuery(text, params = []) {
     return { rows: [newLesson] };
   }
 
-  // UPDATE lessons set arabic_status
-  if (normalized.startsWith('update lessons set arabic_status')) {
-    const l = memoryDb.lessons.find((less) => less.id === params[1]);
-    if (l) l.arabic_status = params[0];
+  // UPDATE lessons set
+  if (normalized.startsWith('update lessons set')) {
+    const lessonId = params[0];
+    let l = memoryDb.lessons.find((less) => less.id === lessonId);
+    if (!l && params.length > 1) {
+      l = memoryDb.lessons.find((less) => less.id === params[1]);
+      if (l) {
+        l.arabic_status = params[0];
+        return { rows: [l] };
+      }
+    }
+    if (l) {
+      for (let i = 1; i < params.length; i++) {
+        const val = params[i];
+        if (val === 'draft' || val === 'approved' || val === 'pending') {
+          l.arabic_status = val;
+        } else if (normalized.includes('title_ar') && !l._updatedTitle) {
+          l.title_ar = val;
+          l._updatedTitle = true;
+        } else if (normalized.includes('notes_ar')) {
+          l.notes_ar = val;
+        }
+      }
+      delete l._updatedTitle;
+      return { rows: [l] };
+    }
     return { rows: [l || {}] };
   }
 
   // SELECT mentor_approvals
   if (normalized.startsWith('select') && normalized.includes('from mentor_approvals')) {
-    if (normalized.includes('where mentor_id = $1')) {
-      const apps = memoryDb.mentor_approvals.filter((a) => a.mentor_id === params[0]);
-      return { rows: apps };
+    let apps = memoryDb.mentor_approvals;
+    if (normalized.includes('where mentor_id = $1 and topic_id = $2')) {
+      const found = apps.find((a) => a.mentor_id === params[0] && a.topic_id === params[1]);
+      return { rows: found ? [found] : [] };
     }
-    return { rows: memoryDb.mentor_approvals };
+    if (normalized.includes('where mentor_id = $1')) {
+      apps = apps.filter((a) => a.mentor_id === params[0]);
+    }
+    if (normalized.includes('revoked_at is null')) {
+      apps = apps.filter((a) => a.revoked_at === null);
+    }
+    return { rows: apps };
   }
 
   // SELECT submissions
@@ -172,12 +210,28 @@ function runMemoryQuery(text, params = []) {
       const s = memoryDb.submissions.find((sub) => sub.id === params[0]);
       return { rows: s ? [s] : [] };
     }
+    if (normalized.includes('where learner_id = any')) {
+      const ids = Array.isArray(params[0]) ? params[0] : [params[0]];
+      const matched = memoryDb.submissions.filter((s) => ids.includes(s.learner_id));
+      return { rows: matched };
+    }
     if (normalized.includes('max(attempt_no)')) {
       const topicSubs = memoryDb.submissions.filter((s) => s.topic_id === params[0] && s.learner_id === params[1]);
       const maxAtt = topicSubs.reduce((max, s) => Math.max(max, s.attempt_no), 0);
       return { rows: [{ max_attempt: maxAtt }] };
     }
-    const mapped = memoryDb.submissions.map((s) => {
+    let list = memoryDb.submissions;
+    if (normalized.includes('s.topic_id = $1 and s.learner_id = $2') || normalized.includes('topic_id = $1 and learner_id = $2')) {
+      list = list.filter((s) => s.topic_id === params[0] && s.learner_id === params[1]);
+    } else if (normalized.includes('s.learner_id = $1') || normalized.includes('where learner_id = $1')) {
+      list = list.filter((s) => s.learner_id === params[0]);
+      if (params[1]) {
+        list = list.filter((s) => s.status === params[1]);
+      }
+    } else if (normalized.includes('s.status = $1') || (normalized.includes('status = $1') && params[0])) {
+      list = list.filter((s) => s.status === params[0]);
+    }
+    const mapped = list.map((s) => {
       const learner = memoryDb.users.find((u) => u.id === s.learner_id);
       const topic = memoryDb.topics.find((t) => t.id === s.topic_id);
       return {
@@ -206,7 +260,18 @@ function runMemoryQuery(text, params = []) {
 
   // SELECT audit_logs
   if (normalized.startsWith('select') && normalized.includes('from audit_logs')) {
-    return { rows: memoryDb.audit_logs };
+    const mapped = memoryDb.audit_logs.map((log) => {
+      const performerId = log.performed_by || log.actor_id;
+      const performer = memoryDb.users.find((u) => u.id === performerId);
+      const target = log.target_user_id ? memoryDb.users.find((u) => u.id === log.target_user_id) : null;
+      return {
+        ...log,
+        performed_by: performerId,
+        performed_by_name: performer ? performer.name : 'Dr. Tariq Ahmed',
+        target_user_name: target ? target.name : null,
+      };
+    });
+    return { rows: mapped };
   }
 
   // INSERT INTO submissions
@@ -253,21 +318,78 @@ function runMemoryQuery(text, params = []) {
 
   // INSERT INTO audit_logs
   if (normalized.startsWith('insert into audit_logs')) {
-    const log = {
-      id: params[0],
-      actor_id: params[1],
-      action: params[2],
-      target_user_id: params[3],
-      details: params[4],
-      created_at: new Date().toISOString()
-    };
+    let log;
+    if (normalized.includes("'manual_account_reset'")) {
+      log = {
+        id: params[0],
+        action: 'MANUAL_ACCOUNT_RESET',
+        performed_by: params[1],
+        target_user_id: params[2],
+        details: params[3],
+        created_at: new Date().toISOString()
+      };
+    } else if (normalized.includes("'purge_demo_data'")) {
+      log = {
+        id: params[0],
+        action: 'PURGE_DEMO_DATA',
+        performed_by: params[1],
+        target_user_id: null,
+        details: params[2],
+        created_at: new Date().toISOString()
+      };
+    } else {
+      log = {
+        id: params[0],
+        action: params[1],
+        performed_by: params[2],
+        target_user_id: params[3],
+        details: params[4],
+        created_at: new Date().toISOString()
+      };
+    }
     memoryDb.audit_logs.unshift(log);
     return { rows: [log] };
   }
 
+  // UPDATE mentor_approvals
+  if (normalized.startsWith('update mentor_approvals')) {
+    if (normalized.includes('set revoked_at = $1 where id = $2')) {
+      const app = memoryDb.mentor_approvals.find((a) => a.id === params[1]);
+      if (app) app.revoked_at = params[0];
+      return { rows: [app || {}] };
+    }
+    if (normalized.includes('set granted_at = $1, revoked_at = null where id = $2')) {
+      const app = memoryDb.mentor_approvals.find((a) => a.id === params[1]);
+      if (app) {
+        app.granted_at = params[0];
+        app.revoked_at = null;
+      }
+      return { rows: [app || {}] };
+    }
+    return { rows: [] };
+  }
+
   // INSERT INTO mentor_approvals / DELETE
   if (normalized.startsWith('insert into mentor_approvals')) {
-    const app = { teacher_id: params[0], mentor_id: params[1], topic_id: params[2] };
+    let app;
+    if (params.length >= 3 && params[0].startsWith('appr-')) {
+      app = {
+        id: params[0],
+        mentor_id: params[1],
+        topic_id: params[2],
+        granted_at: params[3] || new Date().toISOString(),
+        revoked_at: null,
+      };
+    } else {
+      app = {
+        id: `appr-${Date.now()}`,
+        teacher_id: params[0],
+        mentor_id: params[1],
+        topic_id: params[2],
+        granted_at: new Date().toISOString(),
+        revoked_at: null,
+      };
+    }
     memoryDb.mentor_approvals.push(app);
     return { rows: [app] };
   }
@@ -320,6 +442,24 @@ function runMemoryQuery(text, params = []) {
     if (user) {
       user.consent_given = params[0];
       user.consent_at = params[1];
+    }
+    return { rows: [user || {}] };
+  }
+
+  // UPDATE users (password_hash)
+  if (normalized.startsWith('update users set password_hash')) {
+    const user = memoryDb.users.find((u) => u.id === params[1]);
+    if (user) {
+      user.password_hash = params[0];
+    }
+    return { rows: [user || {}] };
+  }
+
+  // UPDATE users (role promotion)
+  if (normalized.startsWith('update users set role')) {
+    const user = memoryDb.users.find((u) => u.id === params[0]);
+    if (user && user.role === 'learner') {
+      user.role = 'mentor';
     }
     return { rows: [user || {}] };
   }

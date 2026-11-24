@@ -137,7 +137,7 @@ router.post('/submissions', async (req, res, next) => {
 // GET /api/submissions - Retrieves submissions with attached feedback history
 router.get('/submissions', async (req, res, next) => {
   try {
-    const { learnerId } = req.query;
+    const { learnerId, status } = req.query;
 
     let query = `
       SELECT s.*, u.name as learner_name, u.university as learner_university,
@@ -154,10 +154,20 @@ router.get('/submissions', async (req, res, next) => {
       LEFT JOIN users mu ON ra.mentor_id = mu.id
     `;
     const params = [];
+    const whereClauses = [];
 
     if (learnerId) {
       params.push(learnerId);
-      query += ` WHERE s.learner_id = $1`;
+      whereClauses.push(`s.learner_id = $${params.length}`);
+    }
+
+    if (status) {
+      params.push(status);
+      whereClauses.push(`s.status = $${params.length}`);
+    }
+
+    if (whereClauses.length > 0) {
+      query += ` WHERE ${whereClauses.join(' AND ')}`;
     }
 
     query += ` ORDER BY s.submitted_at DESC`;
@@ -297,7 +307,7 @@ router.post('/submissions/:id/resolve-escalation', async (req, res, next) => {
 
     await db.query(
       `INSERT INTO feedbacks (id, submission_id, author_id, comment, kind)
-       VALUES ($1, $2, $3, $4, 'escalation_resolution')`,
+       VALUES ($1, $2, $3, $4, $5)`,
       [`fb-${Date.now()}`, id, teacherId, comment || 'Escalation resolved by Teacher.', 'escalation_resolution']
     );
 
@@ -337,8 +347,8 @@ router.post('/submissions/:id/request-teacher', async (req, res, next) => {
     const comment = reason || 'Learner requested direct review from course lead.';
     await db.query(
       `INSERT INTO feedbacks (id, submission_id, author_id, comment, kind)
-       VALUES ($1, $2, $3, $4, 'escalation_resolution')`,
-      [`fb-${Date.now()}`, id, learnerId || submission.learner_id, comment]
+       VALUES ($1, $2, $3, $4, $5)`,
+      [`fb-${Date.now()}`, id, learnerId || submission.learner_id, comment, 'escalation_resolution']
     );
 
     const updated = await db.query(

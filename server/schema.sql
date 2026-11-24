@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS users (
     -- Learner specific fields (inheritance)
     university VARCHAR(255),
     age_confirmed BOOLEAN DEFAULT FALSE,
+    consent_given BOOLEAN DEFAULT FALSE,
+    consent_at TIMESTAMP WITH TIME ZONE,
     -- Teacher specific fields
     course_title VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -99,7 +101,7 @@ CREATE TABLE IF NOT EXISTS review_assignments (
     id VARCHAR(64) PRIMARY KEY,
     submission_id VARCHAR(64) NOT NULL REFERENCES submissions(id) ON DELETE CASCADE,
     mentor_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    assigned_by VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE SET NULL,
+    assigned_by VARCHAR(64) REFERENCES users(id) ON DELETE SET NULL,
     assigned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     state VARCHAR(32) DEFAULT 'assigned'
 );

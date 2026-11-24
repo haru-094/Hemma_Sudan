@@ -119,7 +119,6 @@ seedTeacherAccount().catch((err) => {
 if (require.main === module) {
   app.listen(PORT, async () => {
     console.log(`Hemma Sudan backend API running on port ${PORT}`);
-    await seedTeacherAccount();
     if (process.env.DATABASE_URL) {
       try {
         const { seedDatabase } = require('./seed');

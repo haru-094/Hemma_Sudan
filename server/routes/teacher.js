@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
 const db = require('../db');
 
 // Enforce teacher authorization: reject requests with learner or non-teacher tokens
@@ -148,7 +149,8 @@ router.post('/reset-account', async (req, res, next) => {
       });
     }
 
-    const tempHash = `mock_hash_${newTemporaryPassword || 'hemma2026'}`;
+    const tempPassword = newTemporaryPassword || 'hemma2026';
+    const tempHash = bcrypt.hashSync(tempPassword, 10);
     await db.query('UPDATE users SET password_hash = $1 WHERE id = $2', [tempHash, targetUserId]);
 
     // Record reset in audit log

@@ -32,16 +32,16 @@ async function resetDemo() {
       ];
 
       db.memoryDb.mentor_approvals = [
-        { teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-1', topic_id: 'topic-1' },
-        { teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-1', topic_id: 'topic-2' },
-        { teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-2', topic_id: 'topic-2' },
-        { teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-2', topic_id: 'topic-3' }
+        { id: 'appr-1', teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-1', topic_id: 'topic-1', granted_at: new Date(Date.now() - 172800000).toISOString(), revoked_at: null },
+        { id: 'appr-2', teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-1', topic_id: 'topic-2', granted_at: new Date(Date.now() - 172800000).toISOString(), revoked_at: null },
+        { id: 'appr-3', teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-2', topic_id: 'topic-2', granted_at: new Date(Date.now() - 172800000).toISOString(), revoked_at: null },
+        { id: 'appr-4', teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-2', topic_id: 'topic-3', granted_at: new Date(Date.now() - 172800000).toISOString(), revoked_at: null }
       ];
 
       db.memoryDb.audit_logs = [
         {
           id: 'log-1',
-          actor_id: 'usr-teacher-1',
+          performed_by: 'usr-teacher-1',
           action: 'APPROVE_MENTOR_TOPIC',
           target_user_id: 'usr-mentor-1',
           details: 'Approved for Topic 1 and Topic 2',
