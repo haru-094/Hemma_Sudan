@@ -85,6 +85,44 @@ app.get('/api/config', (req, res) => {
   });
 });
 
+// Live Demo Reset Endpoint (callable on Render via GET or POST to reset live demo database)
+async function handleDemoReset(req, res) {
+  try {
+    const db = require('./db');
+    if (db.memoryDb) {
+      db.memoryDb.submissions = [];
+      db.memoryDb.feedbacks = [];
+      db.memoryDb.progress_records = [];
+      const mona = db.memoryDb.users.find((u) => u.id === 'usr-learner-2');
+      if (mona) mona.role = 'learner';
+      db.memoryDb.mentor_approvals = [
+        { id: 'appr-1', teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-1', topic_id: 'topic-1', granted_at: new Date().toISOString(), revoked_at: null },
+        { id: 'appr-2', teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-1', topic_id: 'topic-2', granted_at: new Date().toISOString(), revoked_at: null },
+        { id: 'appr-3', teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-2', topic_id: 'topic-2', granted_at: new Date().toISOString(), revoked_at: null },
+        { id: 'appr-4', teacher_id: 'usr-teacher-1', mentor_id: 'usr-mentor-2', topic_id: 'topic-3', granted_at: new Date().toISOString(), revoked_at: null }
+      ];
+      const l2 = db.memoryDb.lessons.find((l) => l.id === 'lesson-2' || l.id === 'lesson-1-2');
+      if (l2) l2.arabic_status = 'draft';
+    }
+    if (process.env.DATABASE_URL) {
+      const { seedDatabase } = require('./seed');
+      await seedDatabase();
+    }
+    if (typeof db.seedTeacherAccount === 'function') {
+      await db.seedTeacherAccount();
+    }
+    res.status(200).json({
+      ok: true,
+      message: 'Live demo environment reset to clean baseline (0 submissions, Mona unapproved, Lesson 2 draft). Ready for video recording!'
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+app.get('/api/demo/reset', handleDemoReset);
+app.post('/api/demo/reset', handleDemoReset);
+
 app.use('/api/auth', authRoutes);
 app.use('/api', curriculumRoutes);
 app.use('/api', submissionRoutes);
