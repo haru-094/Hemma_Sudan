@@ -326,6 +326,63 @@ async function runE2ESimulation() {
   }
 
   // ============================================================================
+  // SCENARIO 6: Teacher Seeding, Role Lockdown & Production DEMO_MODE Security
+  // ============================================================================
+  console.log('\n📌 SCENARIO 6: Teacher Seeding, Role Lockdown & Production DEMO_MODE Security');
+  try {
+    // 6.1: Registering with role "teacher" or "mentor" creates a learner
+    const spoofEmail = `spoof.${Date.now()}@hemma.sd`;
+    const spoofRes = await simulateRequest(app, 'POST', '/api/auth/register', {
+      name: 'Attempted Role Escalation',
+      email: spoofEmail,
+      password: 'SecurePassword2026!',
+      university: 'University of Khartoum',
+      ageConfirmed: true,
+      role: 'teacher',
+    });
+    const forcedLearner = spoofRes.status === 201 && spoofRes.data.user.role === 'learner';
+    recordStep('Scenario 6', '6.1 Registering with role "teacher" or "mentor" creates a learner', forcedLearner);
+
+    // 6.2: With DEMO_MODE=false, login with a wrong password returns 401
+    const prevDemo = process.env.DEMO_MODE;
+    process.env.DEMO_MODE = 'false';
+
+    const badLoginRes = await simulateRequest(app, 'POST', '/api/auth/login', {
+      email: spoofEmail,
+      password: 'WrongPassword!',
+    });
+    const rejected401 = badLoginRes.status === 401 && badLoginRes.data.errorCode === 'AUTH_FAILED';
+    recordStep('Scenario 6', '6.2 With DEMO_MODE=false, login with a wrong password returns 401', rejected401);
+
+    // 6.3: The seeded teacher can log in with TEACHER_EMAIL / TEACHER_PASSWORD
+    const teacherEmail = process.env.TEACHER_EMAIL || 'teacher@hemma.sd';
+    const teacherPassword = process.env.TEACHER_PASSWORD || 'TeacherSecurePass2026!';
+    const teacherLoginRes = await simulateRequest(app, 'POST', '/api/auth/login', {
+      email: teacherEmail,
+      password: teacherPassword,
+    });
+    const teacherValid = teacherLoginRes.status === 200 && teacherLoginRes.data.user.role === 'teacher' && Boolean(teacherLoginRes.data.token);
+    recordStep('Scenario 6', '6.3 Seeded teacher can log in with TEACHER_EMAIL / TEACHER_PASSWORD', teacherValid);
+
+    // 6.4: A learner token cannot call teacher routes (expect 403)
+    const learnerToken = spoofRes.data.token;
+    const forbiddenRes = await simulateRequest(
+      app,
+      'POST',
+      '/api/teacher/mentors/toggle-topic',
+      { mentorId: 'usr-mentor-1', topicId: 'topic-1' },
+      { authorization: `Bearer ${learnerToken}` }
+    );
+    const blocked403 = forbiddenRes.status === 403;
+    recordStep('Scenario 6', '6.4 Learner token cannot call teacher routes (expect 403)', blocked403);
+
+    // Restore DEMO_MODE setting
+    process.env.DEMO_MODE = prevDemo;
+  } catch (err) {
+    recordStep('Scenario 6', 'Scenario 6 Encountered Error', false, err.message);
+  }
+
+  // ============================================================================
   // SUMMARY
   // ============================================================================
   const total = scenarioResults.length;

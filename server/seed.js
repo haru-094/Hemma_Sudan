@@ -2,21 +2,13 @@ const fs = require('fs');
 const path = require('path');
 const db = require('./db');
 
+// Note: Teacher accounts are never hardcoded; they are strictly seeded from environment variables
 const SEED_USERS = [
-  {
-    id: 'usr-teacher-1',
-    name: 'Dr. Tariq Ahmed',
-    email: 'teacher@hemma.sd',
-    passwordHash: 'mock_hash',
-    role: 'teacher',
-    courseTitle: 'Introduction to Computer Science & Python',
-    language: 'en',
-  },
   {
     id: 'usr-mentor-1',
     name: 'Sarah Ibrahim',
     email: 'sarah.mentor@hemma.sd',
-    passwordHash: 'mock_hash',
+    passwordHash: '$2b$10$VwQxypFaO.9YJO6.RyY3O.zdGnLGPhJUzmatntE4qNeJAJhesJkPW',
     role: 'mentor',
     university: 'University of Khartoum',
     language: 'en',
@@ -25,7 +17,7 @@ const SEED_USERS = [
     id: 'usr-mentor-2',
     name: 'Omar Farouk',
     email: 'omar.mentor@hemma.sd',
-    passwordHash: 'mock_hash',
+    passwordHash: '$2b$10$VwQxypFaO.9YJO6.RyY3O.zdGnLGPhJUzmatntE4qNeJAJhesJkPW',
     role: 'mentor',
     university: 'Sudan University of Science and Technology',
     language: 'ar',
@@ -34,7 +26,7 @@ const SEED_USERS = [
     id: 'usr-mentor-3',
     name: 'Mona Elhassan',
     email: 'mona.mentor@hemma.sd',
-    passwordHash: 'mock_hash',
+    passwordHash: '$2b$10$VwQxypFaO.9YJO6.RyY3O.zdGnLGPhJUzmatntE4qNeJAJhesJkPW',
     role: 'mentor',
     university: 'Al-Neelain University',
     language: 'en',
@@ -43,7 +35,7 @@ const SEED_USERS = [
     id: 'usr-learner-1',
     name: 'Ahmed Osman',
     email: 'ahmed.student@hemma.sd',
-    passwordHash: 'mock_hash',
+    passwordHash: '$2b$10$VwQxypFaO.9YJO6.RyY3O.zdGnLGPhJUzmatntE4qNeJAJhesJkPW',
     role: 'learner',
     university: 'University of Khartoum',
     ageConfirmed: true,
@@ -194,6 +186,11 @@ async function seedDatabase() {
     const schemaSql = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf-8');
     await db.query(schemaSql);
     console.log('✓ Database schema tables verified/created successfully.');
+
+    // Seed teacher from environment variables
+    if (typeof db.seedTeacherAccount === 'function') {
+      await db.seedTeacherAccount();
+    }
 
     for (const u of SEED_USERS) {
       await db.query(

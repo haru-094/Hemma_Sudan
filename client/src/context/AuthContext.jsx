@@ -199,15 +199,39 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const login = (email, password) => {
-    const found = usersList.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
-    if (!found) {
-      throw new Error('Account not found with this email address.');
+  const login = async (email, password) => {
+    try {
+      const res = await api.login({ email, password });
+      if (res && res.user) {
+        const loggedUser = {
+          ...res.user,
+          token: res.token,
+        };
+        setUsersList((prev) => {
+          const exists = prev.some((u) => u.email.toLowerCase() === loggedUser.email.toLowerCase());
+          return exists
+            ? prev.map((u) => u.email.toLowerCase() === loggedUser.email.toLowerCase() ? loggedUser : u)
+            : [...prev, loggedUser];
+        });
+        setCurrentUser(loggedUser);
+        resetSessionExpiry();
+        handleUserSessionInit(loggedUser);
+        return loggedUser;
+      }
+    } catch (apiErr) {
+      if (apiErr.status === 401 || (apiErr.data && apiErr.data.errorCode)) {
+        throw new Error(apiErr.data?.message || 'Invalid email or password.');
+      }
+      // Offline fallback: check locally cached users list
+      const found = usersList.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
+      if (found) {
+        setCurrentUser(found);
+        resetSessionExpiry();
+        handleUserSessionInit(found);
+        return found;
+      }
+      throw new Error(apiErr.message || 'Account not found with this email address.');
     }
-    setCurrentUser(found);
-    resetSessionExpiry();
-    handleUserSessionInit(found);
-    return found;
   };
 
   const loginAs = (userId) => {

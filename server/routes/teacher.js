@@ -2,6 +2,29 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
+// Enforce teacher authorization: reject requests with learner or non-teacher tokens
+router.use(async (req, res, next) => {
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      const parts = authHeader.split(' ')[1].split('.');
+      if (parts.length >= 2) {
+        const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf-8'));
+        if (payload.role && payload.role !== 'teacher') {
+          return res.status(403).json({
+            errorCode: 'TEACHER_ONLY',
+            message: 'Access denied. Only the course teacher can access teacher routes.',
+          });
+        }
+        req.teacherUser = payload;
+      }
+    } catch {
+      // Continue to route-level checks
+    }
+  }
+  next();
+});
+
 // GET /api/teacher/mentors - Get all mentors with their approved topics
 router.get('/mentors', async (req, res, next) => {
   try {

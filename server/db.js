@@ -18,11 +18,10 @@ pool.on('error', () => {
 // In-Memory Fallback Store (active when PostgreSQL server is offline or in development/testing)
 const memoryDb = {
   users: [
-    { id: 'usr-teacher-1', name: 'Dr. Tariq Ahmed', email: 'teacher@hemma.sd', password_hash: 'mock_hash', role: 'teacher', course_title: 'Introduction to Computer Science & Python', language: 'en' },
-    { id: 'usr-mentor-1', name: 'Sarah Ibrahim', email: 'sarah.mentor@hemma.sd', password_hash: 'mock_hash', role: 'mentor', university: 'University of Khartoum', language: 'en' },
-    { id: 'usr-mentor-2', name: 'Omar Farouk', email: 'omar.mentor@hemma.sd', password_hash: 'mock_hash', role: 'mentor', university: 'Sudan University of Science and Technology', language: 'ar' },
-    { id: 'usr-mentor-3', name: 'Mona Elhassan', email: 'mona.mentor@hemma.sd', password_hash: 'mock_hash', role: 'mentor', university: 'Al-Neelain University', language: 'en' },
-    { id: 'usr-learner-1', name: 'Ahmed Osman', email: 'ahmed.student@hemma.sd', password_hash: 'mock_hash', role: 'learner', university: 'University of Khartoum', age_confirmed: true, language: 'en' }
+    { id: 'usr-mentor-1', name: 'Sarah Ibrahim', email: 'sarah.mentor@hemma.sd', password_hash: '$2b$10$VwQxypFaO.9YJO6.RyY3O.zdGnLGPhJUzmatntE4qNeJAJhesJkPW', role: 'mentor', university: 'University of Khartoum', language: 'en' },
+    { id: 'usr-mentor-2', name: 'Omar Farouk', email: 'omar.mentor@hemma.sd', password_hash: '$2b$10$VwQxypFaO.9YJO6.RyY3O.zdGnLGPhJUzmatntE4qNeJAJhesJkPW', role: 'mentor', university: 'Sudan University of Science and Technology', language: 'ar' },
+    { id: 'usr-mentor-3', name: 'Mona Elhassan', email: 'mona.mentor@hemma.sd', password_hash: '$2b$10$VwQxypFaO.9YJO6.RyY3O.zdGnLGPhJUzmatntE4qNeJAJhesJkPW', role: 'mentor', university: 'Al-Neelain University', language: 'en' },
+    { id: 'usr-learner-1', name: 'Ahmed Osman', email: 'ahmed.student@hemma.sd', password_hash: '$2b$10$VwQxypFaO.9YJO6.RyY3O.zdGnLGPhJUzmatntE4qNeJAJhesJkPW', role: 'learner', university: 'University of Khartoum', age_confirmed: true, language: 'en' }
   ],
   topics: [
     { id: 'topic-0', title_en: '0. Developer Setup: VS Code, Git & GitHub', title_ar: '٠. تهيئة بيئة المطور: محرر VS Code، أداة Git، ومستودعات GitHub', description_en: 'Setting up your local code editor (VS Code), compiler/interpreter, Git version control, and public GitHub repository workflow.', description_ar: 'تهيئة محرر الأكواد (VS Code)، بيئة بايثون و C++ وجافا، نظام التحكم بالنسخ Git، والعمل مع مستودعات GitHub العامة.', display_order: 0 },
@@ -97,6 +96,10 @@ function runMemoryQuery(text, params = []) {
 
   // SELECT users
   if (normalized.startsWith('select') && normalized.includes('from users')) {
+    if (normalized.includes('where lower(email) = lower($1)')) {
+      const u = memoryDb.users.find((user) => user.email.toLowerCase() === (params[0] || '').toLowerCase());
+      return { rows: u ? [u] : [] };
+    }
     if (normalized.includes('where email = $1')) {
       const u = memoryDb.users.find((user) => user.email === params[0]);
       return { rows: u ? [u] : [] };
@@ -105,9 +108,17 @@ function runMemoryQuery(text, params = []) {
       const u = memoryDb.users.find((user) => user.id === params[0]);
       return { rows: u ? [u] : [] };
     }
+    if (normalized.includes("role = 'teacher'")) {
+      const teachers = memoryDb.users.filter((user) => user.role === 'teacher');
+      return { rows: teachers };
+    }
     if (normalized.includes("role = 'mentor'")) {
       const mentors = memoryDb.users.filter((user) => user.role === 'mentor');
       return { rows: mentors };
+    }
+    if (normalized.includes("where role = $1")) {
+      const found = memoryDb.users.filter((user) => user.role === params[0]);
+      return { rows: found };
     }
     return { rows: memoryDb.users };
   }
@@ -354,10 +365,64 @@ function runMemoryQuery(text, params = []) {
     return { rowCount: before - memoryDb.progress_records.length };
   }
 
+  // INSERT INTO users
+  if (normalized.startsWith('insert into users')) {
+    let newUser;
+    if (normalized.includes("'learner'")) {
+      // Registration route insert
+      newUser = {
+        id: params[0],
+        name: params[1],
+        email: params[2],
+        password_hash: params[3],
+        role: 'learner',
+        language: 'en',
+        university: params[4] || null,
+        age_confirmed: Boolean(params[5]),
+        created_at: new Date().toISOString()
+      };
+    } else if (normalized.includes("'teacher'")) {
+      // Teacher seeding insert
+      newUser = {
+        id: params[0],
+        name: params[1],
+        email: params[2],
+        password_hash: params[3],
+        role: 'teacher',
+        language: 'en',
+        course_title: params[4] || 'Introduction to Computer Science & Python',
+        created_at: new Date().toISOString()
+      };
+    } else {
+      // General/seed user insert
+      newUser = {
+        id: params[0],
+        name: params[1],
+        email: params[2],
+        password_hash: params[3],
+        role: params[4] || 'learner',
+        language: params[5] || 'en',
+        university: params[6] || null,
+        age_confirmed: Boolean(params[7]),
+        course_title: params[8] || (params[4] === 'teacher' ? 'Introduction to Computer Science & Python' : null),
+        created_at: new Date().toISOString()
+      };
+    }
+    const existingIdx = memoryDb.users.findIndex(
+      (u) => u.id === newUser.id || u.email.toLowerCase() === newUser.email.toLowerCase()
+    );
+    if (existingIdx >= 0) {
+      memoryDb.users[existingIdx] = { ...memoryDb.users[existingIdx], ...newUser };
+      return { rows: [memoryDb.users[existingIdx]] };
+    }
+    memoryDb.users.push(newUser);
+    return { rows: [newUser] };
+  }
+
   return { rows: [] };
 }
 
-module.exports = {
+const db = {
   query: async (text, params) => {
     if (usePostgres) {
       try {
@@ -374,3 +439,44 @@ module.exports = {
   pool,
   memoryDb
 };
+
+async function seedTeacherAccount() {
+  const email = process.env.TEACHER_EMAIL;
+  const password = process.env.TEACHER_PASSWORD;
+  const name = process.env.TEACHER_NAME || 'Dr. Tariq Ahmed';
+
+  // If missing, log a clear warning and do not crash
+  if (!email || !password) {
+    console.warn('[Teacher Seed] TEACHER_EMAIL or TEACHER_PASSWORD is not set. Teacher account not created automatically.');
+    return false;
+  }
+
+  try {
+    const res = await db.query("SELECT id FROM users WHERE role = 'teacher' LIMIT 1");
+    if (res.rows && res.rows.length > 0) {
+      return false; // Teacher already exists
+    }
+
+    // Always store a bcrypt hash, never plain password
+    const bcrypt = require('bcryptjs');
+    const passwordHash = bcrypt.hashSync(password, 10);
+    const teacherId = 'usr-teacher-1';
+
+    await db.query(
+      `INSERT INTO users (id, name, email, password_hash, role, language, course_title)
+       VALUES ($1, $2, $3, $4, 'teacher', 'en', $5)
+       ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash`,
+      [teacherId, name.trim(), email.trim().toLowerCase(), passwordHash, 'Introduction to Computer Science & Python']
+    );
+
+    console.log(`[Teacher Seed] Teacher account seeded from environment variables (${email.trim()}).`);
+    return true;
+  } catch (err) {
+    console.warn('[Teacher Seed] Warning during teacher seeding:', err.message);
+    return false;
+  }
+}
+
+db.seedTeacherAccount = seedTeacherAccount;
+
+module.exports = db;

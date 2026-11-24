@@ -32,6 +32,9 @@ async function request(endpoint, options = {}) {
 }
 
 export const api = {
+  // System Configuration (e.g. DEMO_MODE)
+  getConfig: () => request('/config'),
+
   // Auth
   register: (payload) => request('/auth/register', { method: 'POST', body: JSON.stringify(payload) }),
   login: (payload) => request('/auth/login', { method: 'POST', body: JSON.stringify(payload) }),

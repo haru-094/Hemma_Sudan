@@ -78,6 +78,13 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Expose configuration flags (such as DEMO_MODE) dynamically to clients
+app.get('/api/config', (req, res) => {
+  res.status(200).json({
+    demoMode: process.env.DEMO_MODE === 'true',
+  });
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api', curriculumRoutes);
 app.use('/api', submissionRoutes);
@@ -102,9 +109,17 @@ app.use((err, req, res, next) => {
   });
 });
 
+const { seedTeacherAccount } = require('./db');
+
+// Trigger teacher seeding from environment variables on startup
+seedTeacherAccount().catch((err) => {
+  console.warn('Teacher startup seeding note:', err.message);
+});
+
 if (require.main === module) {
   app.listen(PORT, async () => {
     console.log(`Hemma Sudan backend API running on port ${PORT}`);
+    await seedTeacherAccount();
     if (process.env.DATABASE_URL) {
       try {
         const { seedDatabase } = require('./seed');

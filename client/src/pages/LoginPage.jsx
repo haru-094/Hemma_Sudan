@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth, DEMO_USERS } from '../context/AuthContext';
 import { useSync } from '../context/SyncContext';
+import { api } from '../services/api';
 import { 
   LogIn, 
   Mail, 
@@ -35,6 +36,23 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [showForgotModal, setShowForgotModal] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    api.getConfig()
+      .then((cfg) => {
+        if (isMounted && cfg && typeof cfg.demoMode === 'boolean') {
+          setDemoMode(cfg.demoMode);
+        }
+      })
+      .catch(() => {
+        if (isMounted) setDemoMode(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
 
@@ -46,11 +64,11 @@ export default function LoginPage() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
     try {
-      const loggedUser = login(email, password);
+      const loggedUser = await login(email, password);
       handlePostLoginRedirect(loggedUser);
     } catch (err) {
       setErrorMsg(err.message || 'Invalid login credentials');
@@ -175,43 +193,45 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Quick Demo Selector for fast evaluation */}
-          <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-            <span className="block text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-2 text-center">
-              {isRTL ? 'تسجيل سريع بحسابات التجربة' : 'One-Click Demo Accounts'}
-            </span>
-            <div className="grid grid-cols-1 gap-1.5 text-xs">
-              {DEMO_USERS.map((u) => (
-                <button
-                  key={u.id}
-                  onClick={() => handleDemoSelect(u)}
-                  className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-left rtl:text-right flex items-center justify-between text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
-                >
-                  <span className="font-semibold truncate">
-                    {u.name}
-                  </span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase shrink-0 ${
-                    u.role === 'teacher' ? 'bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300' : u.role === 'mentor' ? 'bg-teal-100 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                  }`}>
-                    {u.role}
-                  </span>
-                </button>
-              ))}
-            </div>
+          {/* Quick Demo Selector for fast evaluation - gated behind DEMO_MODE */}
+          {demoMode && (
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+              <span className="block text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-2 text-center">
+                {isRTL ? 'تسجيل سريع بحسابات التجربة' : 'One-Click Demo Accounts'}
+              </span>
+              <div className="grid grid-cols-1 gap-1.5 text-xs">
+                {DEMO_USERS.map((u) => (
+                  <button
+                    key={u.id}
+                    onClick={() => handleDemoSelect(u)}
+                    className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-left rtl:text-right flex items-center justify-between text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:white transition-colors cursor-pointer"
+                  >
+                    <span className="font-semibold truncate">
+                      {u.name}
+                    </span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase shrink-0 ${
+                      u.role === 'teacher' ? 'bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300' : u.role === 'mentor' ? 'bg-teal-100 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                    }`}>
+                      {u.role}
+                    </span>
+                  </button>
+                ))}
+              </div>
 
-            {/* Quick simulation helper for session expiration evaluation */}
-            <div className="text-center pt-3">
-              <button
-                type="button"
-                onClick={() => expireSessionNow(true)}
-                className="text-[11px] text-slate-500 dark:text-slate-400 hover:text-purple-700 dark:hover:text-purple-300 underline font-medium transition-colors cursor-pointer"
-              >
-                {isRTL
-                  ? '⚡ محاكاة سيناريو انتهاء صلاحية الجلسة أثناء انقطاع الإنترنت'
-                  : '⚡ Simulate Session Expiry While Offline'}
-              </button>
+              {/* Quick simulation helper for session expiration evaluation */}
+              <div className="text-center pt-3">
+                <button
+                  type="button"
+                  onClick={() => expireSessionNow(true)}
+                  className="text-[11px] text-slate-500 dark:text-slate-400 hover:text-purple-700 dark:hover:text-purple-300 underline font-medium transition-colors cursor-pointer"
+                >
+                  {isRTL
+                    ? '⚡ محاكاة سيناريو انتهاء صلاحية الجلسة أثناء انقطاع الإنترنت'
+                    : '⚡ Simulate Session Expiry While Offline'}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="text-center pt-2 text-xs text-slate-600 dark:text-slate-400">
             <span>{isRTL ? 'ليس لديك حساب طالب؟ ' : "Don't have a learner account? "}</span>

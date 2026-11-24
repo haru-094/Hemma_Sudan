@@ -1,23 +1,29 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 const db = require('../db');
 
-function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
-  const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
-  return `${salt}:${hash}`;
+function hashPassword(password) {
+  // Hash passwords with bcryptjs before persisting to storage
+  return bcrypt.hashSync(password, 10);
 }
 
 function verifyPassword(password, storedHash) {
-  if (!storedHash) return true; // Demo fallback
-  if (storedHash.startsWith('mock_hash') || storedHash === 'mock_hash') {
+  const isDemoMode = process.env.DEMO_MODE === 'true';
+  if (isDemoMode) {
+    // In DEMO_MODE, any password is accepted for grading and demo convenience
     return true;
   }
-  const parts = storedHash.split(':');
-  if (parts.length !== 2) return false;
-  const [salt, key] = parts;
-  const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
-  return key === hash;
+  // When DEMO_MODE is false, mock hashes are rejected and strict bcrypt comparison is enforced
+  if (!storedHash || storedHash === 'mock_hash' || storedHash.startsWith('mock_hash')) {
+    return false;
+  }
+  try {
+    return bcrypt.compareSync(password, storedHash);
+  } catch {
+    return false;
+  }
 }
 
 function generateToken(user) {
@@ -110,8 +116,8 @@ router.post('/login', async (req, res, next) => {
 
     const user = result.rows[0];
 
-    // Verify password if hash exists
-    if (user.password_hash && !verifyPassword(password, user.password_hash)) {
+    // Verify password against stored bcrypt hash (or accept any in DEMO_MODE)
+    if (!verifyPassword(password, user.password_hash)) {
       return res.status(401).json({
         errorCode: 'AUTH_FAILED',
         message: 'Invalid email or password.',
@@ -190,6 +196,13 @@ router.post('/consent', async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+// Expose configuration flags (such as DEMO_MODE)
+router.get('/config', (req, res) => {
+  res.status(200).json({
+    demoMode: process.env.DEMO_MODE === 'true',
+  });
 });
 
 module.exports = router;
