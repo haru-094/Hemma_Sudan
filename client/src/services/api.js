@@ -5,35 +5,48 @@ const API_BASE = normalizedBase.replace(/\/+$/, '').endsWith('/api')
   ? normalizedBase.replace(/\/+$/, '')
   : `${normalizedBase.replace(/\/+$/, '')}/api`;
 
+function getAuthHeader() {
+  try {
+    const saved = localStorage.getItem('hemma_user');
+    if (saved) {
+      const user = JSON.parse(saved);
+      if (user && user.token) {
+        return { Authorization: `Bearer ${user.token}` };
+      }
+    }
+  } catch {
+    // Ignore parse error
+  }
+  return {};
+}
+
 async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
   const config = {
+    ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...getAuthHeader(),
       ...options.headers,
     },
-    ...options,
   };
 
-  try {
-    const res = await fetch(url, config);
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      const err = new Error(data.message || `Request failed with status ${res.status}`);
-      err.status = res.status;
-      err.errorCode = data.errorCode;
-      err.data = data;
-      throw err;
-    }
-    return data;
-  } catch (err) {
+  const res = await fetch(url, config);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(data.message || `Request failed with status ${res.status}`);
+    err.status = res.status;
+    err.errorCode = data.errorCode;
+    err.data = data;
     throw err;
   }
+  return data;
 }
 
 export const api = {
   // System Configuration (e.g. DEMO_MODE)
   getConfig: () => request('/config'),
+  resetDemoState: () => request('/demo/reset', { method: 'POST' }),
 
   // Auth
   register: (payload) => request('/auth/register', { method: 'POST', body: JSON.stringify(payload) }),

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
 
 export const DEMO_USERS = [
@@ -69,10 +69,10 @@ export function AuthProvider({ children }) {
       try {
         return JSON.parse(saved);
       } catch {
-        return DEMO_USERS[4];
+        return null;
       }
     }
-    return DEMO_USERS[4];
+    return null;
   });
 
   // Session Expiry Tracking
@@ -124,8 +124,6 @@ export function AuthProvider({ children }) {
       localStorage.removeItem('hemma_user');
       localStorage.removeItem('hemma_session_expires_at');
       localStorage.removeItem('hemma_session_expired_offline');
-      setIsSessionExpired(false);
-      setSessionExpiredWhileOffline(false);
     }
   }, [currentUser]);
 
@@ -157,7 +155,6 @@ export function AuthProvider({ children }) {
   }, [currentUser, expiresAt]);
 
   useEffect(() => {
-    checkSessionExpiration();
     const interval = setInterval(checkSessionExpiration, 15000); // Check every 15s
 
     const handleOnlineStatusChange = () => {
@@ -221,7 +218,7 @@ export function AuthProvider({ children }) {
       }
     } catch (apiErr) {
       if (apiErr.status === 401 || (apiErr.data && apiErr.data.errorCode)) {
-        throw new Error(apiErr.data?.message || 'Invalid email or password.');
+        throw new Error(apiErr.data?.message || 'Invalid email or password.', { cause: apiErr });
       }
       // Offline fallback: check locally cached users list
       const found = usersList.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
@@ -231,7 +228,7 @@ export function AuthProvider({ children }) {
         handleUserSessionInit(found);
         return found;
       }
-      throw new Error(apiErr.message || 'Account not found with this email address.');
+      throw new Error(apiErr.message || 'Account not found with this email address.', { cause: apiErr });
     }
   };
 
@@ -275,7 +272,7 @@ export function AuthProvider({ children }) {
       }
     } catch (apiErr) {
       if (apiErr.data && apiErr.data.message) {
-        throw new Error(apiErr.data.message);
+        throw new Error(apiErr.data.message, { cause: apiErr });
       }
       if (apiErr.message && !apiErr.message.includes('fetch')) {
         throw apiErr;
@@ -283,7 +280,7 @@ export function AuthProvider({ children }) {
       // Offline fallback: cache locally
       const existing = usersList.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
       if (existing) {
-        throw new Error('An account is already registered with this email address.');
+        throw new Error('An account is already registered with this email address.', { cause: apiErr });
       }
       const newLearner = {
         id: `usr-learner-${Date.now()}`,

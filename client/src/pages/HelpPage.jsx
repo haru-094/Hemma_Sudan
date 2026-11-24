@@ -1,20 +1,12 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { 
-  HelpCircle, 
   BookOpen, 
   WifiOff, 
   UserCheck, 
   ShieldCheck, 
-  AlertCircle, 
-  Terminal, 
-  RefreshCw, 
-  CheckCircle2, 
-  ChevronRight,
-  ExternalLink
+  AlertCircle 
 } from 'lucide-react';
-import GithubIcon from '../components/common/GithubIcon';
 
 export default function HelpPage() {
   const { isRTL } = useLanguage();

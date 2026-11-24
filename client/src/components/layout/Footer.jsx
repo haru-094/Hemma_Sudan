@@ -1,6 +1,4 @@
-import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
-import { BookOpen, Shield, Heart } from 'lucide-react';
 
 export default function Footer() {
   const { t, isRTL } = useLanguage();

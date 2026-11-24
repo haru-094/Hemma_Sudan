@@ -1,17 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import StatusBadge from '../common/StatusBadge';
 import GithubIcon from '../common/GithubIcon';
 import { 
   History, 
-  ExternalLink, 
-  Clock, 
   ChevronDown, 
-  ChevronUp, 
-  RotateCcw, 
-  MessageSquare, 
-  AlertCircle, 
-  CheckCircle2 
+  ChevronUp 
 } from 'lucide-react';
 
 export default function RevisionTimeline({ attempts = [] }) {

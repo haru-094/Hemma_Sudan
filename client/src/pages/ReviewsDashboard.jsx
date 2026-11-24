@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { LESSONS, TOPICS, INITIAL_SUBMISSIONS } from '../data/mockData';
@@ -15,7 +16,6 @@ import {
   MessageSquare, 
   UserCheck,
   History,
-  CheckCircle,
   FolderGit2
 } from 'lucide-react';
 import GithubIcon from '../components/common/GithubIcon';
@@ -71,7 +71,7 @@ export default function ReviewsDashboard() {
           }));
           setSubmissions(mapped);
         }
-      } catch (err) {
+      } catch {
         // Local preview fallback
       }
     }
@@ -122,7 +122,7 @@ export default function ReviewsDashboard() {
         comment,
         action: 'approve',
       });
-    } catch (err) {
+    } catch {
       // Graceful offline fallback
     }
   };
@@ -153,7 +153,7 @@ export default function ReviewsDashboard() {
         comment,
         action: 'request_revision',
       });
-    } catch (err) {
+    } catch {
       // Graceful offline fallback
     }
   };
@@ -171,7 +171,7 @@ export default function ReviewsDashboard() {
         comment: 'Escalated by mentor for course lead review.',
         action: 'escalate',
       });
-    } catch (err) {
+    } catch {
       // Graceful offline fallback
     }
   };
@@ -204,7 +204,7 @@ export default function ReviewsDashboard() {
         teacherId: currentUser.id,
         mentorId,
       });
-    } catch (err) {
+    } catch {
       // Graceful offline fallback
     }
   };
@@ -247,7 +247,7 @@ export default function ReviewsDashboard() {
         resolution,
         comment,
       });
-    } catch (err) {
+    } catch {
       // Graceful offline fallback
     }
   };
@@ -279,6 +279,30 @@ export default function ReviewsDashboard() {
     if (activeFilter === 'complete') return sub.status === 'complete' || sub.status === 'feedback_given';
     return true;
   });
+
+  if (!isTeacher && !isMentor) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-4">
+        <ShieldAlert className="w-12 h-12 text-rose-500 mx-auto" />
+        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+          {isRTL ? 'غير مصرح بالدخول' : 'Access Restricted'}
+        </h2>
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          {isRTL
+            ? 'لوحة المراجعة مخصصة للمرشدين والأساتذة لتقييم واجبات الطلاب. يمكنك متابعة واجباتك من لوحة الطالب.'
+            : 'The review dashboard is reserved for mentors and instructors. Please use your Learner Dashboard to track your submissions.'}
+        </p>
+        <div className="pt-2">
+          <Link
+            to="/dashboard"
+            className="inline-block px-4 py-2 bg-[#0f5132] hover:bg-[#0b3b24] text-white text-xs font-semibold rounded-lg shadow-sm transition-colors"
+          >
+            {isRTL ? 'الذهاب إلى لوحة المتابعة' : 'Go to Learner Dashboard'}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">

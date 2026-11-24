@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth, DEMO_USERS } from '../context/AuthContext';
@@ -9,17 +9,13 @@ import LessonAuthoringModal from '../components/teacher/LessonAuthoringModal';
 import { 
   ShieldCheck, 
   UserCheck, 
-  Users, 
   AlertTriangle, 
   CheckCircle, 
-  XCircle, 
   Key, 
   BookOpen, 
-  Globe, 
   RotateCcw,
   Check,
   History,
-  Lock,
   PlusCircle,
   Video,
   Languages,
@@ -28,9 +24,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
-  Sliders,
-  Sparkles,
-  ExternalLink,
   Shield,
   X
 } from 'lucide-react';
@@ -90,7 +83,7 @@ function Pagination({ currentPage, totalItems, pageSize, onPageChange, isRTL }) 
 }
 
 export default function TeacherAdminPage() {
-  const { t, isRTL, language } = useLanguage();
+  const { isRTL, language } = useLanguage();
   const { currentUser, isTeacher } = useAuth();
 
   const [mentorApprovals, setMentorApprovals] = useState({
@@ -141,7 +134,7 @@ export default function TeacherAdminPage() {
           });
           setMentorApprovals(map);
         }
-      } catch (err) {
+      } catch {
         // Fallback for offline or local preview
       }
 
@@ -195,7 +188,7 @@ export default function TeacherAdminPage() {
         } else {
           setTopicsList(TOPICS);
         }
-      } catch (err) {
+      } catch {
         setTopicsList(TOPICS);
       }
 
@@ -204,7 +197,7 @@ export default function TeacherAdminPage() {
         if (logsData.auditLogs) {
           setAuditLogs(logsData.auditLogs);
         }
-      } catch (err) {
+      } catch {
         // Fallback
       }
     }
@@ -296,7 +289,7 @@ export default function TeacherAdminPage() {
       setTempPass('');
       const logsData = await api.getAuditLogs();
       if (logsData.auditLogs) setAuditLogs(logsData.auditLogs);
-    } catch (err) {
+    } catch {
       setResetSuccess(`Reset processed in local mode. Temporary password: ${tempPass || 'hemma2026'}`);
     }
   };
@@ -318,7 +311,7 @@ export default function TeacherAdminPage() {
       setPurgeResult(res);
       const logsData = await api.getAuditLogs();
       if (logsData.auditLogs) setAuditLogs(logsData.auditLogs);
-    } catch (err) {
+    } catch {
       setPurgeResult({
         message: 'Purge executed in demonstration mode (retention policy applied).',
         purgedLearnersCount: 1,
@@ -327,6 +320,25 @@ export default function TeacherAdminPage() {
       });
     } finally {
       setIsPurging(false);
+    }
+  };
+
+  const handleResetDemoState = async () => {
+    const confirmed = window.confirm(
+      isRTL
+        ? 'هل ترغب في إعادة ضبط بيئة العرض المباشر على الخادم (تفريغ الواجبات وسجلات المراجعة للبدء بتسجيل فيديو جديد)؟'
+        : 'Reset live demo state to clean baseline (clears submissions and prepares clean queue for a new recording take)?'
+    );
+    if (!confirmed) return;
+
+    try {
+      await api.resetDemoState();
+      localStorage.removeItem('hemma_submissions');
+      localStorage.removeItem('hemma_custom_lessons');
+      alert(isRTL ? 'تم إعادة ضبط البيئة بنجاح على الخادم!' : 'Live demo environment successfully reset on server!');
+      window.location.reload();
+    } catch (err) {
+      alert(err.message || 'Reset failed');
     }
   };
 
@@ -989,15 +1001,26 @@ export default function TeacherAdminPage() {
                           : 'Demo evaluation data is purged unless learners explicitly gave retention consent. Executing this purge cleans non-consented records and logs the event to the audit trail.'}
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handlePurgeDemoData}
-                      disabled={isPurging}
-                      className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer disabled:opacity-50 shrink-0"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span>{isPurging ? (isRTL ? 'جارٍ التطهير...' : 'Purging...') : (isRTL ? 'تطهير بيانات التجربة' : 'Purge Unconsented Demo Data')}</span>
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={handleResetDemoState}
+                        className="px-3.5 py-2.5 rounded-xl border border-purple-300 dark:border-purple-850 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                        title="Reset live server to clean demo baseline"
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                        <span>{isRTL ? 'إعادة ضبط بيئة العرض' : 'Reset Live Demo'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handlePurgeDemoData}
+                        disabled={isPurging}
+                        className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span>{isPurging ? (isRTL ? 'جارٍ التطهير...' : 'Purging...') : (isRTL ? 'تطهير بيانات التجربة' : 'Purge Unconsented Demo Data')}</span>
+                      </button>
+                    </div>
                   </div>
 
                   {purgeResult && (

@@ -1,19 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useSync } from '../context/SyncContext';
 import { LESSONS, TOPICS, INITIAL_SUBMISSIONS } from '../data/mockData';
 import { api } from '../services/api';
-import { RefreshCw, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import StatusBadge from '../components/common/StatusBadge';
+import { RefreshCw } from 'lucide-react';
 
 export default function LearnerDashboard() {
   const { isRTL, language } = useLanguage();
   const { currentUser } = useAuth();
-  const { isLessonSaved, triggerSync, isOnline, queueCount } = useSync();
+  const { isLessonSaved, triggerSync, pendingQueue, queueCount } = useSync();
   const navigate = useNavigate();
 
-  const [submissions, setSubmissions] = useState(INITIAL_SUBMISSIONS);
+  useEffect(() => {
+    if (!currentUser) {
+      navigate('/login');
+    }
+  }, [currentUser, navigate]);
+
+  const [submissions, setSubmissions] = useState(() =>
+    INITIAL_SUBMISSIONS.filter((s) => s.learnerId === (currentUser?.id || 'usr-learner-1'))
+  );
   const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
@@ -41,7 +50,7 @@ export default function LearnerDashboard() {
           }));
           setSubmissions(mapped);
         }
-      } catch (err) {
+      } catch {
         // Local preview fallback
       }
     }
@@ -56,10 +65,12 @@ export default function LearnerDashboard() {
 
   const completedCount = 4; // Mocked / dynamic progress
   const totalLessonsCount = LESSONS.length;
-  const savedOfflineCount = LESSONS.filter((l) => isLessonSaved(l.id)).length || 3;
-  const waitingSyncCount = queueCount > 0 ? queueCount : 2;
+  const savedOfflineCount = LESSONS.filter((l) => isLessonSaved(l.id)).length;
+  const waitingSyncCount = queueCount ?? pendingQueue?.length ?? 0;
 
-  const learnerName = currentUser?.name?.split(' ')[0] || 'Ahmed';
+  const learnerName = currentUser?.name?.split(' ')[0] || (isRTL ? 'طالب' : 'Learner');
+
+  const needsRevisionCount = submissions.filter((s) => s.status === 'revision_requested').length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -71,7 +82,7 @@ export default function LearnerDashboard() {
         <p className="text-xs sm:text-sm text-slate-600 mt-1">
           {isRTL
             ? 'آخر مزامنة تمت قبل دقيقتين. تعمل كافة دروسك المحفوظة دون اتصال بالإنترنت.'
-            : 'Last synced 2 minutes ago. Your saved lessons work offline.'}
+            : 'Last synced recently. Your saved lessons work offline.'}
         </p>
       </div>
 
@@ -129,11 +140,13 @@ export default function LearnerDashboard() {
           </span>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100">
-              3
+              {submissions.length}
             </span>
-            <span className="text-xs text-amber-700 dark:text-amber-400 font-medium">
-              {isRTL ? '١ يتطلب مراجعة' : '1 needs revision'}
-            </span>
+            {needsRevisionCount > 0 && (
+              <span className="text-xs text-amber-700 dark:text-amber-400 font-medium">
+                {isRTL ? `${needsRevisionCount} يتطلب مراجعة` : `${needsRevisionCount} needs revision`}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -197,79 +210,45 @@ export default function LearnerDashboard() {
               {isRTL ? 'مشاريعي المقدمة' : 'My submissions'}
             </h3>
 
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {/* Row 1: Variables project */}
-              <div className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-3">
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                    {isRTL ? 'مشروع المتغيرات والمدخلات' : 'Variables project'}
-                  </h4>
-                  <span className="text-[11px] text-slate-400 dark:text-slate-500 block">
-                    {isRTL ? 'المحاولة ٢' : 'Attempt 2'}
-                  </span>
-                </div>
+            {submissions.length > 0 ? (
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                {submissions.map((sub) => {
+                  const topic = TOPICS.find((t) => t.id === sub.topicId);
+                  const title = language === 'ar'
+                    ? (sub.assignmentTitleAr || topic?.titleAr || 'مشروع برمجي')
+                    : (sub.assignmentTitleEn || topic?.titleEn || 'Programming Project');
 
-                <div className="flex items-center gap-2">
-                  <span className="bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 text-[11px] font-semibold px-2.5 py-0.5 rounded-md">
-                    {isRTL ? 'مطلوب مراجعة' : 'Revision requested'}
-                  </span>
-                  <Link
-                    to="/project/topic-1"
-                    className="px-3 py-1.5 bg-[#0f5132] hover:bg-[#0b3b24] dark:bg-emerald-700 dark:hover:bg-emerald-800 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors"
-                  >
-                    {isRTL ? 'إعادة التسليم' : 'Resubmit'}
-                  </Link>
-                </div>
+                  return (
+                    <div key={sub.id} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-3">
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                          {title}
+                        </h4>
+                        <span className="text-[11px] text-slate-400 dark:text-slate-500 block">
+                          {isRTL ? `المحاولة ${sub.attemptNo || 1}` : `Attempt ${sub.attemptNo || 1}`}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <StatusBadge status={sub.status} />
+                        <Link
+                          to={`/project/${sub.topicId || 'topic-1'}`}
+                          className="px-3 py-1.5 bg-[#0f5132] hover:bg-[#0b3b24] dark:bg-emerald-700 dark:hover:bg-emerald-800 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors"
+                        >
+                          {sub.status === 'revision_requested'
+                            ? (isRTL ? 'إعادة التسليم' : 'Resubmit')
+                            : (isRTL ? 'معاينة' : 'View')}
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-
-              {/* Row 2: Strings project */}
-              <div className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-3">
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                    {isRTL ? 'مشروع النصوص والتنسيق' : 'Strings project'}
-                  </h4>
-                  <span className="text-[11px] text-slate-400 dark:text-slate-500 block">
-                    {isRTL ? 'المحاولة ١' : 'Attempt 1'}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-medium px-2.5 py-0.5 rounded-md">
-                    {isRTL ? 'قيد المراجعة' : 'Under review'}
-                  </span>
-                  <Link
-                    to="/project/topic-1"
-                    className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-lg transition-colors"
-                  >
-                    {isRTL ? 'معاينة' : 'View'}
-                  </Link>
-                </div>
-              </div>
-
-              {/* Row 3: Input processing */}
-              <div className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-3">
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                    {isRTL ? 'مشروع معالجة المدخلات والدرجات' : 'Input processing'}
-                  </h4>
-                  <span className="text-[11px] text-slate-400 dark:text-slate-500 block">
-                    {isRTL ? 'المحاولة ١' : 'Attempt 1'}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-[11px] font-medium px-2.5 py-0.5 rounded-md">
-                    {isRTL ? 'تم تقديم ملاحظات' : 'Feedback given'}
-                  </span>
-                  <Link
-                    to="/project/topic-2"
-                    className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-lg transition-colors"
-                  >
-                    {isRTL ? 'عرض الملاحظات' : 'View feedback'}
-                  </Link>
-                </div>
-              </div>
-            </div>
+            ) : (
+              <p className="text-xs text-slate-400 py-4 text-center">
+                {isRTL ? 'لم تقم بتقديم أي مشاريع بعد.' : 'No submitted projects yet.'}
+              </p>
+            )}
           </div>
         </div>
 
@@ -293,36 +272,27 @@ export default function LearnerDashboard() {
             </div>
 
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              <div className="py-2.5 first:pt-0 flex items-center justify-between text-xs">
-                <span className="font-medium text-slate-800 dark:text-slate-200">
-                  {isRTL ? 'تقدم الدرس ١' : 'Lesson 1 progress'}
-                </span>
-                <span className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
-                  {isRTL ? 'متزامن' : 'Synced'}
-                </span>
-              </div>
-
-              <div className="py-2.5 flex items-center justify-between text-xs">
-                <span className="font-medium text-slate-800 dark:text-slate-200">
-                  {isRTL ? 'موقع الدرس ٢' : 'Lesson 2 position'}
-                </span>
-                <span className="bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
-                  {isRTL ? 'قيد الانتظار' : 'Pending'}
-                </span>
-              </div>
-
-              <div className="py-2.5 last:pb-0 flex items-center justify-between text-xs">
-                <span className="font-medium text-slate-800 dark:text-slate-200">
-                  {isRTL ? 'تقدم اختبار الوحدة ١' : 'Quiz 1 progress'}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleManualSync}
-                  className="bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-[11px] font-semibold px-2.5 py-0.5 rounded-full transition-colors cursor-pointer"
-                >
-                  {isRTL ? 'فشل · إعادة المحاولة' : 'Failed · Retry'}
-                </button>
-              </div>
+              {pendingQueue.length > 0 ? (
+                pendingQueue.slice(0, 3).map((item, idx) => (
+                  <div key={item.updateId || idx} className="py-2.5 first:pt-0 flex items-center justify-between text-xs">
+                    <span className="font-medium text-slate-800 dark:text-slate-200">
+                      {isRTL ? `تقدم الدرس (${item.lessonId})` : `Progress (${item.lessonId})`}
+                    </span>
+                    <span className="bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
+                      {isRTL ? 'قيد الانتظار' : 'Pending'}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="py-2.5 flex items-center justify-between text-xs">
+                  <span className="font-medium text-slate-800 dark:text-slate-200">
+                    {isRTL ? 'حالة سجلات التعلم' : 'Learning progress status'}
+                  </span>
+                  <span className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
+                    {isRTL ? 'متزامن بالكامل' : 'All progress synced'}
+                  </span>
+                </div>
+              )}
             </div>
 
             <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-normal pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -338,25 +308,43 @@ export default function LearnerDashboard() {
               {isRTL ? 'أحدث الملاحظات والتقييمات' : 'Latest feedback'}
             </h3>
 
-            <div>
-              <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                {isRTL ? 'المرشدة سارة إبراهيم · مشروع المتغيرات' : 'Mentor Sarah · Variables project'}
-              </h4>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mt-1">
-                {isRTL
-                  ? 'هيكل البرنامج ممتاز ومحكم. يرجى إضافة تعليقات توضيحية لخطوات التحقق من مدخلات الأرقام ثم إعادة التسليم.'
-                  : 'Good structure. Add comments that explain the input checks, then resubmit.'}
-              </p>
-            </div>
+            {(() => {
+              const subWithFeedback = submissions.find((s) => s.feedbacks && s.feedbacks.length > 0);
+              const latestFeedback = subWithFeedback?.feedbacks?.[subWithFeedback.feedbacks.length - 1];
 
-            <div className="pt-2">
-              <Link
-                to="/project/topic-1"
-                className="px-3.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-lg inline-block transition-colors"
-              >
-                {isRTL ? 'فتح تفاصيل المشروع' : 'Open submission'}
-              </Link>
-            </div>
+              if (!latestFeedback) {
+                return (
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {isRTL ? 'لا توجد ملاحظات مرشدين بعد.' : 'No mentor feedback received yet.'}
+                  </p>
+                );
+              }
+
+              const relatedTopic = TOPICS.find((t) => t.id === subWithFeedback.topicId);
+              const topicTitle = language === 'ar' ? (relatedTopic?.titleAr || 'المشروع') : (relatedTopic?.titleEn || 'Project');
+
+              return (
+                <>
+                  <div>
+                    <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      {latestFeedback.author} · {topicTitle}
+                    </h4>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mt-1">
+                      {latestFeedback.text}
+                    </p>
+                  </div>
+
+                  <div className="pt-2">
+                    <Link
+                      to={`/project/${subWithFeedback.topicId || 'topic-1'}`}
+                      className="px-3.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-lg inline-block transition-colors"
+                    >
+                      {isRTL ? 'فتح تفاصيل المشروع' : 'Open submission'}
+                    </Link>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       </div>
@@ -364,7 +352,7 @@ export default function LearnerDashboard() {
       {/* Bottom Sample Data Notice */}
       <div className="pt-2">
         <p className="text-[11px] text-slate-400">
-          {isRTL ? 'بيانات تجريبية للمراجعة وتدقيق التصميم.' : 'Sample data for design review.'}
+          {isRTL ? 'بيانات منصة همة السودان التعليمية - تدعم المزامنة التلقائية والعمل غير المتصل.' : 'Hemma Sudan learning platform - Supports offline storage and auto-sync.'}
         </p>
       </div>
     </div>

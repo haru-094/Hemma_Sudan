@@ -1,39 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { AlertTriangle, X } from 'lucide-react';
 
+function checkBrowserSupport() {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+    return false;
+  }
+  try {
+    const ua = navigator.userAgent;
+
+    // Check Chrome / Edge version
+    const chromeMatch = ua.match(/(Chrome|CriOS|Edg)\/(\d+)/);
+    if (chromeMatch && parseInt(chromeMatch[2], 10) < 115) {
+      return true;
+    }
+
+    // Check Safari version
+    const safariMatch = ua.match(/Version\/(\d+).*Safari/);
+    if (safariMatch && parseInt(safariMatch[1], 10) < 16) {
+      return true;
+    }
+
+    // Check core offline features
+    if (!('indexedDB' in window) || !('serviceWorker' in navigator)) {
+      return true;
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export default function UnsupportedBrowser() {
   const { isRTL } = useLanguage();
-  const [isUnsupported, setIsUnsupported] = useState(false);
+  const [isUnsupported] = useState(checkBrowserSupport);
   const [isDismissed, setIsDismissed] = useState(false);
-
-  useEffect(() => {
-    try {
-      const ua = navigator.userAgent;
-      let unsupported = false;
-
-      // Check Chrome / Edge version
-      const chromeMatch = ua.match(/(Chrome|CriOS|Edg)\/(\d+)/);
-      if (chromeMatch && parseInt(chromeMatch[2], 10) < 115) {
-        unsupported = true;
-      }
-
-      // Check Safari version
-      const safariMatch = ua.match(/Version\/(\d+).*Safari/);
-      if (safariMatch && parseInt(safariMatch[1], 10) < 16) {
-        unsupported = true;
-      }
-
-      // Check core offline features
-      if (!('indexedDB' in window) || !('serviceWorker' in navigator)) {
-        unsupported = true;
-      }
-
-      setIsUnsupported(unsupported);
-    } catch (e) {
-      // Ignore detection errors
-    }
-  }, []);
 
   if (!isUnsupported || isDismissed) return null;
 
@@ -49,7 +51,7 @@ export default function UnsupportedBrowser() {
       </div>
       <button
         onClick={() => setIsDismissed(true)}
-        className="text-amber-100 hover:text-white p-1 rounded-md"
+        className="text-amber-100 hover:text-white p-1 rounded-md cursor-pointer"
         aria-label="Dismiss notice"
       >
         <X className="w-4 h-4" />

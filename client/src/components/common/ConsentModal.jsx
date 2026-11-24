@@ -1,11 +1,10 @@
-import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { ShieldCheck, AlertCircle, Check, X, Database, Clock } from 'lucide-react';
+import { ShieldCheck, Check, X, Database, Clock } from 'lucide-react';
 
 export default function ConsentModal() {
-  const { showConsentModal, setShowConsentModal, updateConsent, consentStatus, loginCount } = useAuth();
-  const { t, isRTL } = useLanguage();
+  const { showConsentModal, setShowConsentModal, updateConsent, loginCount } = useAuth();
+  const { isRTL } = useLanguage();
 
   if (!showConsentModal) {
     return null;

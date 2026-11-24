@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { 
   saveLessonToIDB, 
   removeLessonFromIDB, 
@@ -32,6 +32,7 @@ export function SyncProvider({ children }) {
   const retryAttemptRef = useRef(0);
   const retryTimeoutRef = useRef(null);
   const wasReauthRequiredRef = useRef(false);
+  const triggerSyncRef = useRef(null);
 
   // Monitor storage quota usage: warn when >80%
   const checkStorageQuota = useCallback(async () => {
@@ -114,8 +115,6 @@ export function SyncProvider({ children }) {
 
       // Error Classification:
       if (err.status === 401) {
-        // Alternative 3: 401 session expired
-        // Do NOT retry automatically. Keep queue as 'pending' and ask learner to log in again.
         console.warn('Sync paused: 401 Unauthorized (session expired). Queue preserved.');
         setSyncStatus('pending');
         setRequiresReauth(true);
@@ -126,8 +125,6 @@ export function SyncProvider({ children }) {
         });
         if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
       } else if (err.status === 400 || err.status === 403) {
-        // Alternative 4: 400 or 403 rejected
-        // Mark as 'failed' with error code and no automatic retry.
         console.warn(`Sync rejected: HTTP ${err.status} with error code ${err.errorCode || 'REJECTED'}. No automatic retry.`);
         setSyncStatus('failed');
         setSyncError({
@@ -137,8 +134,6 @@ export function SyncProvider({ children }) {
         });
         if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
       } else {
-        // Alternative 2: Timeout, 5xx server error, or network error
-        // Stays 'pending' and is retried automatically with increasing delays (5s, 15s, 60s)
         setSyncError(null);
         const currentAttempt = retryAttemptRef.current;
         if (currentAttempt < RETRY_DELAYS.length) {
@@ -148,7 +143,7 @@ export function SyncProvider({ children }) {
 
           if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
           retryTimeoutRef.current = setTimeout(() => {
-            triggerSync();
+            triggerSyncRef.current?.();
           }, delay);
         } else {
           // After 3 failed attempts, mark as failed and permit manual retry
@@ -156,7 +151,12 @@ export function SyncProvider({ children }) {
         }
       }
     }
-  }, [checkStorageQuota, currentUser?.id, isSessionExpired, savedLessons, sessionExpiredWhileOffline]);
+  }, [checkStorageQuota, currentUser, isSessionExpired, savedLessons, sessionExpiredWhileOffline]);
+
+  // Keep ref up to date
+  useEffect(() => {
+    triggerSyncRef.current = triggerSync;
+  }, [triggerSync]);
 
   // Beforeunload safety guard to warn user before discarding unsynced progress
   useEffect(() => {
@@ -195,10 +195,10 @@ export function SyncProvider({ children }) {
       } catch (err) {
         console.error('Error initializing IndexedDB:', err);
       }
+      await checkStorageQuota();
     }
 
     loadFromDB();
-    checkStorageQuota();
   }, [checkStorageQuota]);
 
   // Online / offline event listeners
@@ -206,7 +206,7 @@ export function SyncProvider({ children }) {
     const handleOnline = () => {
       setIsOnline(true);
       retryAttemptRef.current = 0;
-      triggerSync();
+      triggerSyncRef.current?.();
     };
     const handleOffline = () => {
       setIsOnline(false);
@@ -225,26 +225,25 @@ export function SyncProvider({ children }) {
         clearTimeout(retryTimeoutRef.current);
       }
     };
-  }, [triggerSync]);
+  }, []);
 
   // Handle session expiration and auto-resume after re-authentication
   useEffect(() => {
     if (isSessionExpired || sessionExpiredWhileOffline) {
-      setRequiresReauth(true);
       wasReauthRequiredRef.current = true;
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current);
       }
-    } else if (currentUser && !isSessionExpired && wasReauthRequiredRef.current) {
+    } else if (currentUser && wasReauthRequiredRef.current) {
       // Re-authenticated: automatically resume sync without data loss
       wasReauthRequiredRef.current = false;
       setRequiresReauth(false);
       setSyncError(null);
       if (navigator.onLine) {
-        triggerSync();
+        triggerSyncRef.current?.();
       }
     }
-  }, [currentUser, isSessionExpired, sessionExpiredWhileOffline, triggerSync]);
+  }, [currentUser, isSessionExpired, sessionExpiredWhileOffline]);
 
   // Record progress with client UUID for duplicate protection
   const recordProgress = async (lessonId, lastPosition = 100, status = 'completed') => {
@@ -264,7 +263,7 @@ export function SyncProvider({ children }) {
       setSyncStatus('pending');
 
       if (navigator.onLine) {
-        triggerSync();
+        triggerSyncRef.current?.();
       }
     } catch (err) {
       console.error('Failed to record progress to IndexedDB:', err);
@@ -295,7 +294,7 @@ export function SyncProvider({ children }) {
   // Manual retry resets the attempt counter
   const manualRetrySync = () => {
     retryAttemptRef.current = 0;
-    triggerSync();
+    triggerSyncRef.current?.();
   };
 
   const toggleSaveOffline = async (lessonId) => {
@@ -354,6 +353,7 @@ export function SyncProvider({ children }) {
         syncStatus,
         setSyncStatus,
         pendingQueue,
+        queueCount: pendingQueue.length,
         savedLessons,
         quotaWarning,
         storageUsagePercent,

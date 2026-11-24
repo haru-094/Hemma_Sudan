@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth, DEMO_USERS } from '../context/AuthContext';
@@ -9,20 +9,14 @@ import {
   Mail, 
   Lock, 
   AlertCircle, 
-  CheckCircle2, 
-  ShieldAlert, 
   KeyRound, 
-  HelpCircle,
-  X,
-  ArrowRight,
-  ArrowLeft,
-  BookOpen,
-  Database
+  X, 
+  Database 
 } from 'lucide-react';
 
 export default function LoginPage() {
-  const { t, isRTL, language } = useLanguage();
-  const { login, loginAs, currentUser, isSessionExpired, sessionExpiredWhileOffline, expireSessionNow } = useAuth();
+  const { isRTL } = useLanguage();
+  const { login, loginAs, isSessionExpired, sessionExpiredWhileOffline, expireSessionNow } = useAuth();
   const { requiresReauth, pendingQueue } = useSync();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -53,8 +47,6 @@ export default function LoginPage() {
       isMounted = false;
     };
   }, []);
-
-  const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
 
   const handlePostLoginRedirect = (user) => {
     if (returnTo) {

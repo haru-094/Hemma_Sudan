@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { api } from '../../services/api';
 import { TOPICS } from '../../data/mockData';
 import { 
   Sparkles, 
   Languages, 
-  Check, 
-  Clock, 
   AlertCircle, 
   FileText, 
   Code, 
@@ -19,7 +17,7 @@ export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onL
   const { isRTL } = useLanguage();
 
   const availableTopics = (topics && topics.length > 0) ? topics : TOPICS;
-  const [topicId, setTopicId] = useState(availableTopics[0]?.id || 'topic-1');
+  const [topicId, setTopicId] = useState('');
   const [titleEn, setTitleEn] = useState('');
   const [titleAr, setTitleAr] = useState('');
   const [notesEn, setNotesEn] = useState('');
@@ -28,13 +26,9 @@ export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onL
   const [recordingLink, setRecordingLink] = useState('');
   const [arabicStatus, setArabicStatus] = useState('draft'); // 'draft' | 'approved' | 'pending'
 
-  useEffect(() => {
-    if (isOpen && availableTopics.length > 0) {
-      if (!availableTopics.some((t) => t.id === topicId)) {
-        setTopicId(availableTopics[0].id);
-      }
-    }
-  }, [isOpen, availableTopics]);
+  const effectiveTopicId = availableTopics.some((t) => t.id === topicId)
+    ? topicId
+    : (availableTopics[0]?.id || 'topic-1');
 
   const [isTranslating, setIsTranslating] = useState(false);
   const [translationNotice, setTranslationNotice] = useState('');
@@ -73,7 +67,7 @@ export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onL
         );
         setArabicStatus('pending');
       }
-    } catch (err) {
+    } catch {
       setTranslationNotice(isRTL ? 'تعذر الاتصال بخدمة الترجمة؛ يمكنك إدخال الترجمة يدوياً.' : 'Translation service unreachable; you can enter Arabic manually.');
       setArabicStatus('pending');
     } finally {
@@ -93,7 +87,7 @@ export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onL
     setIsSaving(true);
     try {
       const payload = {
-        topicId,
+        topicId: effectiveTopicId,
         titleEn,
         titleAr: titleAr.trim() || titleEn.trim(),
         notesEn,
@@ -121,7 +115,9 @@ export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onL
         const custom = JSON.parse(localStorage.getItem('hemma_custom_lessons') || '[]');
         const updated = [created, ...custom.filter((l) => l.id !== created.id)];
         localStorage.setItem('hemma_custom_lessons', JSON.stringify(updated));
-      } catch (e) {}
+      } catch {
+        // Ignore local storage error
+      }
 
       if (onLessonCreated) {
         onLessonCreated(created);
@@ -176,7 +172,7 @@ export default function LessonAuthoringModal({ isOpen, onClose, topics = [], onL
                 {isRTL ? 'اختر الوحدة / المحور' : 'Course Module / Topic'}
               </label>
               <select
-                value={topicId}
+                value={effectiveTopicId}
                 onChange={(e) => setTopicId(e.target.value)}
                 className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer"
               >

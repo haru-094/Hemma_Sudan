@@ -1,16 +1,15 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { 
   CheckCircle2, 
   XCircle, 
-  HelpCircle, 
   RotateCcw, 
   ArrowRight, 
   ArrowLeft,
 } from 'lucide-react';
 
 export default function TopicQuiz({ quiz, onComplete, onProceedToAssignment }) {
-  const { t, isRTL, language } = useLanguage();
+  const { isRTL, language } = useLanguage();
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;

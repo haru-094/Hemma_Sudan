@@ -1,16 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useSync } from '../context/SyncContext';
-import { TOPICS, LESSONS, TRACKS } from '../data/mockData';
+import { TOPICS, LESSONS } from '../data/mockData';
 import { api } from '../services/api';
 import { 
-  DownloadCloud, 
-  Check, 
-  RefreshCw,
   Video,
   ExternalLink,
-  Code2,
   WifiOff,
   FolderDown
 } from 'lucide-react';
@@ -25,7 +21,6 @@ export default function LessonsPage() {
     lessonContentStatus, 
     refreshSavedLesson 
   } = useSync();
-  const navigate = useNavigate();
 
   const saveWholeModule = async (topicLessons) => {
     for (const l of topicLessons) {
@@ -37,8 +32,6 @@ export default function LessonsPage() {
 
   // Selected track state (default 'python')
   const [activeTrackId, setActiveTrackId] = useState('python');
-
-  const activeTrack = TRACKS.find((t) => t.id === activeTrackId) || TRACKS[0];
 
   // Dynamic lessons merging static, localStorage custom authored lessons, and server lessons
   const [dynamicLessons, setDynamicLessons] = useState(() => {
@@ -90,7 +83,7 @@ export default function LessonsPage() {
           });
           setDynamicLessons(combined);
         }
-      } catch (err) {
+      } catch {
         // Fallback already in place
       }
     }

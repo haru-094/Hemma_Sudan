@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSync } from '../../context/SyncContext';
 import { useLanguage } from '../../context/LanguageContext';

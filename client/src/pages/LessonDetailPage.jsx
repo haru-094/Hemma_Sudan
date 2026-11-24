@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useSync } from '../context/SyncContext';
@@ -12,22 +12,16 @@ import {
   Video, 
   ExternalLink, 
   Code, 
-  HelpCircle,
-  FolderGit2,
-  BookOpen,
-  RefreshCw,
-  AlertTriangle,
-  Copy,
-  Check,
-  Sparkles,
-  Layers,
-  ChevronRight,
-  ChevronDown,
-  Menu,
-  X,
-  Compass,
-  Cpu,
-  GraduationCap
+  HelpCircle, 
+  FolderGit2, 
+  RefreshCw, 
+  Copy, 
+  Check, 
+  Sparkles, 
+  Menu, 
+  X, 
+  Compass, 
+  Cpu 
 } from 'lucide-react';
 
 export default function LessonDetailPage() {
@@ -39,9 +33,7 @@ export default function LessonDetailPage() {
 
   // Track selection: read from query param or default to 'python'
   const trackParam = searchParams.get('track');
-  const [selectedTrack, setSelectedTrack] = useState(() => {
-    return TRACKS.find((tr) => tr.id === trackParam)?.id || 'python';
-  });
+  const selectedTrack = TRACKS.some((tr) => tr.id === trackParam) ? trackParam : 'python';
 
   const [completed, setCompleted] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
@@ -50,14 +42,7 @@ export default function LessonDetailPage() {
   const [copiedBasic, setCopiedBasic] = useState(false);
   const [copiedAdv, setCopiedAdv] = useState(false);
 
-  useEffect(() => {
-    if (trackParam && TRACKS.some((tr) => tr.id === trackParam)) {
-      setSelectedTrack(trackParam);
-    }
-  }, [trackParam]);
-
   const handleSelectTrack = (trackId) => {
-    setSelectedTrack(trackId);
     setSearchParams({ track: trackId });
   };
 

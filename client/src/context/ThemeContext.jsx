@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 const ThemeContext = createContext();
 
@@ -10,7 +10,7 @@ export function ThemeProvider({ children }) {
       if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
         return 'dark';
       }
-    } catch (e) {
+    } catch {
       // Fallback
     }
     return 'light';
@@ -27,7 +27,7 @@ export function ThemeProvider({ children }) {
     }
     try {
       localStorage.setItem('hemma_theme', theme);
-    } catch (e) {
+    } catch {
       // Ignore in private storage
     }
   }, [theme]);

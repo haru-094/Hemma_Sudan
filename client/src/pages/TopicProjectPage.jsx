@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -15,13 +15,9 @@ import {
   AlertTriangle, 
   CheckCircle, 
   RotateCcw,
-  Check,
-  FileCode,
-  FolderGit2,
   ExternalLink,
   HelpCircle,
   ShieldAlert,
-  MessageSquare,
   Loader2,
   CheckCircle2
 } from 'lucide-react';
@@ -66,12 +62,12 @@ export default function TopicProjectPage() {
           }));
           setSubmissions(mapped);
         }
-      } catch (err) {
+      } catch {
         // Fallback to local state
       }
     }
     loadHistory();
-  }, [topic.id, currentUser?.id]);
+  }, [topic.id, currentUser?.id, currentUser?.name]);
 
   const latestSub = submissions[submissions.length - 1];
 
@@ -126,7 +122,7 @@ export default function TopicProjectPage() {
         learnerId: currentUser?.id || 'usr-learner-1',
         reason,
       });
-    } catch (err) {
+    } catch {
       // Offline / demo fallback
     }
   };
@@ -147,7 +143,7 @@ export default function TopicProjectPage() {
         resolution: 'complete',
         comment: 'Accepted by learner.',
       });
-    } catch (err) {
+    } catch {
       // Offline / demo fallback
     }
   };

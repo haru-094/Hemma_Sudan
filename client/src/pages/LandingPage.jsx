@@ -1,23 +1,16 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { useAuth } from '../context/AuthContext';
 import { TOPICS, LESSONS } from '../data/mockData';
 import {
-  BookOpen,
   WifiOff,
   RefreshCw,
   Users,
   ArrowRight,
-  ArrowLeft,
-  CheckCircle,
-  ExternalLink,
-  Code
+  ArrowLeft
 } from 'lucide-react';
 
 export default function LandingPage() {
   const { t, isRTL, language } = useLanguage();
-  const { currentUser } = useAuth();
   const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
 
   return (

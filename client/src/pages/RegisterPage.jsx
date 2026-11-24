@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -8,17 +8,12 @@ import {
   Lock, 
   User, 
   GraduationCap, 
-  CheckSquare, 
-  Square, 
   AlertCircle, 
-  ShieldCheck,
-  BookOpen,
-  ArrowRight,
-  ArrowLeft
+  ShieldCheck
 } from 'lucide-react';
 
 export default function RegisterPage() {
-  const { t, isRTL, language } = useLanguage();
+  const { isRTL } = useLanguage();
   const { registerLearner } = useAuth();
   const navigate = useNavigate();
 
@@ -28,8 +23,6 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-
-  const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
 
   const handleSubmit = async (e) => {
     e.preventDefault();

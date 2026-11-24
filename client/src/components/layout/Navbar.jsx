@@ -1,32 +1,21 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 import { useSync } from '../../context/SyncContext';
 import { useTheme } from '../../context/ThemeContext';
 import { 
-  Wifi, 
-  WifiOff, 
-  Globe, 
-  BookOpen, 
-  LayoutDashboard, 
-  CheckSquare, 
-  ShieldCheck, 
-  User, 
   Menu, 
   X,
-  RefreshCw,
-  LogIn,
-  LogOut,
   Sun,
   Moon
 } from 'lucide-react';
 
 export default function Navbar() {
-  const { language, toggleLanguage, t, isRTL } = useLanguage();
-  const { currentUser, loginAs, logout, isTeacher, isMentor } = useAuth();
-  const { isOnline, syncStatus, triggerSync, queueCount } = useSync();
-  const { theme, toggleTheme, isDark } = useTheme();
+  const { language, toggleLanguage, isRTL } = useLanguage();
+  const { currentUser, logout, isTeacher, isMentor } = useAuth();
+  const { isOnline, triggerSync, queueCount } = useSync();
+  const { toggleTheme, isDark } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
