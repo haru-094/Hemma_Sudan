@@ -9,9 +9,10 @@
 2. [Key Features](#-key-features)
 3. [Prerequisites](#-prerequisites)
 4. [Installation & Setup](#-installation--setup)
-5. [Demo Accounts](#-demo-accounts)
-6. [How to Use the Application](#-how-to-use-the-application)
-7. [Project Directory & File Structure](#-project-directory--file-structure)
+5. [Creating the Teacher Account & Role Lockdown](#-creating-the-teacher-account--role-lockdown)
+6. [Demo Accounts & DEMO_MODE](#-demo-accounts--demo_mode)
+7. [How to Use the Application](#-how-to-use-the-application)
+8. [Project Directory & File Structure](#-project-directory--file-structure)
 
 ---
 
@@ -125,20 +126,46 @@ Open your browser and navigate to **`http://localhost:5173`**.
 
 ---
 
+## 🔐 Creating the Teacher Account & Role Lockdown
 
-## 👥 Demo Accounts
+In accordance with system specifications:
+- **Teacher accounts cannot be self-registered**: The public registration page (`/register`) is strictly locked down and will **always** create accounts with the `learner` role, completely ignoring any client-supplied role values. Passwords are securely hashed with `bcryptjs`.
+- **Teacher Account Seeding via Environment Variables**: Teacher accounts are seeded automatically on server startup if no teacher exists in the database.
+- **Environment Variables**:
+  - `TEACHER_EMAIL`: The official login email for the course instructor (e.g. `teacher@hemma.sd`).
+  - `TEACHER_PASSWORD`: The secure password for the instructor (e.g. `TeacherSecurePass2026!`). The server hashes this with `bcryptjs` before persisting to PostgreSQL or the in-memory store; plain-text passwords are never saved.
+  - `TEACHER_NAME`: The instructor's display name (e.g. `Dr. Tariq Ahmed`).
+  - `DEMO_MODE`: Set to `false` for production deployments, or `true` for grading/evaluation demos.
+- **Setting Environment Variables on Render / Cloud Platforms**:
+  When deploying on [Render](https://render.com), configure the following in your Web Service's **Environment** tab:
+  1. Add `TEACHER_EMAIL`, `TEACHER_PASSWORD`, and `TEACHER_NAME`.
+  2. Set `DEMO_MODE=false`.
+  3. Deploy the service. On startup, the backend will verify if a teacher exists and automatically seed the teacher account with the hashed password.
+- **Mentor Accreditation**:
+  Mentors are learners promoted by the teacher through topic accreditation on the Teacher Hub (`/teacher`). Mentors cannot register directly.
 
-The platform includes pre-configured demo accounts so you can test all roles immediately without registering:
+---
+
+## 👥 Demo Accounts & DEMO_MODE
+
+> ⚠️ **DEMO_MODE Note:**  
+> The one-click demo login buttons and "any password" bypass **only apply when `DEMO_MODE=true`** in `server/.env`.  
+> When deployed to production with **`DEMO_MODE=false`**:
+> - The client automatically hides the one-click demo accounts section and session simulation buttons via `GET /api/config`.
+> - Strict `bcryptjs` password comparison is enforced for all logins; demo accounts cannot be logged into without valid credentials.
+> - The seeded teacher account logs in with `TEACHER_EMAIL` and `TEACHER_PASSWORD`.
+
+When `DEMO_MODE=true` (default for local development and grading), the platform includes pre-configured demo shortcuts:
 
 | Role | Name | Email | Password | Access & Capabilities |
 |---|---|---|---|---|
-| **Learner** | Ahmed Osman | `ahmed.student@hemma.sd` | *any* | Browse lessons, take offline quizzes, submit GitHub capstones, request teacher review |
-| **Mentor** | Sarah Ibrahim | `sarah.mentor@hemma.sd` | *any* | Review submissions for Topics 1 & 2, request revisions, approve projects |
-| **Mentor** | Omar Farouk | `omar.mentor@hemma.sd` | *any* | Review submissions for Topics 2 & 3 (prefers Arabic UI) |
-| **Mentor** | Mona Elhassan | `mona.mentor@hemma.sd` | *any* | Review submissions for Topic 1 |
-| **Course Lead (Teacher)** | Dr. Tariq Ahmed | `teacher@hemma.sd` | *any* | Author lessons, approve translations, assign mentors, resolve escalations, purge demo data |
+| **Learner** | Ahmed Osman | `ahmed.student@hemma.sd` | *any* (or `DemoPass2026!`) | Browse lessons, take offline quizzes, submit GitHub capstones, request teacher review |
+| **Mentor** | Sarah Ibrahim | `sarah.mentor@hemma.sd` | *any* (or `DemoPass2026!`) | Review submissions for Topics 1 & 2, request revisions, approve projects |
+| **Mentor** | Omar Farouk | `omar.mentor@hemma.sd` | *any* (or `DemoPass2026!`) | Review submissions for Topics 2 & 3 (prefers Arabic UI) |
+| **Mentor** | Mona Elhassan | `mona.mentor@hemma.sd` | *any* (or `DemoPass2026!`) | Review submissions for Topic 1 |
+| **Course Lead (Teacher)** | Dr. Tariq Ahmed | `teacher@hemma.sd` | `TEACHER_PASSWORD` (or *any* in demo) | Author lessons, approve translations, assign mentors, resolve escalations, purge demo data |
 
-> 💡 **One-Click Login:** On the `/login` page, you can click any name under **"One-Click Demo Accounts"** to log in instantly. You can also switch users at any time using the user menu in the top-right corner of the navbar.
+> 💡 **One-Click Login (when DEMO_MODE=true):** On the `/login` page, you can click any name under **"One-Click Demo Accounts"** to log in instantly. You can also switch users at any time using the user menu in the top-right corner of the navbar.
 
 ---
 
