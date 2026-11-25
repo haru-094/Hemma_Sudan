@@ -227,8 +227,18 @@ The frontend is a **React 19 + Vite** Single Page Application styled with **Tail
 
 1. Open your browser and navigate to **`http://localhost:5173`**.
 2. Click **Sign In** in the top navigation bar.
-3. If `DEMO_MODE=true`, you will see **One-Click Demo Accounts** ready for immediate testing.
-4. Click any demo account (e.g., **Ahmed Osman**) or log in using credentials from the table below.
+3. If `DEMO_MODE=true` (default), you will see **One-Click Demo Accounts** ready for immediate testing.
+4. You can log into any account using the credentials below:
+
+| Role | Email | Password |
+|---|---|---|
+| **Course Lead (Teacher)** | `teacher@hemma.sd` | `TeacherSecurePass2026!` |
+| **Accredited Mentor** | `sarah.mentor@hemma.sd` | `DemoPass2026!` |
+| **Accredited Mentor** | `omar.mentor@hemma.sd` | `DemoPass2026!` |
+| **Learner** | `ahmed.student@hemma.sd` | `DemoPass2026!` |
+| **Learner (Ready to Accredit)** | `mona.mentor@hemma.sd` | `DemoPass2026!` |
+
+*(See [Section 7](#-authentication-user-roles--demo-accounts) for full role permissions and production authentication details).*
 
 ---
 
